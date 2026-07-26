@@ -128,8 +128,9 @@ export default function ClientWaitingPage() {
 
               await audioRef.current.play();
 
-              console.log("SUCCESS PLAY");
+              alert("BERHASIL");
             } catch (err) {
+              alert(err.name + " : " + err.message);
               console.error(err);
             }
           };
@@ -398,6 +399,12 @@ export default function ClientWaitingPage() {
         <source src="/bell.mp3" type="audio/mpeg" />
       </audio>
       {/* Tombol Mute / Unmute Audio Notifikasi */}
+      <button
+        onClick={playNotificationSound}
+        className="bg-red-500 text-white p-3 rounded"
+      >
+        TEST SOUND
+      </button>
       <button
         onClick={toggleMute}
         className="absolute top-6 right-6 px-4 py-2.5 bg-white border border-neutral-200/80 text-xs font-bold text-neutral-700 rounded-2xl hover:bg-neutral-100 transition shadow-2xs flex items-center gap-2 cursor-pointer"

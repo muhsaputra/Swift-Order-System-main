@@ -46,8 +46,9 @@ export default function ClientWaitingPage() {
   const [recommendedMenus, setRecommendedMenus] = useState([]);
 
   const audioRef = useRef(null);
-  // Ref untuk memastikan suara tidak berbunyi otomatis saat initial load jika status sudah ready
-  const hasInitializedRef = useRef(false);
+
+  // Ref untuk memastikan fetch data awal TIDAK memicu suara bell
+  const isInitialFetchDone = useRef(false);
 
   // Fungsi untuk memutar suara notifikasi
   const playNotificationSound = () => {
@@ -116,12 +117,14 @@ export default function ClientWaitingPage() {
         setOrder(res.data);
         setStatus(res.data.orderStatus);
         localStorage.setItem(`order_${id}`, JSON.stringify(res.data));
-
-        // Tandai bahwa data awal telah dimuat
-        hasInitializedRef.current = true;
       } catch (err) {
         console.error("Gagal memuat detail pesanan", err);
-        hasInitializedRef.current = true;
+      } finally {
+        // Tandai bahwa pengambilan data awal telah selesai
+        // Menggunakan setTimeout kecil agar socket event yang masuk setelah fetch dianggap real-time
+        setTimeout(() => {
+          isInitialFetchDone.current = true;
+        }, 500);
       }
     };
 
@@ -149,27 +152,25 @@ export default function ClientWaitingPage() {
 
     socket.on("order-updated", (updatedOrder) => {
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
-        const previousStatus = status;
         const newStatus = updatedOrder.orderStatus;
+
+        // Cek apakah perubahan status ini murni dari event real-time admin (bukan dari loading awal)
+        if (
+          isInitialFetchDone.current &&
+          newStatus === "ready" &&
+          status !== "ready"
+        ) {
+          playNotificationSound();
+        }
 
         setOrder(updatedOrder);
         setStatus(newStatus);
         localStorage.setItem(`order_${id}`, JSON.stringify(updatedOrder));
-
-        // Bunyikan suara HANYA jika sudah terinisialisasi,
-        // status baru adalah 'ready', dan status sebelumnya BUKAN 'ready' (artinya ada transisi real-time dari admin)
-        if (
-          hasInitializedRef.current &&
-          newStatus === "ready" &&
-          previousStatus !== "ready"
-        ) {
-          playNotificationSound();
-        }
       }
     });
 
     return () => socket.disconnect();
-  }, [id, isMuted, searchParams, status]);
+  }, [id, searchParams, status]);
 
   const toggleMute = () => {
     setIsMuted((prev) => {

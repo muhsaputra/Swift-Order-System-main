@@ -32,9 +32,9 @@ export default function ClientWaitingPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  // Inisialisasi awal hanya membaca state sementara untuk rendering pertama (fallback ke processing)
   const [order, setOrder] = useState(() => {
     if (location.state?.order) {
-      localStorage.setItem(`order_${id}`, JSON.stringify(location.state.order));
       return location.state.order;
     }
     const saved = localStorage.getItem(`order_${id}`);
@@ -47,8 +47,11 @@ export default function ClientWaitingPage() {
 
   const audioRef = useRef(null);
 
-  // Menggunakan useRef untuk menyimpan status terakhir secara persisten tanpa memicu re-render
+  // Gunakan ref untuk melacak status aktif secara akurat tanpa memicu re-render
   const currentStatusRef = useRef(order?.orderStatus || "processing");
+
+  // Penjagaan agar socket event tidak memicu suara saat proses fetch awal berjalan
+  const isDataLoadedRef = useRef(false);
 
   const playNotificationSound = () => {
     if (audioRef.current && !isMuted) {
@@ -73,6 +76,7 @@ export default function ClientWaitingPage() {
     };
   }, [status]);
 
+  // Unlock audio untuk mobile/browser policy
   useEffect(() => {
     const unlockAudio = async () => {
       if (!audioRef.current) return;
@@ -112,15 +116,20 @@ export default function ClientWaitingPage() {
         }
 
         const res = await API.get(`/orders/${id}`);
-        setOrder(res.data);
-        setStatus(res.data.orderStatus);
+        const serverStatus = res.data.orderStatus;
 
-        // Simpan status awal ke ref agar tidak membunyikan bell saat load pertama
-        currentStatusRef.current = res.data.orderStatus;
+        setOrder(res.data);
+        setStatus(serverStatus);
+
+        // Sinkronkan ref status dengan data valid dari server database
+        currentStatusRef.current = serverStatus;
 
         localStorage.setItem(`order_${id}`, JSON.stringify(res.data));
       } catch (err) {
         console.error("Gagal memuat detail pesanan", err);
+      } finally {
+        // Tandai bahwa data dari server sudah sukses ditarik
+        isDataLoadedRef.current = true;
       }
     };
 
@@ -148,15 +157,18 @@ export default function ClientWaitingPage() {
 
     socket.on("order-updated", (updatedOrder) => {
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
+        // Jika data awal belum selesai dimuat, abaikan event socket untuk menghindari false trigger
+        if (!isDataLoadedRef.current) return;
+
         const newStatus = updatedOrder.orderStatus;
         const oldStatus = currentStatusRef.current;
 
-        // Bunyikan bell HANYA jika terjadi perubahan status secara real-time dari BUKAN ready MENJADI ready
+        // Bunyikan bell HANYA jika status sebelumnya BUKAN ready, dan status baru BERUBAH menjadi ready
         if (oldStatus !== "ready" && newStatus === "ready") {
           playNotificationSound();
         }
 
-        // Perbarui ref status
+        // Perbarui ref status terkini
         currentStatusRef.current = newStatus;
 
         setOrder(updatedOrder);

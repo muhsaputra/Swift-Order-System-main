@@ -64,7 +64,11 @@ export default function ClientOrderPage() {
     scriptTag.async = true;
     document.body.appendChild(scriptTag);
 
-    const socket = io("http://localhost:5001");
+    const backendUrl = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace("/api", "")
+      : "https://swift-ordering-backend.onrender.com";
+    const socket = io(backendUrl);
+
     socket.on("menu-status-updated", (updatedMenu) => {
       setMenus((prevMenus) =>
         prevMenus.map((menu) =>
@@ -225,7 +229,7 @@ export default function ClientOrderPage() {
     setIsSubmitting(true);
     try {
       // 1. Buat pesanan ke backend dengan menyertakan paymentMethod, discountAmount, serviceFee, & couponCode
-      const response = await axios.post("http://localhost:5001/api/orders", {
+      const response = await API.post("/orders", {
         tableNumber: Number(tableNumber),
         customerName: customerInfo.name,
         customerEmail: customerInfo.email,
@@ -235,7 +239,7 @@ export default function ClientOrderPage() {
         couponCode: appliedCoupon,
         serviceFee: serviceFee,
         totalAmount: finalTotalPrice,
-        paymentMethod: paymentMethod, // "qris" atau "cash"
+        paymentMethod: paymentMethod,
         items: cart.map((item) => ({
           menu: item.menuId,
           menuId: item.menuId,
@@ -263,15 +267,12 @@ export default function ClientOrderPage() {
           return;
         }
 
-        const paymentRes = await axios.post(
-          "http://localhost:5001/api/payments/create-transaction",
-          {
-            orderId: newOrder._id,
-            totalAmount: newOrder.totalAmount,
-            customerName: newOrder.customerName,
-            items: newOrder.items,
-          },
-        );
+        const paymentRes = await API.post("/payments/create-transaction", {
+          orderId: newOrder._id,
+          totalAmount: newOrder.totalAmount,
+          customerName: newOrder.customerName,
+          items: newOrder.items,
+        });
 
         const snapToken = paymentRes.data.token;
         setIsCartOpen(false);
@@ -281,13 +282,10 @@ export default function ClientOrderPage() {
           onSuccess: async function (result) {
             toast.success("Pembayaran Berhasil! Pesanan diproses ke dapur.");
             try {
-              await axios.patch(
-                `http://localhost:5001/api/orders/${newOrder._id}/status`,
-                {
-                  status: "processing",
-                  isPaid: true,
-                },
-              );
+              await API.patch(`/orders/${newOrder._id}/status`, {
+                status: "processing",
+                isPaid: true,
+              });
             } catch (updateErr) {
               console.error(
                 "Gagal memperbarui status setelah bayar",

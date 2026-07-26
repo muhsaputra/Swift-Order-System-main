@@ -25,7 +25,7 @@ export default function TableManagement() {
     // Koneksi Socket.io menggunakan URL backend Render atau environment variable
     const backendUrl = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace("/api", "")
-      : "https://swiftorderingsystembackend.onrender.com"; // Sesuaikan dengan URL backend Render Anda jika diperlukan
+      : "https://swift-ordering-backend.onrender.com";
 
     const socket = io(backendUrl);
 
@@ -160,8 +160,8 @@ export default function TableManagement() {
     const printWindow = window.open("", "_blank", "width=400,height=500");
     if (!printWindow) return;
 
-    // URL dinamis untuk cetak
-    const targetUrl = `https://swiftorderingsystemfrontend-9r2oajqsy.vercel.app/order/${table.tableNumber}`;
+    // URL dinamis untuk cetak menggunakan domain Vercel yang benar
+    const targetUrl = `https://swiftorderingsystemfrontend.vercel.app/order/${table.tableNumber}`;
 
     printWindow.document.write(`
       <html>
@@ -327,11 +327,11 @@ export default function TableManagement() {
                     </h3>
                   </div>
 
-                  {/* QR Code diarahkan ke domain Vercel */}
+                  {/* QR Code diarahkan ke domain Vercel yang benar */}
                   <div className="bg-neutral-50 p-4 rounded-3xl border border-neutral-100 shadow-2xs">
                     <QRCodeSVG
                       id={`qr-svg-${table._id}`}
-                      value={`https://swiftorderingsystemfrontend-9r2oajqsy.vercel.app/order/${table.tableNumber}`}
+                      value={`https://swiftorderingsystemfrontend.vercel.app/order/${table.tableNumber}`}
                       size={110}
                     />
                   </div>

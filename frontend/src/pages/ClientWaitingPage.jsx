@@ -7,7 +7,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { io } from "socket.io-client";
-import axios from "axios";
 import {
   Download,
   Volume2,
@@ -47,7 +46,16 @@ export default function ClientWaitingPage() {
   const [recommendedMenus, setRecommendedMenus] = useState([]);
 
   const audioRef = useRef(null);
-  const previousStatusRef = useRef(order?.orderStatus);
+
+  // Fungsi untuk memutar suara notifikasi
+  const playNotificationSound = () => {
+    if (audioRef.current && !isMuted) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => {
+        console.warn("Autoplay dicegah oleh browser:", err);
+      });
+    }
+  };
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -62,6 +70,30 @@ export default function ClientWaitingPage() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [status]);
+
+  // Efek untuk membuka kunci (unlock) audio pada perangkat mobile via interaksi sentuhan/klik pertama
+  useEffect(() => {
+    const unlockAudio = async () => {
+      if (!audioRef.current) return;
+      try {
+        audioRef.current.volume = 0;
+        await audioRef.current.play();
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current.volume = 1;
+      } catch (err) {
+        console.log("Audio unlock pending");
+      }
+    };
+
+    window.addEventListener("touchstart", unlockAudio, { once: true });
+    window.addEventListener("click", unlockAudio, { once: true });
+
+    return () => {
+      window.removeEventListener("touchstart", unlockAudio);
+      window.removeEventListener("click", unlockAudio);
+    };
+  }, []);
 
   useEffect(() => {
     const verifyAndFetchOrder = async () => {
@@ -112,65 +144,18 @@ export default function ClientWaitingPage() {
 
     socket.on("order-updated", (updatedOrder) => {
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
-        console.log("STATUS:", updatedOrder.orderStatus);
-
         setOrder(updatedOrder);
         setStatus(updatedOrder.orderStatus);
+        localStorage.setItem(`order_${id}`, JSON.stringify(updatedOrder));
 
         if (updatedOrder.orderStatus === "ready") {
-          console.log("PLAY SOUND");
-          const playNotificationSound = async () => {
-            if (!audioRef.current) return;
-
-            try {
-              audioRef.current.pause();
-              audioRef.current.currentTime = 0;
-
-              await audioRef.current.play();
-
-              alert("BERHASIL");
-            } catch (err) {
-              alert(err.name + " : " + err.message);
-              console.error(err);
-            }
-          };
+          playNotificationSound();
         }
       }
     });
 
-    useEffect(() => {
-      const unlockAudio = async () => {
-        if (!audioRef.current) return;
-
-        try {
-          audioRef.current.volume = 0;
-          await audioRef.current.play();
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-
-          console.log("Audio Unlocked");
-        } catch (err) {
-          console.log("Audio masih dikunci");
-        }
-      };
-
-      window.addEventListener("touchstart", unlockAudio, { once: true });
-
-      return () => {
-        window.removeEventListener("touchstart", unlockAudio);
-      };
-    }, []);
-
     return () => socket.disconnect();
   }, [id, isMuted, searchParams]);
-  const playNotificationSound = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch((err) => {
-        console.warn("Autoplay dicegah oleh browser:", err);
-      });
-    }
-  };
 
   const toggleMute = () => {
     setIsMuted((prev) => {
@@ -183,7 +168,6 @@ export default function ClientWaitingPage() {
     });
   };
 
-  // Penanganan nilai diskon & kupon dengan fallback multi-properti
   const discountAmountVal = Number(
     order?.discountAmount || order?.discount || order?.couponDiscount || 0,
   );
@@ -398,13 +382,8 @@ export default function ClientWaitingPage() {
       <audio ref={audioRef} preload="auto">
         <source src="/bell.mp3" type="audio/mpeg" />
       </audio>
+
       {/* Tombol Mute / Unmute Audio Notifikasi */}
-      <button
-        onClick={playNotificationSound}
-        className="bg-red-500 text-white p-3 rounded"
-      >
-        TEST SOUND
-      </button>
       <button
         onClick={toggleMute}
         className="absolute top-6 right-6 px-4 py-2.5 bg-white border border-neutral-200/80 text-xs font-bold text-neutral-700 rounded-2xl hover:bg-neutral-100 transition shadow-2xs flex items-center gap-2 cursor-pointer"
@@ -418,7 +397,6 @@ export default function ClientWaitingPage() {
       </button>
 
       <div className="bg-white border border-neutral-200/80 p-6 sm:p-8 rounded-3xl max-w-lg w-full text-center space-y-6 shadow-xl">
-        {/* Ikon Status Dinamis */}
         <div className="w-16 h-16 bg-neutral-50 text-neutral-900 rounded-2xl flex items-center justify-center mx-auto border border-neutral-200/80 shadow-2xs">
           {currentStatusInfo.icon}
         </div>
@@ -432,7 +410,6 @@ export default function ClientWaitingPage() {
           </p>
         </div>
 
-        {/* Visual Flow Alur Status Pesanan (Step Progress) */}
         <div className="bg-neutral-50 border border-neutral-200/80 p-4 rounded-2xl">
           <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block mb-3 text-left">
             Alur Status Pesanan:
@@ -499,7 +476,6 @@ export default function ClientWaitingPage() {
           </div>
         </div>
 
-        {/* Ringkasan Rinci Pesanan (Termasuk Biaya Layanan 5% & Kupon) */}
         {order && (
           <div className="bg-neutral-50 border border-neutral-200/80 rounded-2xl p-4 text-left space-y-3 shadow-2xs">
             <div className="flex items-center gap-1.5 text-neutral-900 border-b border-neutral-200/80 pb-2">
@@ -546,7 +522,6 @@ export default function ClientWaitingPage() {
               })}
             </div>
 
-            {/* Rincian Finansial: Subtotal, Kupon, & Biaya Layanan 5% */}
             <div className="pt-2.5 border-t border-neutral-200/80 space-y-1.5 text-xs text-neutral-600">
               <div className="flex justify-between">
                 <span>Subtotal Menu</span>
@@ -588,7 +563,6 @@ export default function ClientWaitingPage() {
           </div>
         )}
 
-        {/* Status Badge */}
         <div
           className={`border py-3 px-4 rounded-2xl text-xs font-bold tracking-wider flex items-center justify-center gap-2 ${currentStatusInfo.badgeColor}`}
         >
@@ -596,7 +570,6 @@ export default function ClientWaitingPage() {
           <span className="uppercase">{status}</span>
         </div>
 
-        {/* Rekomendasi Menu Lainnya */}
         {recommendedMenus.length > 0 && (
           <div className="bg-neutral-50 border border-neutral-200/80 p-4 rounded-2xl text-left space-y-3">
             <div className="flex items-center gap-1.5 text-amber-600">
@@ -636,7 +609,6 @@ export default function ClientWaitingPage() {
           </div>
         )}
 
-        {/* Tombol Aksi */}
         <div className="space-y-2.5">
           {order && (
             <button
@@ -657,7 +629,6 @@ export default function ClientWaitingPage() {
           </button>
         </div>
 
-        {/* Warning Jangan Tutup Halaman */}
         {status !== "completed" && (
           <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-start gap-2.5 text-left">
             <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />

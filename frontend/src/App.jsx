@@ -46,7 +46,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
 
         {/* Rute Pemesanan Pelanggan (Scan QR Meja) */}
-        <Route path="/order" element={<ClientOrderPage />} />
+        <Route path="/order/:tableNumber" element={<ClientOrderPage />} />
 
         {/* Rute Riwayat Pesanan Pelanggan */}
         <Route path="/history" element={<ClientHistoryPage />} />

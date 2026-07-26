@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// Buat instance axios dengan baseURL backend Anda (Port 5001)
+// Buat instance axios dengan baseURL yang dinamis (mendukung Vercel & Localhost)
 const API = axios.create({
-  baseURL: "http://localhost:5001/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
 });
 
 // Interceptor untuk menyisipkan Token JWT otomatis di setiap request jika tersedia

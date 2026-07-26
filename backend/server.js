@@ -15,14 +15,26 @@ const categoryRoutes = require("./routes/categoryRoutes"); // 1. Import router k
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://swiftorderingsystemfrontend.vercel.app",
+];
+
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true,
   },
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
 
 // Koneksi MongoDB
@@ -30,6 +42,13 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Database MongoDB Terhubung!🚀"))
   .catch((err) => console.log("Gagal Koneksi DB:", err));
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Swift Ordering Backend Running 🚀",
+  });
+});
 
 // Registrasi Routes
 app.use("/api/menus", menuRoutes);

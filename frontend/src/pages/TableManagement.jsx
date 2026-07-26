@@ -22,12 +22,12 @@ export default function TableManagement() {
   useEffect(() => {
     fetchTables();
 
-    // Koneksi Socket.io menggunakan URL backend Render atau environment variable
-    const backendUrl = import.meta.env.VITE_API_URL
-      ? import.meta.env.VITE_API_URL.replace("/api", "")
-      : "https://swift-ordering-backend.onrender.com";
+    // Memastikan koneksi Socket.io selalu mengarah ke backend online Render
+    const backendUrl = "https://swift-ordering-backend.onrender.com";
 
-    const socket = io(backendUrl);
+    const socket = io(backendUrl, {
+      transports: ["websocket", "polling"],
+    });
 
     socket.on("table-updated", (updatedTable) => {
       setTables((prevTables) =>

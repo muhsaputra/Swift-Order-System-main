@@ -134,7 +134,6 @@ export default function ClientWaitingPage() {
     }
     fetchRecommendations();
 
-    // Koneksi Socket.io menggunakan environment variable Vercel atau URL Render
     const backendUrl = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace("/api", "")
       : "https://swift-ordering-backend.onrender.com";
@@ -144,18 +143,23 @@ export default function ClientWaitingPage() {
 
     socket.on("order-updated", (updatedOrder) => {
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
+        // Cek apakah status berubah menjadi 'ready' dari status sebelumnya
+        const previousStatus = status;
+        const newStatus = updatedOrder.orderStatus;
+
         setOrder(updatedOrder);
-        setStatus(updatedOrder.orderStatus);
+        setStatus(newStatus);
         localStorage.setItem(`order_${id}`, JSON.stringify(updatedOrder));
 
-        if (updatedOrder.orderStatus === "ready") {
+        // Bunyikan suara HANYA jika status baru adalah 'ready' dan sebelumnya belum 'ready'
+        if (newStatus === "ready" && previousStatus !== "ready") {
           playNotificationSound();
         }
       }
     });
 
     return () => socket.disconnect();
-  }, [id, isMuted, searchParams]);
+  }, [id, isMuted, searchParams, status]);
 
   const toggleMute = () => {
     setIsMuted((prev) => {

@@ -642,7 +642,7 @@ export default function ClientWaitingPage() {
           )}
 
           <button
-            onClick={() => navigate(`/order?table=${order?.tableNumber || 1}`)}
+            onClick={() => navigate(`/menu/${order?.tableNumber || 1}`)}
             className="w-full bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 py-3.5 rounded-2xl text-xs font-bold transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />

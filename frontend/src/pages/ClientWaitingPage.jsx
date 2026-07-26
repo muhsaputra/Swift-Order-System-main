@@ -32,7 +32,6 @@ export default function ClientWaitingPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Inisialisasi awal hanya membaca state sementara untuk rendering pertama (fallback ke processing)
   const [order, setOrder] = useState(() => {
     if (location.state?.order) {
       return location.state.order;
@@ -46,14 +45,21 @@ export default function ClientWaitingPage() {
   const [recommendedMenus, setRecommendedMenus] = useState([]);
 
   const audioRef = useRef(null);
-
-  // Gunakan ref untuk melacak status aktif secara akurat tanpa memicu re-render
   const currentStatusRef = useRef(order?.orderStatus || "processing");
-
-  // Penjagaan agar socket event tidak memicu suara saat proses fetch awal berjalan
   const isDataLoadedRef = useRef(false);
 
+  // Fungsi untuk memutar suara dan memicu getar HP
   const playNotificationSound = () => {
+    // Pemicu getar pada perangkat mobile ([durasi_getar, jeda, durasi_getar])
+    if ("vibrate" in navigator) {
+      try {
+        navigator.vibrate([200, 100, 200, 100, 300]);
+      } catch (e) {
+        console.warn("Vibration API diblokir browser:", e);
+      }
+    }
+
+    // Pemutaran audio bell
     if (audioRef.current && !isMuted) {
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch((err) => {
@@ -120,15 +126,11 @@ export default function ClientWaitingPage() {
 
         setOrder(res.data);
         setStatus(serverStatus);
-
-        // Sinkronkan ref status dengan data valid dari server database
         currentStatusRef.current = serverStatus;
-
         localStorage.setItem(`order_${id}`, JSON.stringify(res.data));
       } catch (err) {
         console.error("Gagal memuat detail pesanan", err);
       } finally {
-        // Tandai bahwa data dari server sudah sukses ditarik
         isDataLoadedRef.current = true;
       }
     };
@@ -157,20 +159,16 @@ export default function ClientWaitingPage() {
 
     socket.on("order-updated", (updatedOrder) => {
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
-        // Jika data awal belum selesai dimuat, abaikan event socket untuk menghindari false trigger
         if (!isDataLoadedRef.current) return;
 
         const newStatus = updatedOrder.orderStatus;
         const oldStatus = currentStatusRef.current;
 
-        // Bunyikan bell HANYA jika status sebelumnya BUKAN ready, dan status baru BERUBAH menjadi ready
         if (oldStatus !== "ready" && newStatus === "ready") {
           playNotificationSound();
         }
 
-        // Perbarui ref status terkini
         currentStatusRef.current = newStatus;
-
         setOrder(updatedOrder);
         setStatus(newStatus);
         localStorage.setItem(`order_${id}`, JSON.stringify(updatedOrder));

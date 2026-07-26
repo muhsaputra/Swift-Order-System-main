@@ -15,7 +15,10 @@ router.post("/", async (req, res) => {
     const initialPaymentStatus =
       paymentMethod === "cash" ? "cash_pending" : "pending";
 
+    const customOrderId = `SWIFT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
     const newOrder = new Order({
+      orderId: customOrderId, // Simpan orderId kustom agar cocok dengan Midtrans / pencarian fleksibel
       tableNumber,
       customerName,
       items,

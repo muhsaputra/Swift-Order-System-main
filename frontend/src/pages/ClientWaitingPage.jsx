@@ -109,15 +109,15 @@ export default function ClientWaitingPage() {
       try {
         const statusCode = searchParams.get("status_code");
 
-        // Jika ada status sukses dari Midtrans, pastikan patch bayar tereksekusi dengan baik
+        // Jika ada status sukses dari Midtrans, lakukan patch pembayaran ke backend
         if (statusCode === "200" || statusCode === "201") {
           try {
-            await API.patch(`/orders/${id}/pay`);
-            console.log("Status pembayaran berhasil diperbarui ke server.");
+            const patchRes = await API.patch(`/orders/${id}/pay`);
+            console.log("Status pembayaran berhasil diperbarui ke server:", patchRes.data);
           } catch (patchErr) {
             console.error(
-              "Gagal memperbarui status bayar ke backend:",
-              patchErr,
+              "DETAIL ERROR PATCH BAYAR:",
+              patchErr.response?.data || patchErr.message
             );
           }
 
@@ -656,7 +656,7 @@ export default function ClientWaitingPage() {
             <span>Kembali ke Menu (Tambah Pesanan)</span>
           </button>
         </div>
-
+          
         {status !== "completed" && (
           <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-start gap-2.5 text-left">
             <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />

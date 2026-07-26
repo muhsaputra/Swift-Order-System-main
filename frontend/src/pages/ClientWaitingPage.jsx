@@ -111,22 +111,36 @@ export default function ClientWaitingPage() {
     socket.emit("join-order", id);
 
     socket.on("order-updated", (updatedOrder) => {
+      console.log("===== SOCKET MASUK =====");
+      console.log(updatedOrder);
+
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
-        const previousStatus = previousStatusRef.current;
+        console.log("Status :", updatedOrder.orderStatus);
 
         setOrder(updatedOrder);
         setStatus(updatedOrder.orderStatus);
-        localStorage.setItem(`order_${id}`, JSON.stringify(updatedOrder));
 
-        if (
-          previousStatus !== "ready" &&
-          updatedOrder.orderStatus === "ready" &&
-          !isMuted
-        ) {
-          playNotificationSound();
+        if (updatedOrder.orderStatus === "ready") {
+          console.log("MAINKAN SUARA");
+          const playNotificationSound = async () => {
+            console.log("Fungsi playNotificationSound dipanggil");
+
+            if (!audioRef.current) {
+              console.log("audioRef NULL");
+              return;
+            }
+
+            try {
+              audioRef.current.currentTime = 0;
+              await audioRef.current.play();
+              console.log("SUARA BERHASIL");
+            } catch (err) {
+              console.error("SUARA GAGAL");
+              console.error(err);
+            }
+          };
+          upda;
         }
-
-        previousStatusRef.current = updatedOrder.orderStatus;
       }
     });
 

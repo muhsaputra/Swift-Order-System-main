@@ -47,6 +47,7 @@ export default function ClientWaitingPage() {
   const [recommendedMenus, setRecommendedMenus] = useState([]);
 
   const audioRef = useRef(null);
+  const previousStatusRef = useRef(order?.orderStatus);
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -111,13 +112,21 @@ export default function ClientWaitingPage() {
 
     socket.on("order-updated", (updatedOrder) => {
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
+        const previousStatus = previousStatusRef.current;
+
         setOrder(updatedOrder);
         setStatus(updatedOrder.orderStatus);
         localStorage.setItem(`order_${id}`, JSON.stringify(updatedOrder));
 
-        if (updatedOrder.orderStatus === "ready" && !isMuted) {
+        if (
+          previousStatus !== "ready" &&
+          updatedOrder.orderStatus === "ready" &&
+          !isMuted
+        ) {
           playNotificationSound();
         }
+
+        previousStatusRef.current = updatedOrder.orderStatus;
       }
     });
 

@@ -123,12 +123,7 @@ export default function ClientWaitingPage() {
         if (updatedOrder.orderStatus === "ready") {
           console.log("MAINKAN SUARA");
           const playNotificationSound = async () => {
-            console.log("Fungsi playNotificationSound dipanggil");
-
-            if (!audioRef.current) {
-              console.log("audioRef NULL");
-              return;
-            }
+            if (!audioRef.current) return;
 
             try {
               audioRef.current.currentTime = 0;
@@ -136,10 +131,10 @@ export default function ClientWaitingPage() {
               console.log("SUARA BERHASIL");
             } catch (err) {
               console.error("SUARA GAGAL");
-              console.error(err);
+              console.error(err.name);
+              console.error(err.message);
             }
           };
-          upda;
         }
       }
     });

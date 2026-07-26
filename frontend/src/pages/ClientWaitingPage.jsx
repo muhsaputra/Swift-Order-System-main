@@ -47,10 +47,9 @@ export default function ClientWaitingPage() {
 
   const audioRef = useRef(null);
 
-  // Ref untuk memastikan fetch data awal TIDAK memicu suara bell
-  const isInitialFetchDone = useRef(false);
+  // Menggunakan useRef untuk menyimpan status terakhir secara persisten tanpa memicu re-render
+  const currentStatusRef = useRef(order?.orderStatus || "processing");
 
-  // Fungsi untuk memutar suara notifikasi
   const playNotificationSound = () => {
     if (audioRef.current && !isMuted) {
       audioRef.current.currentTime = 0;
@@ -74,7 +73,6 @@ export default function ClientWaitingPage() {
     };
   }, [status]);
 
-  // Efek untuk membuka kunci (unlock) audio pada perangkat mobile via interaksi sentuhan/klik pertama
   useEffect(() => {
     const unlockAudio = async () => {
       if (!audioRef.current) return;
@@ -116,15 +114,13 @@ export default function ClientWaitingPage() {
         const res = await API.get(`/orders/${id}`);
         setOrder(res.data);
         setStatus(res.data.orderStatus);
+
+        // Simpan status awal ke ref agar tidak membunyikan bell saat load pertama
+        currentStatusRef.current = res.data.orderStatus;
+
         localStorage.setItem(`order_${id}`, JSON.stringify(res.data));
       } catch (err) {
         console.error("Gagal memuat detail pesanan", err);
-      } finally {
-        // Tandai bahwa pengambilan data awal telah selesai
-        // Menggunakan setTimeout kecil agar socket event yang masuk setelah fetch dianggap real-time
-        setTimeout(() => {
-          isInitialFetchDone.current = true;
-        }, 500);
       }
     };
 
@@ -153,15 +149,15 @@ export default function ClientWaitingPage() {
     socket.on("order-updated", (updatedOrder) => {
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
         const newStatus = updatedOrder.orderStatus;
+        const oldStatus = currentStatusRef.current;
 
-        // Cek apakah perubahan status ini murni dari event real-time admin (bukan dari loading awal)
-        if (
-          isInitialFetchDone.current &&
-          newStatus === "ready" &&
-          status !== "ready"
-        ) {
+        // Bunyikan bell HANYA jika terjadi perubahan status secara real-time dari BUKAN ready MENJADI ready
+        if (oldStatus !== "ready" && newStatus === "ready") {
           playNotificationSound();
         }
+
+        // Perbarui ref status
+        currentStatusRef.current = newStatus;
 
         setOrder(updatedOrder);
         setStatus(newStatus);
@@ -170,7 +166,7 @@ export default function ClientWaitingPage() {
     });
 
     return () => socket.disconnect();
-  }, [id, searchParams, status]);
+  }, [id, searchParams]);
 
   const toggleMute = () => {
     setIsMuted((prev) => {

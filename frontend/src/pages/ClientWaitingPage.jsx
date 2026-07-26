@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import API from "../services/api";
 import {
   useParams,
   useLocation,
@@ -67,9 +68,7 @@ export default function ClientWaitingPage() {
         const statusCode = searchParams.get("status_code");
 
         if (statusCode === "200" || statusCode === "201") {
-          await axios
-            .patch(`http://localhost:5001/api/orders/${id}/pay`)
-            .catch(() => {});
+          await API.patch(`/orders/${id}/pay`).catch(() => {});
 
           window.history.replaceState(
             {},
@@ -78,7 +77,7 @@ export default function ClientWaitingPage() {
           );
         }
 
-        const res = await axios.get(`http://localhost:5001/api/orders/${id}`);
+        const res = await API.get(`/orders/${id}`);
         setOrder(res.data);
         setStatus(res.data.orderStatus);
         localStorage.setItem(`order_${id}`, JSON.stringify(res.data));
@@ -89,7 +88,7 @@ export default function ClientWaitingPage() {
 
     const fetchRecommendations = async () => {
       try {
-        const res = await axios.get("http://localhost:5001/api/menus");
+        const res = await API.get("/menus");
         const available = res.data.filter((m) => m.isAvailable);
         setRecommendedMenus(available.slice(0, 3));
       } catch (err) {
@@ -102,7 +101,12 @@ export default function ClientWaitingPage() {
     }
     fetchRecommendations();
 
-    const socket = io("http://localhost:5001");
+    // Koneksi Socket.io menggunakan environment variable Vercel atau URL Render
+    const backendUrl = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace("/api", "")
+      : "https://swift-ordering-backend.onrender.com";
+
+    const socket = io(backendUrl);
     socket.emit("join-order", id);
 
     socket.on("order-updated", (updatedOrder) => {
@@ -119,7 +123,6 @@ export default function ClientWaitingPage() {
 
     return () => socket.disconnect();
   }, [id, isMuted, searchParams]);
-
   const playNotificationSound = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;

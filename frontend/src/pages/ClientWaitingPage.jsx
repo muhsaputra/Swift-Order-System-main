@@ -50,7 +50,6 @@ export default function ClientWaitingPage() {
 
   // Fungsi untuk memutar suara dan memicu getar HP
   const playNotificationSound = () => {
-    // Pemicu getar pada perangkat mobile ([durasi_getar, jeda, durasi_getar])
     if ("vibrate" in navigator) {
       try {
         navigator.vibrate([200, 100, 200, 100, 300]);
@@ -59,7 +58,6 @@ export default function ClientWaitingPage() {
       }
     }
 
-    // Pemutaran audio bell
     if (audioRef.current && !isMuted) {
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch((err) => {
@@ -111,8 +109,17 @@ export default function ClientWaitingPage() {
       try {
         const statusCode = searchParams.get("status_code");
 
+        // Jika ada status sukses dari Midtrans, pastikan patch bayar tereksekusi dengan baik
         if (statusCode === "200" || statusCode === "201") {
-          await API.patch(`/orders/${id}/pay`).catch(() => {});
+          try {
+            await API.patch(`/orders/${id}/pay`);
+            console.log("Status pembayaran berhasil diperbarui ke server.");
+          } catch (patchErr) {
+            console.error(
+              "Gagal memperbarui status bayar ke backend:",
+              patchErr,
+            );
+          }
 
           window.history.replaceState(
             {},

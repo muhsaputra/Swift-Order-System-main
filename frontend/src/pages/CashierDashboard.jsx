@@ -114,10 +114,12 @@ export default function CashierDashboard() {
   useEffect(() => {
     fetchOrders();
     fetchMenus();
-    fetchCashierProfile();
+    // fetchCashierProfile();
     fetchCoupons();
 
-    const socket = io("http://localhost:5001");
+    const socket = io(import.meta.env.VITE_API_URL.replace("/api", ""), {
+      transports: ["websocket"],
+    });
 
     // Tangkap pesanan baru (baik QRIS paid maupun Cash pending)
     socket.on("new-order", (newOrder) => {

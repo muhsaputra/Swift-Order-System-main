@@ -22,8 +22,13 @@ export default function TableManagement() {
   useEffect(() => {
     fetchTables();
 
-    // Koneksi Socket.io untuk mendengarkan perubahan status meja secara real-time
-    const socket = io("http://localhost:5001");
+    // Koneksi Socket.io menggunakan URL backend Render atau environment variable
+    const backendUrl = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace("/api", "")
+      : "https://swiftorderingsystembackend.onrender.com"; // Sesuaikan dengan URL backend Render Anda jika diperlukan
+
+    const socket = io(backendUrl);
+
     socket.on("table-updated", (updatedTable) => {
       setTables((prevTables) =>
         prevTables.map((t) => (t._id === updatedTable._id ? updatedTable : t)),
@@ -47,7 +52,6 @@ export default function TableManagement() {
   const handleAddTable = async (e) => {
     e.preventDefault();
     try {
-      // Mengirimkan tableNumber dan capacity wajib sesuai model backend
       await API.post("/tables", {
         tableNumber: Number(tableNumber),
         capacity: 4,
@@ -156,6 +160,9 @@ export default function TableManagement() {
     const printWindow = window.open("", "_blank", "width=400,height=500");
     if (!printWindow) return;
 
+    // URL dinamis untuk cetak
+    const targetUrl = `https://swiftorderingsystemfrontend-9r2oajqsy.vercel.app/order/${table.tableNumber}`;
+
     printWindow.document.write(`
       <html>
         <head>
@@ -177,7 +184,7 @@ export default function TableManagement() {
           <script>
             window.onload = function() {
               new QRCode(document.getElementById("qrcode"), {
-                text: "${table.qrCodeUrl}",
+                text: "${targetUrl}",
                 width: 200,
                 height: 200
               });
@@ -320,11 +327,11 @@ export default function TableManagement() {
                     </h3>
                   </div>
 
-                  {/* QR Code */}
+                  {/* QR Code diarahkan ke domain Vercel */}
                   <div className="bg-neutral-50 p-4 rounded-3xl border border-neutral-100 shadow-2xs">
                     <QRCodeSVG
                       id={`qr-svg-${table._id}`}
-                      value={table.qrCodeUrl}
+                      value={`https://swiftorderingsystemfrontend-9r2oajqsy.vercel.app/order/${table.tableNumber}`}
                       size={110}
                     />
                   </div>

@@ -92,11 +92,12 @@ router.patch("/:id/pay", async (req, res) => {
     const identifier = req.params.id;
     let order = null;
 
-    // Cari dengan logika fleksibel (ObjectId atau orderId kustom)
-    if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
+    // Coba cari berdasarkan _id MongoDB terlebih dahulu jika formatnya valid
+    if (identifier && identifier.match(/^[0-9a-fA-F]{24}$/)) {
       order = await Order.findById(identifier);
     }
 
+    // Jika tidak ketemu, cari berdasarkan orderId kustom atau string _id alternatif
     if (!order) {
       order = await Order.findOne({
         $or: [{ orderId: identifier }, { _id: identifier }],
@@ -104,7 +105,9 @@ router.patch("/:id/pay", async (req, res) => {
     }
 
     if (!order) {
-      return res.status(404).json({ error: "Pesanan tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ error: "Pesanan tidak ditemukan di database" });
     }
 
     order.paymentStatus = "paid";
@@ -123,11 +126,12 @@ router.patch("/:id/pay", async (req, res) => {
 
     const io = req.app.get("io");
     if (io) {
-      io.emit("new-paid-order", populatedOrder);
+      // Pastikan memancarkan event 'order-updated' agar Dashboard Kasir langsung menangkapnya
       io.emit("order-updated", populatedOrder);
+      io.emit("new-paid-order", populatedOrder);
     }
 
-    res.json(populatedOrder);
+    res.status(200).json(populatedOrder);
   } catch (err) {
     console.error("Error PATCH /pay:", err.message);
     res.status(500).json({ error: err.message });

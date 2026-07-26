@@ -46,6 +46,8 @@ export default function ClientWaitingPage() {
   const [recommendedMenus, setRecommendedMenus] = useState([]);
 
   const audioRef = useRef(null);
+  // Ref untuk memastikan suara tidak berbunyi otomatis saat initial load jika status sudah ready
+  const hasInitializedRef = useRef(false);
 
   // Fungsi untuk memutar suara notifikasi
   const playNotificationSound = () => {
@@ -114,8 +116,12 @@ export default function ClientWaitingPage() {
         setOrder(res.data);
         setStatus(res.data.orderStatus);
         localStorage.setItem(`order_${id}`, JSON.stringify(res.data));
+
+        // Tandai bahwa data awal telah dimuat
+        hasInitializedRef.current = true;
       } catch (err) {
         console.error("Gagal memuat detail pesanan", err);
+        hasInitializedRef.current = true;
       }
     };
 
@@ -143,7 +149,6 @@ export default function ClientWaitingPage() {
 
     socket.on("order-updated", (updatedOrder) => {
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
-        // Cek apakah status berubah menjadi 'ready' dari status sebelumnya
         const previousStatus = status;
         const newStatus = updatedOrder.orderStatus;
 
@@ -151,8 +156,13 @@ export default function ClientWaitingPage() {
         setStatus(newStatus);
         localStorage.setItem(`order_${id}`, JSON.stringify(updatedOrder));
 
-        // Bunyikan suara HANYA jika status baru adalah 'ready' dan sebelumnya belum 'ready'
-        if (newStatus === "ready" && previousStatus !== "ready") {
+        // Bunyikan suara HANYA jika sudah terinisialisasi,
+        // status baru adalah 'ready', dan status sebelumnya BUKAN 'ready' (artinya ada transisi real-time dari admin)
+        if (
+          hasInitializedRef.current &&
+          newStatus === "ready" &&
+          previousStatus !== "ready"
+        ) {
           playNotificationSound();
         }
       }

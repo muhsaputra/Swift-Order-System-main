@@ -111,33 +111,54 @@ export default function ClientWaitingPage() {
     socket.emit("join-order", id);
 
     socket.on("order-updated", (updatedOrder) => {
-      console.log("===== SOCKET MASUK =====");
-      console.log(updatedOrder);
-
       if (updatedOrder._id === id || updatedOrder.orderId === id) {
-        console.log("Status :", updatedOrder.orderStatus);
+        console.log("STATUS:", updatedOrder.orderStatus);
 
         setOrder(updatedOrder);
         setStatus(updatedOrder.orderStatus);
 
         if (updatedOrder.orderStatus === "ready") {
-          console.log("MAINKAN SUARA");
+          console.log("PLAY SOUND");
           const playNotificationSound = async () => {
             if (!audioRef.current) return;
 
             try {
+              audioRef.current.pause();
               audioRef.current.currentTime = 0;
+
               await audioRef.current.play();
-              console.log("SUARA BERHASIL");
+
+              console.log("SUCCESS PLAY");
             } catch (err) {
-              console.error("SUARA GAGAL");
-              console.error(err.name);
-              console.error(err.message);
+              console.error(err);
             }
           };
         }
       }
     });
+
+    useEffect(() => {
+      const unlockAudio = async () => {
+        if (!audioRef.current) return;
+
+        try {
+          audioRef.current.volume = 0;
+          await audioRef.current.play();
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+
+          console.log("Audio Unlocked");
+        } catch (err) {
+          console.log("Audio masih dikunci");
+        }
+      };
+
+      window.addEventListener("touchstart", unlockAudio, { once: true });
+
+      return () => {
+        window.removeEventListener("touchstart", unlockAudio);
+      };
+    }, []);
 
     return () => socket.disconnect();
   }, [id, isMuted, searchParams]);
@@ -373,8 +394,9 @@ export default function ClientWaitingPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 flex items-center justify-center p-4 sm:p-6 relative">
-      <audio ref={audioRef} src="/bell.mp3" preload="auto" />
-
+      <audio ref={audioRef} preload="auto">
+        <source src="/bell.mp3" type="audio/mpeg" />
+      </audio>
       {/* Tombol Mute / Unmute Audio Notifikasi */}
       <button
         onClick={toggleMute}

@@ -33,6 +33,9 @@ import {
   QrCode,
   Tag,
   Trash2,
+  Phone,
+  Mail,
+  User,
 } from "lucide-react";
 
 // Komponen Kecil untuk Handle Live Aging Timer per Card Pesanan
@@ -498,6 +501,8 @@ export default function CashierDashboard() {
             ID: #${order._id.slice(-6).toUpperCase()}<br/>
             Pelanggan: ${order.customerName}<br/>
             Meja: ${order.tableNumber}<br/>
+            Telepon: ${order.customerPhone || "-"}<br/>
+            Email: ${order.customerEmail || "-"}<br/>
             Metode: ${order.paymentMethod === "cash" ? "CASH" : "QRIS"}<br/>
             Waktu: ${new Date(order.createdAt).toLocaleString("id-ID")}
           </div>
@@ -1102,6 +1107,25 @@ export default function CashierDashboard() {
                                   createdAt={order.createdAt || order.updatedAt}
                                 />
                                 <div>{getStatusBadge(order)}</div>
+                              </div>
+
+                              {/* INFORMASI KONTAK PELANGGAN (EMAIL & NO HP) */}
+                              <div className="bg-neutral-100/70 border border-neutral-200/60 p-3.5 rounded-2xl space-y-1.5 mb-4 text-xs">
+                                <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-1">
+                                  Informasi Kontak Pelanggan:
+                                </span>
+                                <div className="flex items-center gap-2 text-neutral-700 font-medium">
+                                  <Phone className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                                  <span className="font-mono">
+                                    {order.customerPhone || order.phone || "-"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-neutral-700 font-medium truncate">
+                                  <Mail className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                                  <span className="truncate">
+                                    {order.customerEmail || order.email || "-"}
+                                  </span>
+                                </div>
                               </div>
 
                               {/* Rincian Menu Pesanan */}

@@ -263,7 +263,6 @@ export default function ClientWaitingPage() {
       const itemPrice = item.price || item.menu?.price || 0;
       let itemAddonTotal = 0;
 
-      // Hitung total harga add-on untuk item ini
       if (
         item.selectedBundleChoices &&
         typeof item.selectedBundleChoices === "object"
@@ -288,7 +287,6 @@ export default function ClientWaitingPage() {
       const priceText = `Rp ${totalItemPrice.toLocaleString("id-ID")}`;
       doc.text(priceText, pageWidth - margin, y, { align: "right" });
 
-      // Cetak Add-On di PDF jika ada
       if (
         item.selectedBundleChoices &&
         typeof item.selectedBundleChoices === "object"
@@ -441,7 +439,6 @@ export default function ClientWaitingPage() {
 
   const currentStatusInfo = getStatusContent();
 
-  // Hitung subtotal dengan benar dengan mengakumulasikan harga menu + add-on dikali kuantitas
   const subtotalAmount =
     order?.items?.reduce((acc, item) => {
       const p = item.price || item.menu?.price || 0;
@@ -463,7 +460,6 @@ export default function ClientWaitingPage() {
       return acc + (p + addonSum) * item.quantity;
     }, 0) || 0;
 
-  // Hitung total penghematan promo harga coret jika ada
   const totalMenuSavings =
     order?.items?.reduce((sum, item) => {
       const orig = item.menu?.originalPrice || item.originalPrice || 0;
@@ -477,6 +473,9 @@ export default function ClientWaitingPage() {
   const calculatedServiceFee =
     Number(order?.serviceFee) ||
     Math.round((subtotalAmount - discountAmountVal) * 0.05);
+
+  // Hitung total sebelum diskon (Subtotal + Biaya Layanan) untuk efek harga coret seperti Gojek
+  const originalTotalBeforeDiscount = subtotalAmount + calculatedServiceFee;
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 flex items-center justify-center p-4 sm:p-6 relative">
@@ -723,13 +722,22 @@ export default function ClientWaitingPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-neutral-200/80 flex justify-between text-xs font-bold text-neutral-900">
+            <div className="pt-3 border-t border-neutral-200/80 flex justify-between items-center text-xs font-bold text-neutral-900">
               <span className="text-neutral-500 font-bold">
                 Total Pembayaran
               </span>
-              <span className="font-mono text-emerald-600 font-black text-sm">
-                Rp {order.totalAmount?.toLocaleString("id-ID")}
-              </span>
+              <div className="flex items-center gap-2">
+                {/* Harga Coret sebelum diskon seperti di Gojek */}
+                {(totalMenuSavings > 0 || discountAmountVal > 0) &&
+                  originalTotalBeforeDiscount > order.totalAmount && (
+                    <span className="font-mono text-neutral-400 line-through text-[11px] font-normal">
+                      Rp {originalTotalBeforeDiscount.toLocaleString("id-ID")}
+                    </span>
+                  )}
+                <span className="font-mono text-emerald-600 font-black text-sm">
+                  Rp {order.totalAmount?.toLocaleString("id-ID")}
+                </span>
+              </div>
             </div>
           </div>
         )}

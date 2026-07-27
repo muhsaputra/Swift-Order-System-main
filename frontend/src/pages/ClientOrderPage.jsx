@@ -27,6 +27,7 @@ import {
   Coffee,
   Cookie,
   IceCream,
+  Percent,
 } from "lucide-react";
 
 export default function ClientOrderPage() {
@@ -127,11 +128,9 @@ export default function ClientOrderPage() {
     if (!menu.isAvailable) return;
 
     if (menu.isBundle && menu.bundleOptions && menu.bundleOptions.length > 0) {
-      // Jika menu adalah paket dan punya opsi pilihan, buka modal kustomisasi
       setSelectedBundleModal(menu);
       setBundleChoices({});
     } else {
-      // Jika menu biasa, langsung masukkan ke keranjang
       addToCart(menu, null, {});
     }
   };
@@ -140,7 +139,6 @@ export default function ClientOrderPage() {
     if (e) e.stopPropagation();
     if (!menu.isAvailable) return;
 
-    // Cek apakah item dengan menuId dan pilihan bundle yang SAMA persis sudah ada di keranjang
     const existingIndex = cart.findIndex((item) => {
       if (item.menuId !== menu._id) return false;
       const itemChoicesStr = JSON.stringify(item.selectedBundleChoices || {});
@@ -187,7 +185,6 @@ export default function ClientOrderPage() {
 
     setCart(updatedCart);
 
-    // Reset kupon jika keranjang kosong
     if (updatedCart.length === 0) {
       removeCoupon();
     }
@@ -199,7 +196,6 @@ export default function ClientOrderPage() {
       .reduce((sum, item) => sum + item.quantity, 0);
   };
 
-  // Filter menu berdasarkan search query & kategori aktif
   const filteredMenus = useMemo(() => {
     return menus.filter((menu) => {
       const matchesSearch =
@@ -211,7 +207,9 @@ export default function ClientOrderPage() {
       if (selectedCategory === "Semua") {
         matchesCategory = true;
       } else if (selectedCategory === "Promo") {
-        matchesCategory = menu.isBundle === true;
+        matchesCategory =
+          menu.isBundle === true ||
+          (menu.originalPrice && menu.originalPrice > menu.price);
       } else if (selectedCategory === "Terpopuler") {
         matchesCategory = true;
       } else {
@@ -223,45 +221,50 @@ export default function ClientOrderPage() {
     });
   }, [menus, searchQuery, selectedCategory]);
 
-  // Mengelompokkan menu berdasarkan kategori jika tab "Semua" dipilih
+  // Mengelompokkan menu untuk tab "Semua", dengan "Promo & Penawaran Spesial" diletakkan di paling atas
   const groupedMenus = useMemo(() => {
     if (selectedCategory !== "Semua") return null;
 
+    const promoItems = filteredMenus.filter(
+      (menu) =>
+        menu.isBundle === true ||
+        (menu.originalPrice && menu.originalPrice > menu.price),
+    );
+
     const groups = {};
+    if (promoItems.length > 0) {
+      groups["🔥 Promo & Penawaran Spesial"] = promoItems;
+    }
+
     filteredMenus.forEach((menu) => {
+      const isPromo =
+        menu.isBundle === true ||
+        (menu.originalPrice && menu.originalPrice > menu.price);
+      // Jika ingin item promo hanya muncul di sekat promo, lewati dari kategori aslinya atau biarkan.
+      // Di sini kita masukkan ke kategori aslinya jika bukan item promo eksklusif, atau kelompokkan berdasarkan kategori.
       const cat = menu.category || "Lainnya";
       if (!groups[cat]) {
         groups[cat] = [];
       }
-      groups[cat].push(menu);
+      // Hindari duplikasi jika sudah masuk grup promo atas
+      if (!groups[cat].some((m) => m._id === menu._id)) {
+        groups[cat].push(menu);
+      }
     });
-
-    // Tambahkan juga kelompok khusus "Promo / Bundle" jika ada menu bundle
-    const bundleMenus = filteredMenus.filter((m) => m.isBundle);
-    if (bundleMenus.length > 0 && !groups["Paket Promo"]) {
-      // Opsional: Kelompokkan atau biarkan di kategorinya
-    }
 
     return groups;
   }, [filteredMenus, selectedCategory]);
 
-  // --- KALKULASI FINANSIAL (SUBTOTAL, DISKON, BIAYA LAYANAN, GRAND TOTAL) ---
   const subtotalPrice = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
 
   const priceAfterDiscount = Math.max(0, subtotalPrice - discountAmount);
-
-  // Biaya Layanan 5% dari harga setelah diskon
   const serviceFee = priceAfterDiscount * 0.05;
-
-  // Grand Total Akhir
   const finalTotalPrice = priceAfterDiscount + serviceFee;
-
   const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // FUNGSI KLAIM KUPON DISKON
   const handleApplyCoupon = async (e) => {
     e.preventDefault();
     if (!couponInput.trim()) return;
@@ -576,7 +579,6 @@ export default function ClientOrderPage() {
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Self-Ordering Digital Experience</span>
               </div>
-              {/* TOMBOL MENU RIWAYAT PESANAN */}
               <Link
                 to={`/order-history?table=${tableNumber}`}
                 className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-white border border-white/20 transition cursor-pointer"
@@ -613,7 +615,7 @@ export default function ClientOrderPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 md:px-6 space-y-6">
-        {/* SEARCH & CATEGORY BAR DENGAN SUB-KATEGORI */}
+        {/* SEARCH & CATEGORY BAR */}
         <div className="space-y-4">
           <div className="relative">
             <Search className="absolute left-4 top-3.5 w-4 h-4 text-neutral-400" />
@@ -626,12 +628,12 @@ export default function ClientOrderPage() {
             />
           </div>
 
-          {/* SUB-KATEGORI / FILTER PILIHAN */}
+          {/* SUB-KATEGORI / FILTER PILIHAN (PROMO DIURUTKAN DI DEPAN SETELAH SEMUA) */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             {[
               { name: "Semua", icon: Utensils },
+              { name: "Promo", icon: Percent },
               { name: "Terpopuler", icon: Star },
-              { name: "Promo", icon: Package },
               { name: "Makanan", icon: Flame },
               { name: "Minuman", icon: Coffee },
               { name: "Snack", icon: Cookie },
@@ -656,7 +658,7 @@ export default function ClientOrderPage() {
           </div>
         </div>
 
-        {/* MENU LIST DENGAN PEMBAGIAN SEKAT PER KATEGORI JIKA PILIH "SEMUA" */}
+        {/* MENU LIST DENGAN PROMO DI POSISI PALING ATAS PADA TAB SEMUA */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-extrabold text-neutral-900 flex items-center gap-2">
@@ -678,7 +680,7 @@ export default function ClientOrderPage() {
               </p>
             </div>
           ) : selectedCategory === "Semua" && groupedMenus ? (
-            // JIKA PILIH "SEMUA", TAMPILKAN DENGAN SEKAT PER KATEGORI
+            // JIKA PILIH "SEMUA", TAMPILKAN PROMO DI PALING ATAS DIKUTIP KATEGORI LAINNYA
             Object.entries(groupedMenus).map(
               ([categoryName, menusInCategory]) => (
                 <div key={categoryName} className="space-y-3">
@@ -728,9 +730,11 @@ export default function ClientOrderPage() {
                                 >
                                   {menu.isAvailable ? "Tersedia" : "Habis"}
                                 </span>
-                                {menu.isBundle && (
+                                {(menu.isBundle ||
+                                  (menu.originalPrice &&
+                                    menu.originalPrice > menu.price)) && (
                                   <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                                    <Package className="w-3 h-3" /> Paket Promo
+                                    <Package className="w-3 h-3" /> Promo Hemat
                                   </span>
                                 )}
                               </div>
@@ -792,7 +796,7 @@ export default function ClientOrderPage() {
               ),
             )
           ) : (
-            // JIKA PILIH KATEGORI SPESIFIK LAINNYA, TAMPILKAN GRID BIASA
+            // JIKA PILIH KATEGORI SPESIFIK (TERMASUK TAB PROMO KHUSUS)
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {filteredMenus.map((menu) => {
                 const qty = getCartQuantity(menu._id);
@@ -829,9 +833,11 @@ export default function ClientOrderPage() {
                           >
                             {menu.isAvailable ? "Tersedia" : "Habis"}
                           </span>
-                          {menu.isBundle && (
+                          {(menu.isBundle ||
+                            (menu.originalPrice &&
+                              menu.originalPrice > menu.price)) && (
                             <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                              <Package className="w-3 h-3" /> Paket Promo
+                              <Package className="w-3 h-3" /> Promo Hemat
                             </span>
                           )}
                         </div>
@@ -1017,7 +1023,6 @@ export default function ClientOrderPage() {
                 Pilih Metode Pembayaran
               </label>
               <div className="grid grid-cols-2 gap-3">
-                {/* Opsi QRIS */}
                 <div
                   onClick={() => setPaymentMethod("qris")}
                   className={`p-3.5 rounded-2xl border cursor-pointer transition flex flex-col justify-between ${
@@ -1041,7 +1046,6 @@ export default function ClientOrderPage() {
                   </div>
                 </div>
 
-                {/* Opsi Cash */}
                 <div
                   onClick={() => setPaymentMethod("cash")}
                   className={`p-3.5 rounded-2xl border cursor-pointer transition flex flex-col justify-between ${
@@ -1092,7 +1096,6 @@ export default function ClientOrderPage() {
                       <p className="text-xs text-neutral-500 font-mono font-semibold pt-0.5">
                         Rp {item.price.toLocaleString("id-ID")}
                       </p>
-                      {/* Tampilkan pilihan bundle di keranjang */}
                       {item.selectedBundleChoices &&
                         Object.keys(item.selectedBundleChoices).length > 0 && (
                           <div className="text-[10px] text-neutral-500 space-y-0.5 pt-1">

@@ -10,8 +10,11 @@ const orderSchema = new mongoose.Schema(
       {
         menu: { type: mongoose.Schema.Types.ObjectId, ref: "Menu" },
         quantity: { type: Number, required: true },
-        // --- TAMBAHAN UNTUK MENYIMPAN PILIHAN KUSTOMISASI PAKET PROMO ---
-        selectedBundleChoices: { type: Map, of: String, default: {} },
+        // --- DIUBAH KE MIXED AGAR DAPAT MENAMPUNG ARRAY / OBJEK ADD-ON ---
+        selectedBundleChoices: {
+          type: mongoose.Schema.Types.Mixed,
+          default: {},
+        },
       },
     ],
     subtotal: { type: Number, default: 0 },

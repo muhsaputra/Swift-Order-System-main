@@ -10,6 +10,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  Cell,
 } from "recharts";
 import {
   TrendingUp,
@@ -534,26 +535,24 @@ export default function TransactionHistory() {
 
   const chartData = getFilteredChartData();
 
-  // --- LOGIKA ANALITIK TAMBAHAN (METODE PEMBAYARAN & KATEGORI TERLARIS) ---
-  const paymentMethodStats = {};
-  const categorySalesStats = {};
+  // --- LOGIKA ANALITIK METODE PEMBAYARAN (QRIS VS CASH) ---
+  let qrisTotalRevenue = 0;
+  let cashTotalRevenue = 0;
 
   filteredOrders.forEach((order) => {
-    const method = (order.paymentMethod || "QRIS").toUpperCase();
-    paymentMethodStats[method] =
-      (paymentMethodStats[method] || 0) + (order.totalAmount || 0);
-
-    order.items?.forEach((item) => {
-      const cat = item.menu?.category || item.category || "Lainnya";
-      const itemRev = (item.price || item.menu?.price || 0) * item.quantity;
-      categorySalesStats[cat] = (categorySalesStats[cat] || 0) + itemRev;
-    });
+    const method = (order.paymentMethod || "qris").toLowerCase();
+    const amount = order.totalAmount || 0;
+    if (method === "cash") {
+      cashTotalRevenue += amount;
+    } else {
+      qrisTotalRevenue += amount;
+    }
   });
 
-  const categoryBarData = Object.keys(categorySalesStats).map((category) => ({
-    category,
-    revenue: categorySalesStats[category],
-  }));
+  const paymentComparisonBarData = [
+    { name: "QRIS Digital", revenue: qrisTotalRevenue, fill: "#2563eb" }, // Biru untuk QRIS
+    { name: "Tunai / Cash", revenue: cashTotalRevenue, fill: "#16a34a" }, // Hijau untuk Cash
+  ];
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 pb-20">
@@ -664,8 +663,8 @@ export default function TransactionHistory() {
                 Dashboard Analitik & Performa Penjualan
               </h3>
               <p className="text-xs text-neutral-500">
-                Grafik interaktif tren omset, distribusi metode bayar, dan omset
-                kategori menu.
+                Grafik interaktif tren omset dan perbandingan metode pembayaran
+                QRIS vs Cash.
               </p>
             </div>
 
@@ -704,7 +703,7 @@ export default function TransactionHistory() {
             </div>
           </div>
 
-          {/* Grafik Utama Tren Omset (Area Chart & Bar Chart) */}
+          {/* Grafik Utama Tren Omset & Komparasi Metode Bayar (Area Chart & Bar Chart) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Tren Omset Area Chart */}
             <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
@@ -781,33 +780,33 @@ export default function TransactionHistory() {
               </div>
             </div>
 
-            {/* Performa Omset Berdasarkan Kategori Menu (Bar Chart) */}
+            {/* Komparasi Metode Pembayaran (QRIS vs Cash Bar Chart) */}
             <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-neutral-900" />
-                    Omset Berdasarkan Kategori Menu
+                    <BarChart3 className="w-4 h-4 text-blue-600" />
+                    Komparasi Metode Bayar (QRIS vs Cash)
                   </h4>
                   <p className="text-[11px] text-neutral-400">
-                    Kontribusi penjualan tiap kelompok produk.
+                    Perbandingan total omset antara pembayaran digital & fisik.
                   </p>
                 </div>
               </div>
               <div className="h-64 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={categoryBarData}>
+                  <BarChart data={paymentComparisonBarData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="category" stroke="#737373" fontSize={11} />
+                    <XAxis dataKey="name" stroke="#737373" fontSize={11} />
                     <YAxis
                       stroke="#737373"
                       fontSize={11}
                       tickFormatter={(value) => `Rp ${value / 1000}k`}
                     />
                     <Tooltip
-                      formatter={(value) => [
+                      formatter={(value, name, item) => [
                         `Rp ${value.toLocaleString("id-ID")}`,
-                        "Omset",
+                        item.payload.name,
                       ]}
                       contentStyle={{
                         backgroundColor: "#ffffff",
@@ -816,11 +815,11 @@ export default function TransactionHistory() {
                         fontSize: "12px",
                       }}
                     />
-                    <Bar
-                      dataKey="revenue"
-                      fill="#262626"
-                      radius={[8, 8, 0, 0]}
-                    />
+                    <Bar dataKey="revenue" radius={[10, 10, 0, 0]}>
+                      {paymentComparisonBarData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>

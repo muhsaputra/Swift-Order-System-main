@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -10,12 +10,58 @@ import {
   Sparkles,
   Store,
   AlertTriangle,
+  Bell,
 } from "lucide-react";
+import { io } from "socket.io-client";
+
+// Sesuaikan URL Backend Anda jika berbeda
+const SOCKET_URL = "https://swiftorderingsystembackend.up.railway.app";
 
 export default function DashboardLayout() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Inisialisasi Socket.io dan Audio secara Global di Layout Dashboard
+  useEffect(() => {
+    const socket = io(SOCKET_URL);
+
+    socket.on("new-order", (orderData) => {
+      // Mainkan suara notifikasi
+      const audio = new Audio(
+        "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
+      );
+      audio.play().catch((err) => console.log("Gagal memutar audio:", err));
+
+      // Tampilkan toast notifikasi secara global di semua tab dashboard
+      toast.info(
+        `Pesanan Baru Masuk dari Meja #${orderData?.tableNumber || "?"}!`,
+        {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        },
+      );
+
+      // Tambahkan penghitung badge pesanan baru jika tidak sedang di Dashboard Utama
+      setNewOrdersCount((prev) => prev + 1);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  // Jika pengguna kembali ke Dashboard Utama, reset counter badge
+  useEffect(() => {
+    if (location.pathname === "/dashboard") {
+      setNewOrdersCount(0);
+    }
+  }, [location.pathname]);
 
   const handleLogoutConfirmed = () => {
     localStorage.removeItem("token");
@@ -27,7 +73,7 @@ export default function DashboardLayout() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex overflow-hidden">
+    <div className="min-h-screen bg-neutral-100 flex overflow-hidden font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Sidebar Tetap / Sticky di Kiri */}
       <aside className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col justify-between p-6 shrink-0 h-screen sticky top-0 shadow-xl">
         <div className="space-y-6">
@@ -49,16 +95,28 @@ export default function DashboardLayout() {
 
           <nav className="space-y-1.5 pt-2">
             <button
-              onClick={() => navigate("/dashboard")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+              onClick={() => {
+                setNewOrdersCount(0);
+                navigate("/dashboard");
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
                 isActive("/dashboard")
                   ? "bg-white text-neutral-950 shadow-md"
                   : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
               }`}
             >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard Utama</span>
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Dashboard Utama</span>
+              </div>
+              {newOrdersCount > 0 && (
+                <span className="flex items-center gap-1 bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse shadow-sm">
+                  <Bell className="w-3 h-3" />
+                  {newOrdersCount}
+                </span>
+              )}
             </button>
+
             <button
               onClick={() => navigate("/dashboard/menu")}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
@@ -70,6 +128,7 @@ export default function DashboardLayout() {
               <UtensilsCrossed className="w-4 h-4" />
               <span>Manajemen Menu</span>
             </button>
+
             <button
               onClick={() => navigate("/dashboard/tables")}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
@@ -81,6 +140,7 @@ export default function DashboardLayout() {
               <TableProperties className="w-4 h-4" />
               <span>Manajemen Meja</span>
             </button>
+
             <button
               onClick={() => navigate("/dashboard/history")}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${

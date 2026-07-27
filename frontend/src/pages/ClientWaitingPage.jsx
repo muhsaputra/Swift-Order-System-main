@@ -474,7 +474,6 @@ export default function ClientWaitingPage() {
     Number(order?.serviceFee) ||
     Math.round((subtotalAmount - discountAmountVal) * 0.05);
 
-  // Hitung total sebelum diskon (Subtotal + Biaya Layanan) untuk efek harga coret seperti Gojek
   const originalTotalBeforeDiscount = subtotalAmount + calculatedServiceFee;
 
   return (
@@ -727,7 +726,7 @@ export default function ClientWaitingPage() {
                 Total Pembayaran
               </span>
               <div className="flex items-center gap-2">
-                {/* Harga Coret sebelum diskon seperti di Gojek */}
+                {/* Harga Coret di sebelah kiri harga diskon */}
                 {(totalMenuSavings > 0 || discountAmountVal > 0) &&
                   originalTotalBeforeDiscount > order.totalAmount && (
                     <span className="font-mono text-neutral-400 line-through text-[11px] font-normal">

@@ -47,6 +47,7 @@ export default function App() {
 
         {/* Rute Pemesanan Pelanggan (Scan QR Meja) */}
         <Route path="/order/:tableNumber" element={<ClientOrderPage />} />
+        <Route path="/menu/:tableNumber" element={<ClientOrderPage />} />
 
         {/* Rute Riwayat Pesanan Pelanggan */}
         <Route path="/history" element={<ClientHistoryPage />} />

@@ -1275,7 +1275,7 @@ export default function CashierDashboard() {
                                   className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer flex items-center justify-center gap-2 animate-pulse mt-3"
                                 >
                                   <Wallet className="w-4 h-4" />
-                                  <span>Konfirmasi Bayar Tunai (Cash)</span>
+                                  <span>Konfirmasi Bayar Di Kasir (Cash)</span>
                                 </button>
                               ) : (
                                 <button

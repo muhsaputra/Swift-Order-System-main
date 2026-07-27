@@ -1209,7 +1209,7 @@ export default function ClientOrderPage() {
                 >
                   <div className="flex items-center gap-2 font-bold text-xs">
                     <Wallet className="w-4 h-4" />
-                    <span>Bayar Tunai</span>
+                    <span>Konfirmasi Bayar Di Kasir (Cash)</span>
                   </div>
                   <div
                     className={`text-[10px] mt-1 ${

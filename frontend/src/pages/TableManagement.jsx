@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import API from "../services/api";
 import { QRCodeSVG } from "qrcode.react";
 import { io } from "socket.io-client";
+import { toast } from "react-toastify";
 import {
   Plus,
   Trash2,
@@ -10,6 +11,7 @@ import {
   Sparkles,
   LayoutGrid,
   AlertTriangle,
+  Copy,
 } from "lucide-react";
 import jsPDF from "jspdf";
 
@@ -58,9 +60,10 @@ export default function TableManagement() {
       });
       setTableNumber("");
       fetchTables();
+      toast.success("Meja baru berhasil ditambahkan!");
     } catch (err) {
       console.error("Gagal menambah meja", err);
-      alert(err.response?.data?.error || "Gagal menambah meja");
+      toast.error(err.response?.data?.error || "Gagal menambah meja");
     }
   };
 
@@ -70,10 +73,26 @@ export default function TableManagement() {
       await API.delete(`/tables/${deleteTarget._id}`);
       setDeleteTarget(null);
       fetchTables();
+      toast.success("Meja berhasil dihapus.");
     } catch (err) {
       console.error("Gagal menghapus meja", err);
-      alert("Gagal menghapus meja.");
+      toast.error("Gagal menghapus meja.");
     }
+  };
+
+  // FUNGSI SALIN URL MEJA KE CLIPBOARD
+  const handleCopyTableUrl = (tableNumber) => {
+    const tableUrl = `https://swiftorderingsystemfrontend.vercel.app/order/${tableNumber}`;
+
+    navigator.clipboard
+      .writeText(tableUrl)
+      .then(() => {
+        toast.success(`URL Meja #${tableNumber} berhasil disalin! 📋`);
+      })
+      .catch((err) => {
+        console.error("Gagal menyalin URL:", err);
+        toast.error("Gagal menyalin URL ke clipboard.");
+      });
   };
 
   // FUNGSI DOWNLOAD QR CODE KE PDF RESOLUSI TINGGI (TIDAK BURAM)
@@ -149,6 +168,7 @@ export default function TableManagement() {
       });
 
       doc.save(`QRCode-Meja-${table.tableNumber}.pdf`);
+      toast.success(`PDF QR Code Meja #${table.tableNumber} berhasil diunduh!`);
     };
 
     img.src =
@@ -344,7 +364,16 @@ export default function TableManagement() {
                       <Download className="w-3.5 h-3.5" />
                       <span>Download QR PDF</span>
                     </button>
+
                     <div className="flex gap-2 w-full">
+                      <button
+                        onClick={() => handleCopyTableUrl(table.tableNumber)}
+                        className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer flex items-center justify-center gap-1"
+                        title="Salin URL Meja"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        Salin URL
+                      </button>
                       <button
                         onClick={() => handlePrintQR(table)}
                         className="flex-1 bg-white hover:bg-neutral-50 text-neutral-700 py-2 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer flex items-center justify-center gap-1"

@@ -170,7 +170,6 @@ export default function ClientOrderPage() {
     if (e) e.stopPropagation();
     if (!menu.isAvailable) return;
 
-    // Hitung total tambahan harga dari add-on yang dipilih
     let addonTotalPrice = 0;
     Object.values(chosenAddons).forEach((addonArray) => {
       if (Array.isArray(addonArray)) {
@@ -299,10 +298,32 @@ export default function ClientOrderPage() {
     0,
   );
 
+  const subtotalOriginalPrice = cart.reduce((sum, item) => {
+    const itemPrice = item.price || 0;
+    const origItemPrice = item.originalPrice || itemPrice;
+    let itemAddonSubtotal = 0;
+    if (
+      item.selectedBundleChoices &&
+      typeof item.selectedBundleChoices === "object"
+    ) {
+      Object.entries(item.selectedBundleChoices).forEach(([title, addons]) => {
+        if (Array.isArray(addons)) {
+          addons.forEach((addon) => {
+            itemAddonSubtotal += Number(addon.price || 0);
+          });
+        }
+      });
+    }
+    const origTotalItemPriceWithAddon =
+      (origItemPrice + itemAddonSubtotal) * item.quantity;
+    return sum + origTotalItemPriceWithAddon;
+  }, 0);
+
   const totalMenuSavings = cart.reduce((sum, item) => {
+    const orig = item.originalPrice || 0;
     const base = item.basePrice !== undefined ? item.basePrice : item.price;
-    if (item.originalPrice && item.originalPrice > base) {
-      return sum + (item.originalPrice - base) * item.quantity;
+    if (orig > base) {
+      return sum + (orig - base) * item.quantity;
     }
     return sum;
   }, 0);
@@ -310,6 +331,13 @@ export default function ClientOrderPage() {
   const priceAfterDiscount = Math.max(0, subtotalPrice - discountAmount);
   const serviceFee = priceAfterDiscount * 0.05;
   const finalTotalPrice = priceAfterDiscount + serviceFee;
+
+  const originalServiceFee = Math.round(
+    (subtotalOriginalPrice - totalMenuSavings - discountAmount) * 0.05,
+  );
+  const originalTotalBeforeDiscount =
+    subtotalOriginalPrice + originalServiceFee;
+
   const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleApplyCoupon = async (e) => {
@@ -1041,24 +1069,37 @@ export default function ClientOrderPage() {
               </button>
             </div>
 
-            <div className="bg-neutral-50 border border-neutral-200/80 p-4 rounded-2xl space-y-1.5">
-              <div className="flex justify-between text-xs">
-                <span className="text-neutral-400 font-semibold">Pemesan:</span>
-                <span className="text-neutral-900 font-bold">
-                  {customerInfo.name}
+            {/* INFORMASI PEMESAN & MEJA */}
+            <div className="bg-neutral-50 border border-neutral-200/80 p-4 rounded-2xl space-y-2.5 text-xs">
+              <div className="flex justify-between items-center border-b border-neutral-200/60 pb-2">
+                <span className="text-neutral-400 font-semibold uppercase text-[10px]">
+                  Nama Pemesan
+                </span>
+                <span className="font-extrabold text-neutral-900">
+                  {customerInfo.name || "-"}
                 </span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-neutral-400 font-semibold">No HP:</span>
-                <span className="text-neutral-900 font-bold">
-                  {customerInfo.phone}
+              <div className="flex justify-between items-center border-b border-neutral-200/60 pb-2">
+                <span className="text-neutral-400 font-semibold uppercase text-[10px]">
+                  No. Telepon
+                </span>
+                <span className="font-mono font-bold text-neutral-800">
+                  {customerInfo.phone || "-"}
                 </span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-neutral-400 font-semibold">
-                  Nomor Meja:
+              <div className="flex justify-between items-center border-b border-neutral-200/60 pb-2">
+                <span className="text-neutral-400 font-semibold uppercase text-[10px]">
+                  Email
                 </span>
-                <span className="text-neutral-900 font-bold">
+                <span className="font-mono font-medium text-neutral-800 truncate max-w-[200px]">
+                  {customerInfo.email || "-"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center pt-0.5">
+                <span className="text-neutral-400 font-semibold uppercase text-[10px]">
+                  Nomor Meja
+                </span>
+                <span className="font-extrabold text-neutral-900 bg-white px-2.5 py-0.5 rounded-lg border border-neutral-200/80">
                   #{tableNumber}
                 </span>
               </div>
@@ -1183,8 +1224,35 @@ export default function ClientOrderPage() {
 
             <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
               {cart.map((item, idx) => {
-                const hasPromo =
-                  item.originalPrice && item.originalPrice > item.basePrice;
+                const itemPrice = item.price || 0;
+                const origItemPrice = item.originalPrice || itemPrice;
+                const itemName = item.name || "Menu";
+                const hasPromo = origItemPrice > itemPrice;
+
+                let itemAddonSubtotal = 0;
+                let origItemAddonSubtotal = 0;
+                if (
+                  item.selectedBundleChoices &&
+                  typeof item.selectedBundleChoices === "object"
+                ) {
+                  Object.entries(item.selectedBundleChoices).forEach(
+                    ([title, addons]) => {
+                      if (Array.isArray(addons)) {
+                        addons.forEach((addon) => {
+                          const addonP = Number(addon.price || 0);
+                          itemAddonSubtotal += addonP;
+                          origItemAddonSubtotal += addonP;
+                        });
+                      }
+                    },
+                  );
+                }
+
+                const totalItemPriceWithAddon =
+                  (itemPrice + itemAddonSubtotal) * item.quantity;
+                const origTotalItemPriceWithAddon =
+                  (origItemPrice + origItemAddonSubtotal) * item.quantity;
+
                 return (
                   <div
                     key={idx}
@@ -1195,7 +1263,7 @@ export default function ClientOrderPage() {
                         {item.image ? (
                           <img
                             src={item.image}
-                            alt={item.name}
+                            alt={itemName}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -1205,17 +1273,25 @@ export default function ClientOrderPage() {
                         )}
                       </div>
                       <div>
-                        <p className="font-bold text-neutral-900 flex items-center gap-1.5">
-                          {item.name}
+                        <p className="font-bold text-neutral-900 flex items-center gap-1.5 flex-wrap">
+                          {itemName}
                           {hasPromo && (
-                            <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.2 rounded">
-                              Promo
+                            <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                              <Zap className="w-2.5 h-2.5 fill-current" /> Promo
                             </span>
                           )}
                         </p>
                         <div className="flex items-center gap-2 pt-0.5">
-                          <span className="text-xs text-emerald-600 font-mono font-bold">
-                            Rp {item.price.toLocaleString("id-ID")}
+                          {hasPromo && (
+                            <span className="font-mono text-neutral-400 line-through text-[11px]">
+                              Rp{" "}
+                              {origTotalItemPriceWithAddon.toLocaleString(
+                                "id-ID",
+                              )}
+                            </span>
+                          )}
+                          <span className="text-xs text-neutral-900 font-mono font-bold">
+                            Rp {totalItemPriceWithAddon.toLocaleString("id-ID")}
                           </span>
                         </div>
                         {item.selectedBundleChoices &&
@@ -1285,7 +1361,7 @@ export default function ClientOrderPage() {
 
               {totalMenuSavings > 0 && (
                 <div className="flex justify-between items-center text-xs text-amber-700 font-bold">
-                  <span>Diskon</span>
+                  <span>Diskon Menu</span>
                   <span className="font-mono">
                     - Rp {totalMenuSavings.toLocaleString("id-ID")}
                   </span>
@@ -1310,9 +1386,17 @@ export default function ClientOrderPage() {
 
               <div className="flex justify-between items-center text-base font-extrabold text-neutral-900 pt-2 border-t border-dashed border-neutral-200">
                 <span>Total Pembayaran</span>
-                <span className="font-mono text-emerald-600 font-black">
-                  Rp {finalTotalPrice.toLocaleString("id-ID")}
-                </span>
+                <div className="flex items-center gap-2.5">
+                  {(totalMenuSavings > 0 || discountAmount > 0) &&
+                    originalTotalBeforeDiscount > finalTotalPrice && (
+                      <span className="font-mono text-neutral-400 line-through text-xs font-normal">
+                        Rp {originalTotalBeforeDiscount.toLocaleString("id-ID")}
+                      </span>
+                    )}
+                  <span className="font-mono text-emerald-600 font-black text-base">
+                    Rp {finalTotalPrice.toLocaleString("id-ID")}
+                  </span>
+                </div>
               </div>
 
               <button

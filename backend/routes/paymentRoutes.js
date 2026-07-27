@@ -36,8 +36,10 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
       calculatedSum += itemPrice * itemQty;
     });
 
-    // B. Masukkan Biaya Layanan (Service Fee) jika ada
-    const serviceFee = Number(order.serviceFee || 0);
+    // B. Masukkan Biaya Layanan (Service Fee otomatis 5% jika belum tersimpan di DB)
+    const serviceFee = Number(
+      order.serviceFee || Math.round(calculatedSum * 0.05),
+    );
     if (serviceFee > 0) {
       midtransItems.push({
         id: "SERVICE-FEE",

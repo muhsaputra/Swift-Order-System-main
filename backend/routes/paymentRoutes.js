@@ -11,7 +11,7 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
     // Ambil data pesanan secara lengkap dari database agar subtotal, serviceFee, dan totalAmount akurat
     const order = await Order.findById(orderId).populate("items.menu");
     if (!order) {
-      return res
+      return routerRes
         .status(404)
         .json({ error: "Pesanan tidak ditemukan di database." });
     }
@@ -60,6 +60,11 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
       calculatedSum -= discountAmount;
     }
 
+    // Definisikan URL Frontend secara dinamis untuk callback redirect Midtrans
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      "https://swiftorderingsystemfrontend.vercel.app";
+
     let parameter = {
       transaction_details: {
         order_id: `ORDER-${order._id}-${Date.now()}`,
@@ -71,9 +76,9 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
         phone: String(order.customerPhone || "08123456789"),
       },
       item_details: midtransItems,
-      // Konfigurasi callback redirect setelah pembayaran sukses di mode development (localhost)
+      // Konfigurasi callback redirect setelah pembayaran sukses (dinamis production/local)
       callbacks: {
-        finish: `http://localhost:5173/waiting/${order._id}`,
+        finish: `${frontendUrl}/waiting/${order._id}`,
       },
     };
 

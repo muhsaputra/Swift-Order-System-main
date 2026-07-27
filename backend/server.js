@@ -11,7 +11,7 @@ const authRoutes = require("./routes/authRoutes");
 const tableRoutes = require("./routes/tableRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const couponRoutes = require("./routes/couponRoutes");
-const categoryRoutes = require("./routes/categoryRoutes"); // 1. Import router kategori baru
+const categoryRoutes = require("./routes/categoryRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -27,6 +27,9 @@ const io = new Server(server, {
     credentials: true,
   },
 });
+
+// 1. SIMPAN INSTANCE IO LEBIH AWAL AGAR SIAP DIGUNAKAN DI MANA SAJA
+app.set("io", io);
 
 app.use(
   cors({
@@ -50,21 +53,23 @@ app.get("/", (req, res) => {
   });
 });
 
-// Registrasi Routes
+// 2. REGISTRASI ROUTES (Routes sekarang sudah bisa dengan aman memanggil req.app.get("io"))
 app.use("/api/menus", menuRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/tables", tableRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
-app.use("/api/categories", categoryRoutes); // 2. Daftarkan endpoint API kategori agar error 404 hilang
+app.use("/api/categories", categoryRoutes);
 
-// Simpan instance io dengan key "io" agar sinkron dengan rute/controller
-app.set("io", io);
-
-// Socket.io Connection
+// Socket.io Connection Listener
 io.on("connection", (socket) => {
   console.log("Client terhubung via Socket:", socket.id);
+
+  // Jika Anda ingin client join room berdasarkan order tertentu
+  socket.on("join-order", (orderId) => {
+    socket.join(orderId);
+  });
 
   socket.on("disconnect", () => {
     console.log("Client terputus:", socket.id);

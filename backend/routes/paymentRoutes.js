@@ -7,11 +7,7 @@ const Coupon = require("../models/Coupon");
 // 1. Endpoint untuk Membuat Transaksi Midtrans
 router.post("/create-transaction", async (routerReq, routerRes) => {
   try {
-    const {
-      orderId,
-      couponCode: bodyCouponCode,
-      discountAmount: bodyDiscountAmount,
-    } = routerReq.body;
+    const { orderId } = routerReq.body;
 
     // Ambil data pesanan secara lengkap dari database
     const order = await Order.findById(orderId).populate("items.menu");
@@ -22,15 +18,15 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
     }
 
     let midtransItems = [];
-    let calculatedSum = 0;
 
-    // A. Masukkan item menu utama ke dalam array dan akumulasikan nilainya
+    // A. Masukkan item menu utama dan add-on ke dalam array item details Midtrans
     (order.items || []).forEach((item) => {
       const itemName = item.menu?.name || item.name || "Menu Item";
       const itemId = item.menu?._id || item.menuId || item._id || "ITEM";
       const itemPrice = Number(item.price || item.menu?.price || 0);
       const itemQty = Number(item.quantity || 1);
 
+      // Tambahkan item utama
       midtransItems.push({
         id: String(itemId),
         price: itemPrice,
@@ -38,63 +34,49 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
         name: String(itemName).substring(0, 50),
       });
 
-      calculatedSum += itemPrice * itemQty;
+      // Jika ada add-on / pilihan kustomisasi, masukkan juga ke item_details
+      if (
+        item.selectedBundleChoices &&
+        typeof item.selectedBundleChoices === "object"
+      ) {
+        Object.entries(item.selectedBundleChoices).forEach(
+          ([categoryTitle, addons]) => {
+            if (Array.isArray(addons)) {
+              addons.forEach((addon, idx) => {
+                if (addon.price > 0) {
+                  midtransItems.push({
+                    id: `ADDON-${idx}`,
+                    price: Number(addon.price),
+                    quantity: itemQty,
+                    name: `+ ${addon.name}`.substring(0, 50),
+                  });
+                }
+              });
+            }
+          },
+        );
+      }
     });
 
-    // B. Cek dan Hitung Diskon Kupon terlebih dahulu dari Request Body atau Database
-    let activeCouponCode = bodyCouponCode || order.couponCode;
-    let discountAmount = Number(
-      bodyDiscountAmount || order.discountAmount || 0,
-    );
-
-    if (activeCouponCode && discountAmount === 0) {
-      const foundCoupon = await Coupon.findOne({
-        code: activeCouponCode.toUpperCase(),
-        isActive: true,
-      });
-      if (foundCoupon) {
-        if (foundCoupon.discountType === "percentage") {
-          discountAmount = (calculatedSum * foundCoupon.discountValue) / 100;
-        } else {
-          discountAmount = foundCoupon.discountValue;
-        }
-      }
-    }
-
-    // Pastikan diskon tidak melebihi subtotal
-    if (discountAmount > calculatedSum) {
-      discountAmount = calculatedSum;
-    }
-
-    // Hitung harga setelah diskon
-    let priceAfterDiscount = Math.max(0, calculatedSum - discountAmount);
-
-    // C. Masukkan Biaya Layanan (Service Fee 5% dihitung dari harga SETELAH DISKON)
-    const serviceFee = Number(
-      order.serviceFee || Math.round(priceAfterDiscount * 0.05),
-    );
-
-    if (serviceFee > 0) {
+    // B. Masukkan Biaya Layanan jika ada
+    if (order.serviceFee && order.serviceFee > 0) {
       midtransItems.push({
         id: "SERVICE-FEE",
-        price: serviceFee,
+        price: Number(order.serviceFee),
         quantity: 1,
         name: "Biaya Layanan (Service 5%)",
       });
     }
 
-    // D. Masukkan item diskon ke array midtrans jika ada
-    if (discountAmount > 0) {
+    // C. Masukkan Diskon / Potongan Kupon jika ada
+    if (order.discountAmount && order.discountAmount > 0) {
       midtransItems.push({
-        id: `DISCOUNT-${activeCouponCode || "PROMO"}`,
-        price: -Math.round(discountAmount),
+        id: `DISCOUNT-${order.couponCode || "PROMO"}`,
+        price: -Math.round(order.discountAmount),
         quantity: 1,
-        name: `Potongan Kupon (${activeCouponCode || "Promo"})`,
+        name: `Potongan Kupon (${order.couponCode || "Promo"})`,
       });
     }
-
-    // Total akhir = Harga setelah diskon + Biaya layanan
-    let finalGrossAmount = priceAfterDiscount + serviceFee;
 
     // Definisikan URL Frontend secara dinamis untuk callback redirect Midtrans
     const frontendUrl =
@@ -103,8 +85,10 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
 
     let parameter = {
       transaction_details: {
-        order_id: `ORDER-${order._id}-${Date.now()}`,
-        gross_amount: Math.round(finalGrossAmount),
+        // Gunakan ID order asli agar konsisten dengan webhook notification
+        order_id: `ORDER-${order._id}`,
+        // Langsung ambil totalAmount dari database agar dijamin 100% akurat
+        gross_amount: Math.round(order.totalAmount),
       },
       customer_details: {
         first_name: String(order.customerName || "Pelanggan"),

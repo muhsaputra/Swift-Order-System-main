@@ -7,7 +7,11 @@ const Coupon = require("../models/Coupon");
 // 1. Endpoint untuk Membuat Transaksi Midtrans
 router.post("/create-transaction", async (routerReq, routerRes) => {
   try {
-    const { orderId, couponCode: bodyCouponCode } = routerReq.body;
+    const {
+      orderId,
+      couponCode: bodyCouponCode,
+      discountAmount: bodyDiscountAmount,
+    } = routerReq.body;
 
     // Ambil data pesanan secara lengkap dari database
     const order = await Order.findById(orderId).populate("items.menu");
@@ -51,11 +55,13 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
       calculatedSum += serviceFee;
     }
 
-    // C. Cek dan Hitung Diskon Kupon secara Dinamis dari Database
-    let activeCouponCode = order.couponCode || bodyCouponCode;
-    let discountAmount = Number(order.discountAmount || 0);
+    // C. Cek dan Hitung Diskon Kupon secara Dinamis dari Request Body atau Database
+    let activeCouponCode = bodyCouponCode || order.couponCode;
+    let discountAmount = Number(
+      bodyDiscountAmount || order.discountAmount || 0,
+    );
 
-    // Jika ada kode kupon tapi nominal diskon di order masih 0, ambil dari database Coupon
+    // Jika ada kode kupon tapi nominal diskon masih 0, ambil langsung dari database Coupon
     if (activeCouponCode && discountAmount === 0) {
       const foundCoupon = await Coupon.findOne({
         code: activeCouponCode.toUpperCase(),

@@ -2,17 +2,14 @@ const express = require("express");
 const router = express.Router();
 const snap = require("../config/midtrans"); // Sesuaikan jalur relatif file konfigurasi Anda
 const Order = require("../models/Order"); // Sesuaikan model pesanan Anda
+const Coupon = require("../models/Coupon"); // Model kupon untuk pencarian dinamis
 
 // 1. Endpoint untuk Membuat Transaksi Midtrans
 router.post("/create-transaction", async (routerReq, routerRes) => {
   try {
-    const {
-      orderId,
-      couponCode: bodyCouponCode,
-      discountAmount: bodyDiscountAmount,
-    } = routerReq.body;
+    const { orderId, couponCode: bodyCouponCode } = routerReq.body;
 
-    // Ambil data pesanan secara lengkap dari database agar subtotal, serviceFee, dan totalAmount akurat
+    // Ambil data pesanan secara lengkap dari database
     const order = await Order.findById(orderId).populate("items.menu");
     if (!order) {
       return routerRes
@@ -40,7 +37,7 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
       calculatedSum += itemPrice * itemQty;
     });
 
-    // B. Masukkan Biaya Layanan (Service Fee otomatis 5% jika belum tersimpan di DB)
+    // B. Masukkan Biaya Layanan (Service Fee otomatis 5% dari subtotal menu)
     const serviceFee = Number(
       order.serviceFee || Math.round(calculatedSum * 0.05),
     );
@@ -54,22 +51,29 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
       calculatedSum += serviceFee;
     }
 
-    // C. Masukkan Potongan Diskon Kupon (Prioritaskan data dari body request / database)
+    // C. Cek dan Hitung Diskon Kupon secara Dinamis dari Database
     let activeCouponCode = order.couponCode || bodyCouponCode;
-    let discountAmount = Number(
-      order.discountAmount || bodyDiscountAmount || 0,
-    );
+    let discountAmount = Number(order.discountAmount || 0);
 
-    if (discountAmount === 0 && activeCouponCode) {
-      if (activeCouponCode.toUpperCase() === "HEMAT") {
-        discountAmount = 5000; // Sesuaikan nominal potongan diskon kupon Anda
+    // Jika ada kode kupon tapi nominal diskon di order masih 0, ambil dari database Coupon
+    if (activeCouponCode && discountAmount === 0) {
+      const foundCoupon = await Coupon.findOne({
+        code: activeCouponCode.toUpperCase(),
+        isActive: true,
+      });
+      if (foundCoupon) {
+        if (foundCoupon.discountType === "percentage") {
+          discountAmount = (calculatedSum * foundCoupon.discountValue) / 100;
+        } else {
+          discountAmount = foundCoupon.discountValue;
+        }
       }
     }
 
     if (discountAmount > 0) {
       midtransItems.push({
         id: `DISCOUNT-${activeCouponCode || "PROMO"}`,
-        price: -discountAmount,
+        price: -Math.round(discountAmount),
         quantity: 1,
         name: `Potongan Kupon (${activeCouponCode || "Promo"})`,
       });
@@ -84,7 +88,7 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
     let parameter = {
       transaction_details: {
         order_id: `ORDER-${order._id}-${Date.now()}`,
-        gross_amount: Math.round(calculatedSum), // Akumulasi presisi yang dijamin sama dengan total item_details
+        gross_amount: Math.round(calculatedSum), // Akumulasi total akhir yang sudah dipotong diskon & ditambah service fee
       },
       customer_details: {
         first_name: String(order.customerName || "Pelanggan"),
@@ -92,7 +96,6 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
         phone: String(order.customerPhone || "08123456789"),
       },
       item_details: midtransItems,
-      // Konfigurasi callback redirect setelah pembayaran sukses (dinamis production/local)
       callbacks: {
         finish: `${frontendUrl}/waiting/${order._id}`,
       },
@@ -116,9 +119,8 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
 router.post("/notification", async (req, res) => {
   try {
     const notification = req.body;
-    const midtransOrderId = notification.order_id; // Contoh format: ORDER-6a6740af1c9aa89be84c4427-1785151663363
+    const midtransOrderId = notification.order_id;
 
-    // A. Abaikan jika ini adalah ping / test dari dashboard Midtrans
     if (!midtransOrderId || midtransOrderId.startsWith("payment_notif_test_")) {
       return res
         .status(200)
@@ -128,17 +130,13 @@ router.post("/notification", async (req, res) => {
     const transactionStatus = notification.transaction_status;
     const fraudStatus = notification.fraud_status;
 
-    // B. Ekstrak ID asli pesanan dari string order_id Midtrans
     const cleanOrderId = midtransOrderId.replace(/^ORDER-/, "").split("-")[0];
     const isValidObjectId = cleanOrderId.match(/^[0-9a-fA-F]{24}$/);
 
-    // C. Susun kondisi query secara aman tanpa mencocokkan string panjang langsung ke _id
     let queryConditions = [];
-
     if (isValidObjectId) {
       queryConditions.push({ _id: cleanOrderId });
     }
-
     queryConditions.push({ orderId: cleanOrderId });
     queryConditions.push({ orderId: midtransOrderId });
 
@@ -150,14 +148,12 @@ router.post("/notification", async (req, res) => {
         .json({ message: "Pesanan tidak ditemukan dari webhook" });
     }
 
-    // Validasi status transaksi dari Midtrans
     if (transactionStatus === "capture" || transactionStatus === "settlement") {
       if (fraudStatus === "accept" || !fraudStatus) {
         order.paymentStatus = "paid";
-        order.orderStatus = "processing"; // Otomatis masuk ke antrean dashboard kasir
+        order.orderStatus = "processing";
         await order.save();
 
-        // Kirim update real-time via Socket.io ke Dashboard Kasir
         const io = req.app.get("io");
         if (io) {
           const populatedOrder = await Order.findById(order._id).populate(

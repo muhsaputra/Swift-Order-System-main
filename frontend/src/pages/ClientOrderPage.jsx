@@ -28,6 +28,7 @@ import {
   Cookie,
   IceCream,
   Percent,
+  Zap,
 } from "lucide-react";
 
 export default function ClientOrderPage() {
@@ -35,20 +36,16 @@ export default function ClientOrderPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Menangkap nomor meja dari URL path (/order/:tableNumber) atau query parameter (?table=...)
   const tableNumber = paramTableNumber || searchParams.get("table") || "1";
 
   const [menus, setMenus] = useState([]);
   const [cart, setCart] = useState([]);
 
-  // State untuk Modal Kustomisasi Paket Promo (Bundle)
   const [selectedBundleModal, setSelectedBundleModal] = useState(null);
   const [bundleChoices, setBundleChoices] = useState({});
 
-  // State untuk pilihan metode pembayaran ("qris" atau "cash")
   const [paymentMethod, setPaymentMethod] = useState("qris");
 
-  // State untuk Kupon Diskon
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -73,9 +70,8 @@ export default function ClientOrderPage() {
   useEffect(() => {
     fetchMenus();
 
-    // Load Midtrans Snap Script secara dinamis agar popup pembayaran muncul jika memilih QRIS
     const midtransUrl = "https://app.sandbox.midtrans.com/snap/snap.js";
-    const clientKey = "Mid-client-Wc7y3D9VmGino8oi"; // Client Key Sandbox Anda
+    const clientKey = "Mid-client-Wc7y3D9VmGino8oi";
 
     const scriptTag = document.createElement("script");
     scriptTag.src = midtransUrl;
@@ -136,7 +132,6 @@ export default function ClientOrderPage() {
     setIsCustomerModalOpen(false);
   };
 
-  // Handler klik pada kartu menu (Mendukung Bundle / Paket Promo)
   const handleCardClick = (menu) => {
     if (!menu.isAvailable) return;
 
@@ -170,6 +165,7 @@ export default function ClientOrderPage() {
           menuId: menu._id,
           name: menu.name,
           price: menu.price,
+          originalPrice: menu.originalPrice || 0,
           image: menu.image,
           quantity: 1,
           selectedBundleChoices: choices,
@@ -234,7 +230,6 @@ export default function ClientOrderPage() {
     });
   }, [menus, searchQuery, selectedCategory]);
 
-  // Mengelompokkan menu untuk tab "Semua", dengan "Promo & Penawaran Spesial" diletakkan di paling atas
   const groupedMenus = useMemo(() => {
     if (selectedCategory !== "Semua") return null;
 
@@ -266,6 +261,14 @@ export default function ClientOrderPage() {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+
+  // Total penghematan dari harga coret menu
+  const totalMenuSavings = cart.reduce((sum, item) => {
+    if (item.originalPrice && item.originalPrice > item.price) {
+      return sum + (item.originalPrice - item.price) * item.quantity;
+    }
+    return sum;
+  }, 0);
 
   const priceAfterDiscount = Math.max(0, subtotalPrice - discountAmount);
   const serviceFee = priceAfterDiscount * 0.05;
@@ -690,12 +693,34 @@ export default function ClientOrderPage() {
             Object.entries(groupedMenus).map(
               ([categoryName, menusInCategory]) => (
                 <div key={categoryName} className="space-y-3">
-                  <div className="flex items-center gap-3 pt-4 pb-1 border-b border-neutral-200/60">
-                    <h3 className="text-sm font-black text-neutral-900 uppercase tracking-wider flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                  <div
+                    className={`flex items-center gap-3 pt-4 pb-1 border-b ${
+                      categoryName.includes("Promo")
+                        ? "border-amber-300 bg-amber-50/50 px-4 py-3 rounded-2xl mb-2"
+                        : "border-neutral-200/60"
+                    }`}
+                  >
+                    <h3
+                      className={`text-sm font-black uppercase tracking-wider flex items-center gap-2 ${
+                        categoryName.includes("Promo")
+                          ? "text-amber-900"
+                          : "text-neutral-900"
+                      }`}
+                    >
+                      {categoryName.includes("Promo") ? (
+                        <Zap className="w-4 h-4 text-amber-600 animate-pulse" />
+                      ) : (
+                        <span className="w-2.5 h-2.5 rounded-full bg-neutral-900"></span>
+                      )}
                       {categoryName}
                     </h3>
-                    <span className="text-[10px] font-bold text-neutral-400 font-mono bg-neutral-200/60 px-2 py-0.5 rounded-full">
+                    <span
+                      className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full ${
+                        categoryName.includes("Promo")
+                          ? "bg-amber-200 text-amber-900"
+                          : "bg-neutral-200/60 text-neutral-400"
+                      }`}
+                    >
                       {menusInCategory.length} Item
                     </span>
                   </div>
@@ -703,13 +728,27 @@ export default function ClientOrderPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {menusInCategory.map((menu) => {
                       const qty = getCartQuantity(menu._id);
+                      const isPromoItem =
+                        menu.isBundle ||
+                        (menu.originalPrice && menu.originalPrice > menu.price);
+                      const discountPercentage =
+                        menu.originalPrice > menu.price
+                          ? Math.round(
+                              ((menu.originalPrice - menu.price) /
+                                menu.originalPrice) *
+                                100,
+                            )
+                          : 0;
+
                       return (
                         <div
                           key={menu._id}
                           onClick={() => handleCardClick(menu)}
                           className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition group relative shadow-2xs hover:shadow-md ${
                             menu.isAvailable
-                              ? "border-neutral-200/80 hover:border-neutral-400 cursor-pointer"
+                              ? isPromoItem
+                                ? "border-amber-300 ring-1 ring-amber-200 hover:border-amber-400 cursor-pointer bg-gradient-to-b from-amber-50/20 to-white"
+                                : "border-neutral-200/80 hover:border-neutral-400 cursor-pointer"
                               : "border-neutral-200/50 opacity-60 cursor-not-allowed bg-neutral-100/50"
                           }`}
                         >
@@ -736,11 +775,12 @@ export default function ClientOrderPage() {
                                 >
                                   {menu.isAvailable ? "Tersedia" : "Habis"}
                                 </span>
-                                {(menu.isBundle ||
-                                  (menu.originalPrice &&
-                                    menu.originalPrice > menu.price)) && (
-                                  <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                                    <Package className="w-3 h-3" /> Promo Hemat
+                                {isPromoItem && (
+                                  <span className="px-2.5 py-1 text-[9px] rounded-full font-black bg-amber-500 text-white shadow-md flex items-center gap-1 animate-pulse">
+                                    <Zap className="w-3 h-3 fill-current" />
+                                    {discountPercentage > 0
+                                      ? `Hemat ${discountPercentage}%`
+                                      : "Promo Spesial"}
                                   </span>
                                 )}
                               </div>
@@ -785,7 +825,13 @@ export default function ClientOrderPage() {
                             </div>
 
                             {menu.isAvailable ? (
-                              <span className="text-[10px] font-bold text-neutral-900 bg-neutral-100 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded-xl transition shadow-2xs">
+                              <span
+                                className={`text-[10px] font-bold px-3 py-1.5 rounded-xl transition shadow-2xs ${
+                                  isPromoItem
+                                    ? "bg-amber-500 text-white hover:bg-amber-600 shadow-amber-200"
+                                    : "bg-neutral-100 text-neutral-900 hover:bg-neutral-900 hover:text-white"
+                                }`}
+                              >
                                 {menu.isBundle ? "+ Pilih Paket" : "+ Tambah"}
                               </span>
                             ) : (
@@ -805,13 +851,27 @@ export default function ClientOrderPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {filteredMenus.map((menu) => {
                 const qty = getCartQuantity(menu._id);
+                const isPromoItem =
+                  menu.isBundle ||
+                  (menu.originalPrice && menu.originalPrice > menu.price);
+                const discountPercentage =
+                  menu.originalPrice > menu.price
+                    ? Math.round(
+                        ((menu.originalPrice - menu.price) /
+                          menu.originalPrice) *
+                          100,
+                      )
+                    : 0;
+
                 return (
                   <div
                     key={menu._id}
                     onClick={() => handleCardClick(menu)}
                     className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition group relative shadow-2xs hover:shadow-md ${
                       menu.isAvailable
-                        ? "border-neutral-200/80 hover:border-neutral-400 cursor-pointer"
+                        ? isPromoItem
+                          ? "border-amber-300 ring-1 ring-amber-200 hover:border-amber-400 cursor-pointer bg-gradient-to-b from-amber-50/20 to-white"
+                          : "border-neutral-200/80 hover:border-neutral-400 cursor-pointer"
                         : "border-neutral-200/50 opacity-60 cursor-not-allowed bg-neutral-100/50"
                     }`}
                   >
@@ -838,11 +898,12 @@ export default function ClientOrderPage() {
                           >
                             {menu.isAvailable ? "Tersedia" : "Habis"}
                           </span>
-                          {(menu.isBundle ||
-                            (menu.originalPrice &&
-                              menu.originalPrice > menu.price)) && (
-                            <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                              <Package className="w-3 h-3" /> Promo Hemat
+                          {isPromoItem && (
+                            <span className="px-2.5 py-1 text-[9px] rounded-full font-black bg-amber-500 text-white shadow-md flex items-center gap-1 animate-pulse">
+                              <Zap className="w-3 h-3 fill-current" />
+                              {discountPercentage > 0
+                                ? `Hemat ${discountPercentage}%`
+                                : "Promo Spesial"}
                             </span>
                           )}
                         </div>
@@ -886,7 +947,13 @@ export default function ClientOrderPage() {
                       </div>
 
                       {menu.isAvailable ? (
-                        <span className="text-[10px] font-bold text-neutral-900 bg-neutral-100 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded-xl transition shadow-2xs">
+                        <span
+                          className={`text-[10px] font-bold px-3 py-1.5 rounded-xl transition shadow-2xs ${
+                            isPromoItem
+                              ? "bg-amber-500 text-white hover:bg-amber-600 shadow-amber-200"
+                              : "bg-neutral-100 text-neutral-900 hover:bg-neutral-900 hover:text-white"
+                          }`}
+                        >
                           {menu.isBundle ? "+ Pilih Paket" : "+ Tambah"}
                         </span>
                       ) : (
@@ -916,9 +983,9 @@ export default function ClientOrderPage() {
               </p>
               <p className="text-sm md:text-base font-mono font-black text-neutral-900">
                 Rp {subtotalPrice.toLocaleString("id-ID")}
-                {discountAmount > 0 && (
-                  <span className="text-[10px] text-neutral-400 line-through font-normal ml-1">
-                    Rp {subtotalPrice.toLocaleString("id-ID")}
+                {totalMenuSavings > 0 && (
+                  <span className="text-[10px] text-amber-600 font-bold ml-1.5 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                    Hemat Rp {totalMenuSavings.toLocaleString("id-ID")}
                   </span>
                 )}
               </p>
@@ -977,6 +1044,25 @@ export default function ClientOrderPage() {
                 </span>
               </div>
             </div>
+
+            {/* BANNER PROMO HEMAT DI KERANJANG */}
+            {totalMenuSavings > 0 && (
+              <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Zap className="w-4 h-4 fill-current" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-amber-900">
+                    Wah, Anda Berhasil Hemat Rp{" "}
+                    {totalMenuSavings.toLocaleString("id-ID")}!
+                  </p>
+                  <p className="text-[10px] text-amber-700">
+                    Nikmati penawaran promo & harga diskon spesial pada pesanan
+                    ini.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* FORM KUPON DISKON */}
             <div className="space-y-2">
@@ -1077,81 +1163,100 @@ export default function ClientOrderPage() {
             </div>
 
             <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
-              {cart.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between text-xs border-b border-neutral-100 pb-3.5 gap-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200/80">
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[9px] text-neutral-400">
-                          No Photo
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-bold text-neutral-900">{item.name}</p>
-                      <p className="text-xs text-neutral-500 font-mono font-semibold pt-0.5">
-                        Rp {item.price.toLocaleString("id-ID")}
-                      </p>
-                      {item.selectedBundleChoices &&
-                        Object.keys(item.selectedBundleChoices).length > 0 && (
-                          <div className="text-[10px] text-neutral-500 space-y-0.5 pt-1">
-                            {Object.entries(item.selectedBundleChoices).map(
-                              ([title, val], cIdx) => (
-                                <p key={cIdx}>
-                                  • {title}:{" "}
-                                  <span className="font-bold text-neutral-700">
-                                    {val}
-                                  </span>
-                                </p>
-                              ),
-                            )}
+              {cart.map((item, idx) => {
+                const hasPromo =
+                  item.originalPrice && item.originalPrice > item.price;
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between text-xs border-b border-neutral-100 pb-3.5 gap-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200/80">
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[9px] text-neutral-400">
+                            No Photo
                           </div>
                         )}
+                      </div>
+                      <div>
+                        <p className="font-bold text-neutral-900 flex items-center gap-1.5">
+                          {item.name}
+                          {hasPromo && (
+                            <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.2 rounded">
+                              Promo
+                            </span>
+                          )}
+                        </p>
+                        <div className="flex items-center gap-2 pt-0.5">
+                          <span className="text-xs text-emerald-600 font-mono font-bold">
+                            Rp {item.price.toLocaleString("id-ID")}
+                          </span>
+                          {hasPromo && (
+                            <span className="text-[10px] text-neutral-400 font-mono line-through">
+                              Rp {item.originalPrice.toLocaleString("id-ID")}
+                            </span>
+                          )}
+                        </div>
+                        {item.selectedBundleChoices &&
+                          Object.keys(item.selectedBundleChoices).length >
+                            0 && (
+                            <div className="text-[10px] text-neutral-500 space-y-0.5 pt-1">
+                              {Object.entries(item.selectedBundleChoices).map(
+                                ([title, val], cIdx) => (
+                                  <p key={cIdx}>
+                                    • {title}:{" "}
+                                    <span className="font-bold text-neutral-700">
+                                      {val}
+                                    </span>
+                                  </p>
+                                ),
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 bg-neutral-50 p-1 rounded-xl border border-neutral-200/60">
+                      <button
+                        onClick={(e) =>
+                          updateQuantity(
+                            item.menuId,
+                            item.selectedBundleChoices,
+                            -1,
+                            e,
+                          )
+                        }
+                        className="w-6 h-6 bg-white text-neutral-700 rounded-lg flex items-center justify-center text-xs font-bold hover:bg-neutral-200 transition shadow-2xs"
+                      >
+                        -
+                      </button>
+                      <span className="w-5 text-center text-xs font-black text-neutral-900">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={(e) =>
+                          updateQuantity(
+                            item.menuId,
+                            item.selectedBundleChoices,
+                            1,
+                            e,
+                          )
+                        }
+                        className="w-6 h-6 bg-white text-neutral-700 rounded-lg flex items-center justify-center text-xs font-bold hover:bg-neutral-200 transition shadow-2xs"
+                      >
+                        +
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2 bg-neutral-50 p-1 rounded-xl border border-neutral-200/60">
-                    <button
-                      onClick={(e) =>
-                        updateQuantity(
-                          item.menuId,
-                          item.selectedBundleChoices,
-                          -1,
-                          e,
-                        )
-                      }
-                      className="w-6 h-6 bg-white text-neutral-700 rounded-lg flex items-center justify-center text-xs font-bold hover:bg-neutral-200 transition shadow-2xs"
-                    >
-                      -
-                    </button>
-                    <span className="w-5 text-center text-xs font-black text-neutral-900">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={(e) =>
-                        updateQuantity(
-                          item.menuId,
-                          item.selectedBundleChoices,
-                          1,
-                          e,
-                        )
-                      }
-                      className="w-6 h-6 bg-white text-neutral-700 rounded-lg flex items-center justify-center text-xs font-bold hover:bg-neutral-200 transition shadow-2xs"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="pt-4 border-t border-neutral-100 space-y-3">
@@ -1161,6 +1266,15 @@ export default function ClientOrderPage() {
                   Rp {subtotalPrice.toLocaleString("id-ID")}
                 </span>
               </div>
+
+              {totalMenuSavings > 0 && (
+                <div className="flex justify-between items-center text-xs text-amber-700 font-bold">
+                  <span>Total Hemat Harga Coret</span>
+                  <span className="font-mono">
+                    - Rp {totalMenuSavings.toLocaleString("id-ID")}
+                  </span>
+                </div>
+              )}
 
               {discountAmount > 0 && (
                 <div className="flex justify-between items-center text-xs text-purple-700 font-bold">

@@ -14,12 +14,20 @@ import {
   Layers,
   Package,
   Percent,
+  Search,
+  Check,
+  ChevronRight,
+  Flame,
 } from "lucide-react";
 
 export default function MenuManagement() {
   const [menus, setMenus] = useState([]);
   const [categories, setCategories] = useState(["Makanan", "Minuman", "Snack"]);
   const [loading, setLoading] = useState(true);
+
+  // State Filter & Pencarian Kategori
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState("Semua");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -104,16 +112,6 @@ export default function MenuManagement() {
     setOriginalPrice(formatRupiah(e.target.value));
   };
 
-  const calculateDiscountPercentage = () => {
-    const rawPrice = Number(price.replace(/\./g, "")) || 0;
-    const rawOrig = Number(originalPrice.replace(/\./g, "")) || 0;
-    if (rawOrig > rawPrice && rawPrice > 0) {
-      const discount = ((rawOrig - rawPrice) / rawOrig) * 100;
-      return Math.round(discount);
-    }
-    return 0;
-  };
-
   const handleOpenAddModal = () => {
     setEditingId(null);
     setName("");
@@ -145,7 +143,6 @@ export default function MenuManagement() {
     setIsBundle(menu.isBundle || false);
     setBundleItems(menu.bundleItems || []);
 
-    // Normalisasi struktur choices lama agar kompatibel dengan objek name & price
     const normalizedOptions = (menu.bundleOptions || []).map((opt) => ({
       title: opt.title || "ADD ON",
       choices: (opt.choices || []).map((c) =>
@@ -164,7 +161,6 @@ export default function MenuManagement() {
     }
   };
 
-  // Handler Add-On Builder
   const handleAddBundleOption = () => {
     setBundleOptions([
       ...bundleOptions,
@@ -313,9 +309,40 @@ export default function MenuManagement() {
     }
   };
 
+  // Filter menu berdasarkan pencarian dan kategori yang dipilih
+  const filteredMenus = menus.filter((menu) => {
+    const matchesSearch =
+      menu.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (menu.description &&
+        menu.description.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const matchesCategory =
+      selectedCategoryTab === "Semua" ||
+      menu.category?.toLowerCase() === selectedCategoryTab.toLowerCase();
+
+    return matchesSearch && matchesCategory;
+  });
+
+  // Kelompokkan menu berdasarkan kategori untuk tampilan bersekat
+  const groupedMenus = categories.reduce((acc, cat) => {
+    acc[cat] = filteredMenus.filter(
+      (menu) => menu.category?.toLowerCase() === cat.toLowerCase(),
+    );
+    return acc;
+  }, {});
+
+  // Kategori lain di luar daftar standar
+  const otherMenus = filteredMenus.filter(
+    (menu) =>
+      !categories.some(
+        (cat) => cat.toLowerCase() === menu.category?.toLowerCase(),
+      ),
+  );
+
   return (
-    <div className="min-h-screen bg-white text-neutral-900 pb-20">
-      <div className="relative bg-neutral-900 text-white py-10 px-6 md:px-12 overflow-hidden mb-8 shadow-md">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900 pb-24">
+      {/* HERO BANNER ATTRACTION */}
+      <div className="relative bg-neutral-900 text-white py-12 px-6 md:px-12 overflow-hidden mb-8 shadow-md">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50 scale-105 pointer-events-none"
           style={{
@@ -330,12 +357,12 @@ export default function MenuManagement() {
               <Sparkles className="w-3.5 h-3.5" />
               <span>Katalog & Manajemen Produk</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
               Manajemen Menu & Add-On
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
               Atur produk, harga diskon, foto, serta pilihan add-on berharga
-              dengan mudah.
+              dengan mudah dan terstruktur.
             </p>
           </div>
 
@@ -358,17 +385,39 @@ export default function MenuManagement() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 sm:px-8 space-y-8">
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-neutral-200/80 gap-4">
-          <div>
+        {/* HEADER KONTROL & PENCARIAN */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-neutral-200/80 gap-4">
+          <div className="space-y-1">
             <h2 className="text-xl font-extrabold tracking-tight text-neutral-900">
               Daftar Katalog Produk
             </h2>
-            <p className="text-xs text-neutral-500 mt-0.5">
+            <p className="text-xs text-neutral-500">
               Kelola produk, harga, add-on, ketersediaan, dan kategori menu.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 self-start sm:self-auto">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 sm:w-64">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-neutral-400">
+                <Search className="w-4 h-4" />
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari menu..."
+                className="w-full bg-white border border-neutral-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 shadow-2xs font-medium"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-neutral-400 hover:text-neutral-700 text-xs font-bold cursor-pointer"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
             <button
               onClick={() => setShowCategoryModal(true)}
               className="bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-2xs flex items-center gap-2 cursor-pointer"
@@ -379,13 +428,54 @@ export default function MenuManagement() {
 
             <button
               onClick={handleOpenAddModal}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-2xs flex items-center gap-2 cursor-pointer"
+              className="bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-md flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Menu Baru</span>
             </button>
           </div>
         </header>
+
+        {/* TAB FILTER KATEGORI */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <button
+            onClick={() => setSelectedCategoryTab("Semua")}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs ${
+              selectedCategoryTab === "Semua"
+                ? "bg-neutral-900 text-white shadow-sm"
+                : "bg-white text-neutral-600 border border-neutral-200/80 hover:text-neutral-900"
+            }`}
+          >
+            Semua Kategori ({menus.length})
+          </button>
+          {categories.map((cat, idx) => {
+            const count = menus.filter(
+              (m) => m.category?.toLowerCase() === cat.toLowerCase(),
+            ).length;
+            return (
+              <button
+                key={idx}
+                onClick={() => setSelectedCategoryTab(cat)}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs flex items-center gap-1.5 ${
+                  selectedCategoryTab === cat
+                    ? "bg-neutral-900 text-white shadow-sm"
+                    : "bg-white text-neutral-600 border border-neutral-200/80 hover:text-neutral-900"
+                }`}
+              >
+                <span>{cat}</span>
+                <span
+                  className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                    selectedCategoryTab === cat
+                      ? "bg-neutral-800 text-white"
+                      : "bg-neutral-100 text-neutral-500"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-3">
@@ -394,104 +484,271 @@ export default function MenuManagement() {
               Memuat daftar menu...
             </p>
           </div>
-        ) : menus.length === 0 ? (
-          <div className="text-center py-16 bg-white border border-neutral-200/80 rounded-3xl shadow-2xs space-y-3">
+        ) : filteredMenus.length === 0 ? (
+          <div className="text-center py-20 bg-white border border-neutral-200/80 rounded-3xl shadow-2xs space-y-3">
             <p className="text-sm font-bold text-neutral-700">
-              Belum ada menu tersedia.
+              Menu tidak ditemukan.
             </p>
-            <button
-              onClick={handleOpenAddModal}
-              className="text-xs bg-neutral-900 text-white px-4 py-2 rounded-xl hover:bg-neutral-800 transition cursor-pointer font-semibold"
-            >
-              Buat Menu Pertama Anda
-            </button>
+            <p className="text-xs text-neutral-400">
+              Coba kata kunci lain atau pilih kategori yang berbeda.
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {menus.map((menu) => (
-              <div
-                key={menu._id}
-                className="bg-white border border-neutral-200/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-md transition group"
-              >
-                <div>
-                  <div className="relative h-36 w-full bg-neutral-100 overflow-hidden">
-                    {menu.image ? (
-                      <img
-                        src={menu.image}
-                        alt={menu.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 text-xs gap-1">
-                        <ImageIcon className="w-5 h-5 text-neutral-300" />
-                        <span>Tidak ada foto</span>
-                      </div>
-                    )}
+          /* TAMPILAN BERSEKAT SESUAI KATEGORI */
+          <div className="space-y-12">
+            {categories.map((cat) => {
+              const catMenus = groupedMenus[cat] || [];
+              if (
+                selectedCategoryTab !== "Semua" &&
+                selectedCategoryTab !== cat
+              )
+                return null;
+              if (catMenus.length === 0) return null;
 
-                    <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end">
-                      <button
-                        onClick={() => handleToggleAvailability(menu)}
-                        title="Klik untuk ubah ketersediaan"
-                        className={`px-3 py-1 text-[10px] rounded-full font-extrabold shadow-2xs backdrop-blur-md transition cursor-pointer flex items-center gap-1.5 ${
-                          menu.isAvailable
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
-                            : "bg-neutral-100 text-neutral-500 border border-neutral-200 hover:bg-neutral-200"
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            menu.isAvailable
-                              ? "bg-emerald-500"
-                              : "bg-neutral-400"
-                          }`}
-                        ></span>
-                        {menu.isAvailable ? "TERSEDIA" : "HABIS"}
-                      </button>
-
-                      {menu.isBundle && (
-                        <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                          <Package className="w-3 h-3" /> Add-On Tersedia
-                        </span>
-                      )}
+              return (
+                <div key={cat} className="space-y-4">
+                  {/* Sekat Kategori Header */}
+                  <div className="flex items-center gap-3 pb-2 border-b border-neutral-200">
+                    <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-2xs font-bold text-xs">
+                      <Flame className="w-4 h-4 text-amber-400" />
                     </div>
-                  </div>
-
-                  <div className="p-4 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                      {menu.category}
-                    </span>
-                    <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
-                      {menu.name}
-                    </h3>
-                    <div className="flex items-center gap-2 pt-1">
-                      <p className="text-emerald-600 font-mono font-black text-sm">
-                        Rp {menu.price.toLocaleString("id-ID")}
+                    <div>
+                      <h3 className="text-base font-extrabold text-neutral-900 uppercase tracking-wider">
+                        {cat}
+                      </h3>
+                      <p className="text-[11px] text-neutral-400">
+                        {catMenus.length} produk tersedia dalam kategori ini
                       </p>
-                      {menu.originalPrice > menu.price && (
-                        <p className="text-neutral-400 font-mono text-xs line-through">
-                          Rp {menu.originalPrice.toLocaleString("id-ID")}
-                        </p>
-                      )}
                     </div>
                   </div>
-                </div>
 
-                <div className="px-4 py-3 border-t border-neutral-100 flex justify-end gap-2 bg-neutral-50/50">
-                  <button
-                    onClick={() => handleOpenEditModal(menu)}
-                    className="bg-white hover:bg-neutral-100 text-neutral-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer flex items-center gap-1"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" /> Edit
-                  </button>
-                  <button
-                    onClick={() => setDeleteTarget(menu)}
-                    className="bg-white hover:bg-red-50 text-neutral-700 hover:text-red-600 px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-neutral-200/80 hover:border-red-200 shadow-2xs cursor-pointer flex items-center gap-1"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Hapus
-                  </button>
+                  {/* Grid Produk dalam Sekat */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {catMenus.map((menu) => (
+                      <div
+                        key={menu._id}
+                        className="bg-white border border-neutral-200/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-md transition group relative"
+                      >
+                        <div>
+                          <div className="relative h-40 w-full bg-neutral-100 overflow-hidden">
+                            {menu.image ? (
+                              <img
+                                src={menu.image}
+                                alt={menu.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 text-xs gap-1">
+                                <ImageIcon className="w-5 h-5 text-neutral-300" />
+                                <span>Tidak ada foto</span>
+                              </div>
+                            )}
+
+                            <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
+                              <button
+                                onClick={() => handleToggleAvailability(menu)}
+                                title="Klik untuk ubah ketersediaan"
+                                className={`px-3 py-1 text-[10px] rounded-full font-extrabold shadow-sm backdrop-blur-md transition cursor-pointer flex items-center gap-1.5 ${
+                                  menu.isAvailable
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                                    : "bg-neutral-200 text-neutral-600 border border-neutral-300 hover:bg-neutral-300"
+                                }`}
+                              >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    menu.isAvailable
+                                      ? "bg-emerald-500"
+                                      : "bg-neutral-400"
+                                  }`}
+                                ></span>
+                                {menu.isAvailable ? "TERSEDIA" : "HABIS"}
+                              </button>
+
+                              {menu.isBundle && (
+                                <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
+                                  <Package className="w-3 h-3" /> Add-On
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="p-4 space-y-1.5">
+                            <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
+                              {menu.name}
+                            </h3>
+                            {menu.description ? (
+                              <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
+                                {menu.description}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-neutral-300 italic">
+                                Tanpa deskripsi
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-4 pt-0 flex justify-between items-center">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-mono font-black text-emerald-600">
+                              Rp {menu.price.toLocaleString("id-ID")}
+                            </span>
+                            {menu.originalPrice > menu.price && (
+                              <span className="text-[10px] font-mono text-neutral-400 line-through">
+                                Rp {menu.originalPrice.toLocaleString("id-ID")}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => handleOpenEditModal(menu)}
+                              className="bg-neutral-100 hover:bg-neutral-900 hover:text-white text-neutral-700 p-2 rounded-xl text-xs font-semibold transition border border-neutral-200 shadow-2xs cursor-pointer"
+                              title="Edit Menu"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget(menu)}
+                              className="bg-neutral-100 hover:bg-red-600 hover:text-white text-neutral-700 p-2 rounded-xl text-xs font-semibold transition border border-neutral-200 shadow-2xs cursor-pointer"
+                              title="Hapus Menu"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+
+            {/* Sekat untuk Kategori Lain (jika ada) */}
+            {otherMenus.length > 0 &&
+              (selectedCategoryTab === "Semua" ||
+                otherMenus.some(
+                  (m) =>
+                    m.category?.toLowerCase() ===
+                    selectedCategoryTab.toLowerCase(),
+                )) && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 pb-2 border-b border-neutral-200">
+                    <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-2xs font-bold text-xs">
+                      <Flame className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-neutral-900 uppercase tracking-wider">
+                        Lainnya
+                      </h3>
+                      <p className="text-[11px] text-neutral-400">
+                        {otherMenus.length} produk dalam kategori tambahan
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {otherMenus.map((menu) => (
+                      <div
+                        key={menu._id}
+                        className="bg-white border border-neutral-200/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-md transition group relative"
+                      >
+                        <div>
+                          <div className="relative h-40 w-full bg-neutral-100 overflow-hidden">
+                            {menu.image ? (
+                              <img
+                                src={menu.image}
+                                alt={menu.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 text-xs gap-1">
+                                <ImageIcon className="w-5 h-5 text-neutral-300" />
+                                <span>Tidak ada foto</span>
+                              </div>
+                            )}
+
+                            <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
+                              <button
+                                onClick={() => handleToggleAvailability(menu)}
+                                title="Klik untuk ubah ketersediaan"
+                                className={`px-3 py-1 text-[10px] rounded-full font-extrabold shadow-sm backdrop-blur-md transition cursor-pointer flex items-center gap-1.5 ${
+                                  menu.isAvailable
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                                    : "bg-neutral-200 text-neutral-600 border border-neutral-300 hover:bg-neutral-300"
+                                }`}
+                              >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    menu.isAvailable
+                                      ? "bg-emerald-500"
+                                      : "bg-neutral-400"
+                                  }`}
+                                ></span>
+                                {menu.isAvailable ? "TERSEDIA" : "HABIS"}
+                              </button>
+
+                              {menu.isBundle && (
+                                <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
+                                  <Package className="w-3 h-3" /> Add-On
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="p-4 space-y-1.5">
+                            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
+                              {menu.category}
+                            </span>
+                            <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
+                              {menu.name}
+                            </h3>
+                            {menu.description ? (
+                              <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
+                                {menu.description}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-neutral-300 italic">
+                                Tanpa deskripsi
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-4 pt-0 flex justify-between items-center">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-mono font-black text-emerald-600">
+                              Rp {menu.price.toLocaleString("id-ID")}
+                            </span>
+                            {menu.originalPrice > menu.price && (
+                              <span className="text-[10px] font-mono text-neutral-400 line-through">
+                                Rp {menu.originalPrice.toLocaleString("id-ID")}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => handleOpenEditModal(menu)}
+                              className="bg-neutral-100 hover:bg-neutral-900 hover:text-white text-neutral-700 p-2 rounded-xl text-xs font-semibold transition border border-neutral-200 shadow-2xs cursor-pointer"
+                              title="Edit Menu"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget(menu)}
+                              className="bg-neutral-100 hover:bg-red-600 hover:text-white text-neutral-700 p-2 rounded-xl text-xs font-semibold transition border border-neutral-200 shadow-2xs cursor-pointer"
+                              title="Hapus Menu"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
           </div>
         )}
 
@@ -542,7 +799,7 @@ export default function MenuManagement() {
                 </h3>
                 <button
                   onClick={() => setShowCategoryModal(false)}
-                  className="text-neutral-400 p-2"
+                  className="text-neutral-400 p-2 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -557,7 +814,7 @@ export default function MenuManagement() {
                 />
                 <button
                   type="submit"
-                  className="bg-neutral-900 text-white px-4 py-2.5 rounded-xl text-xs font-bold"
+                  className="bg-neutral-900 text-white px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Tambah
                 </button>
@@ -572,7 +829,7 @@ export default function MenuManagement() {
                     <button
                       type="button"
                       onClick={() => setDeleteCategoryTarget(cat)}
-                      className="text-red-500"
+                      className="text-red-500 cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -599,7 +856,7 @@ export default function MenuManagement() {
                 </div>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-neutral-400 p-2"
+                  className="text-neutral-400 p-2 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>

@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
 import API from "../services/api";
 import { toast } from "react-toastify";
-import {
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  ShoppingBag,
-  Calendar,
-  QrCode,
-  Wallet,
-} from "lucide-react";
+import { ShoppingBag, CheckCircle2, Clock } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 export default function ClientOrderHistory() {
+  const [searchParams] = useSearchParams();
+  const tableFromUrl = searchParams.get("table");
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Ambil data identitas guest dari localStorage
+  const customerInfo = JSON.parse(
+    localStorage.getItem("swift_customer_info") || "{}",
+  );
 
   useEffect(() => {
     fetchClientOrders();
@@ -21,9 +22,25 @@ export default function ClientOrderHistory() {
 
   const fetchClientOrders = async () => {
     try {
-      // Sesuaikan endpoint API jika diperlukan untuk spesifik client/meja
       const res = await API.get("/orders");
-      setOrders(res.data);
+      const allOrders = res.data;
+
+      // Filter pesanan HANYA milik client yang sedang aktif di browser ini
+      // Berdasarkan Nama yang sama (case-insensitive) atau Nomor Meja yang sesuai
+      const filtered = allOrders.filter((order) => {
+        const isSameName =
+          customerInfo.name &&
+          order.customerName?.toLowerCase().trim() ===
+            customerInfo.name.toLowerCase().trim();
+
+        const isSameTable =
+          tableFromUrl && Number(order.tableNumber) === Number(tableFromUrl);
+
+        // Tampilkan jika namanya cocok ATAU nomor mejanya sama dengan sesi saat ini
+        return isSameName || isSameTable;
+      });
+
+      setOrders(filtered);
     } catch (err) {
       console.error("Gagal memuat riwayat pesanan", err);
       toast.error("Gagal memuat riwayat pesanan.");
@@ -69,7 +86,7 @@ export default function ClientOrderHistory() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
         <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin"></div>
         <p className="text-xs text-neutral-500 font-medium">
-          Memuat riwayat pesanan...
+          Memuat riwayat pesanan Anda...
         </p>
       </div>
     );
@@ -82,18 +99,21 @@ export default function ClientOrderHistory() {
           Riwayat Pesanan Anda
         </h2>
         <p className="text-xs text-neutral-500 mt-0.5">
-          Pantau status pesanan dan rincian transaksi Anda secara real-time.
+          Menampilkan riwayat pesanan atas nama{" "}
+          <span className="font-bold text-neutral-900">
+            {customerInfo.name || "Tamu"}
+          </span>
         </p>
       </div>
 
       {orders.length === 0 ? (
-        <div className="text-center py-16 bg-white border border-neutral-200 rounded-3xl p-8 space-y-2">
+        <div className="text-center py-16 bg-white border border-neutral-200 rounded-3xl p-8 space-y-2 shadow-2xs">
           <ShoppingBag className="w-10 h-10 text-neutral-300 mx-auto" />
           <p className="text-sm font-bold text-neutral-700">
             Belum ada riwayat pesanan
           </p>
           <p className="text-xs text-neutral-400">
-            Pesanan yang Anda buat akan muncul di halaman ini.
+            Pesanan yang Anda buat dari perangkat ini akan muncul di sini.
           </p>
         </div>
       ) : (

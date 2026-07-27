@@ -651,10 +651,10 @@ export default function ClientOrderPage() {
                 {totalItemsCount} Menu Dipilih
               </p>
               <p className="text-sm md:text-base font-mono font-black text-neutral-900">
-                Rp {finalTotalPrice.toLocaleString("id-ID")}
+                Rp {subtotalPrice.toLocaleString("id-ID")}
                 {discountAmount > 0 && (
                   <span className="text-[10px] text-neutral-400 line-through font-normal ml-1">
-                    Rp {(subtotalPrice + serviceFee).toLocaleString("id-ID")}
+                    Rp {subtotalPrice.toLocaleString("id-ID")}
                   </span>
                 )}
               </p>

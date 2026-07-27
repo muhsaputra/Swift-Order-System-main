@@ -10,6 +10,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  Cell,
 } from "recharts";
 import {
   TrendingUp,
@@ -534,14 +535,19 @@ export default function TransactionHistory() {
 
   const chartData = getFilteredChartData();
 
-  // --- LOGIKA ANALITIK TAMBAHAN (METODE PEMBAYARAN & KATEGORI TERLARIS) ---
-  const paymentMethodStats = {};
+  // --- LOGIKA ANALITIK TAMBAHAN (KATEGORI MENU & METODE PEMBAYARAN QRIS VS CASH) ---
   const categorySalesStats = {};
+  let qrisTotalRevenue = 0;
+  let cashTotalRevenue = 0;
 
   filteredOrders.forEach((order) => {
-    const method = (order.paymentMethod || "QRIS").toUpperCase();
-    paymentMethodStats[method] =
-      (paymentMethodStats[method] || 0) + (order.totalAmount || 0);
+    const method = (order.paymentMethod || "qris").toLowerCase();
+    const amount = order.totalAmount || 0;
+    if (method === "cash") {
+      cashTotalRevenue += amount;
+    } else {
+      qrisTotalRevenue += amount;
+    }
 
     order.items?.forEach((item) => {
       const cat = item.menu?.category || item.category || "Lainnya";
@@ -554,6 +560,11 @@ export default function TransactionHistory() {
     category,
     revenue: categorySalesStats[category],
   }));
+
+  const paymentComparisonBarData = [
+    { name: "QRIS Digital", revenue: qrisTotalRevenue, fill: "#2563eb" }, // Biru untuk QRIS
+    { name: "Tunai / Cash", revenue: cashTotalRevenue, fill: "#16a34a" }, // Hijau untuk Cash
+  ];
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 pb-20">
@@ -664,8 +675,8 @@ export default function TransactionHistory() {
                 Dashboard Analitik & Performa Penjualan
               </h3>
               <p className="text-xs text-neutral-500">
-                Grafik interaktif tren omset, distribusi metode bayar, dan omset
-                kategori menu.
+                Grafik interaktif tren omset, kategori menu, dan komparasi
+                metode bayar QRIS vs Cash.
               </p>
             </div>
 
@@ -704,27 +715,20 @@ export default function TransactionHistory() {
             </div>
           </div>
 
-          {/* Grafik Utama Tren Omset (Area Chart & Bar Chart) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Tren Omset Area Chart */}
+          {/* Grid Grafik: 1. Tren Omset (Area Chart), 2. Kategori Menu (Bar Chart), 3. Metode Pembayaran QRIS vs Cash (Bar Chart) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 1. Tren Omset Area Chart */}
             <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-emerald-600" />
-                    Kurva Pertumbuhan Omset
+                    Grafik Tren Penjualan
                   </h4>
                   <p className="text-[11px] text-neutral-400">
-                    Akumulasi pendapatan bersih berdasarkan periode.
+                    Kurva akumulasi pendapatan bersih.
                   </p>
                 </div>
-                <span className="text-xs font-mono font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-xl border border-emerald-200">
-                  {chartTimeRange === "week"
-                    ? "7 Hari Terakhir"
-                    : chartTimeRange === "month"
-                      ? "30 Hari Terakhir"
-                      : "Semua Periode"}
-                </span>
               </div>
               <div className="h-64 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
@@ -781,16 +785,16 @@ export default function TransactionHistory() {
               </div>
             </div>
 
-            {/* Performa Omset Berdasarkan Kategori Menu (Bar Chart) */}
+            {/* 2. Performa Omset Berdasarkan Kategori Menu (Bar Chart) */}
             <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-neutral-900" />
-                    Omset Berdasarkan Kategori Menu
+                    Omset Kategori Menu
                   </h4>
                   <p className="text-[11px] text-neutral-400">
-                    Kontribusi penjualan tiap kelompok produk.
+                    Kontribusi penjualan tiap produk.
                   </p>
                 </div>
               </div>
@@ -821,6 +825,51 @@ export default function TransactionHistory() {
                       fill="#262626"
                       radius={[8, 8, 0, 0]}
                     />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* 3. Komparasi Metode Pembayaran (QRIS vs Cash Bar Chart) */}
+            <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
+                    <Wallet className="w-4 h-4 text-blue-600" />
+                    Metode Bayar (QRIS vs Cash)
+                  </h4>
+                  <p className="text-[11px] text-neutral-400">
+                    Perbandingan digital & fisik.
+                  </p>
+                </div>
+              </div>
+              <div className="h-64 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={paymentComparisonBarData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="name" stroke="#737373" fontSize={11} />
+                    <YAxis
+                      stroke="#737373"
+                      fontSize={11}
+                      tickFormatter={(value) => `Rp ${value / 1000}k`}
+                    />
+                    <Tooltip
+                      formatter={(value, name, item) => [
+                        `Rp ${value.toLocaleString("id-ID")}`,
+                        item.payload.name,
+                      ]}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        borderColor: "#e5e5e5",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                      }}
+                    />
+                    <Bar dataKey="revenue" radius={[10, 10, 0, 0]}>
+                      {paymentComparisonBarData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>

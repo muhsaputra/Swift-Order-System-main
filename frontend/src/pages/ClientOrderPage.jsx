@@ -270,6 +270,7 @@ export default function ClientOrderPage() {
           return;
         }
 
+        // PaymentRes
         const paymentRes = await API.post("/payments/create-transaction", {
           orderId: newOrder._id,
           totalAmount: newOrder.totalAmount,

@@ -114,7 +114,6 @@ export default function CashierDashboard() {
   useEffect(() => {
     fetchOrders();
     fetchMenus();
-    // fetchCashierProfile();
     fetchCoupons();
 
     const backendUrl = import.meta.env.VITE_API_URL
@@ -244,21 +243,6 @@ export default function CashierDashboard() {
       setMenus(availableMenus);
     } catch (err) {
       console.error("Gagal memuat menu katalog", err);
-    }
-  };
-
-  const fetchCashierProfile = async () => {
-    try {
-      const res = await API.get("/cashier/profile");
-      if (res.data) {
-        setCashierProfile({
-          name: res.data.name || "Putra Cashier",
-          role: res.data.role || "Senior Cashier & Ops",
-          avatar: res.data.avatar || "",
-        });
-      }
-    } catch (err) {
-      // Fallback
     }
   };
 
@@ -417,7 +401,6 @@ export default function CashierDashboard() {
   const handleSubmitManualOrder = async (e) => {
     e.preventDefault();
 
-    // Hentikan eksekusi jika sedang dalam proses pengiriman
     if (submittingOrder) return;
 
     if (cart.length === 0) {
@@ -441,6 +424,7 @@ export default function CashierDashboard() {
         items: cart.map((item) => ({
           menu: item.menuId,
           quantity: item.quantity,
+          selectedBundleChoices: item.selectedBundleChoices || {},
         })),
         subtotal: subtotal,
         serviceFee: serviceFee,
@@ -452,7 +436,6 @@ export default function CashierDashboard() {
 
       const res = await API.post("/orders", payload);
 
-      // Update state orders hanya jika ID belum ada di dalam state (mencegah duplikat dari socket vs response API)
       setOrders((prev) => {
         const exists = prev.some((ord) => ord._id === res.data._id);
         if (exists) return prev;
@@ -502,6 +485,7 @@ export default function CashierDashboard() {
             table { width: 100%; border-collapse: collapse; }
             th, td { text-align: left; padding: 3px 0; }
             .right { text-align: right; }
+            .choices { font-size: 10px; color: #333; padding-left: 10px; margin: 2px 0; }
           </style>
         </head>
         <body>
@@ -523,10 +507,27 @@ export default function CashierDashboard() {
               .map((item) => {
                 const name = item.menu?.name || item.name || "Menu Item";
                 const price = item.price || item.menu?.price || 0;
+
+                // Konversi selectedBundleChoices menjadi objek/map aman
+                const choices = item.selectedBundleChoices
+                  ? item.selectedBundleChoices instanceof Map
+                    ? Object.fromEntries(item.selectedBundleChoices)
+                    : item.selectedBundleChoices
+                  : {};
+                const choicesHtml =
+                  Object.keys(choices).length > 0
+                    ? Object.entries(choices)
+                        .map(
+                          ([k, v]) => `<div class="choices">• ${k}: ${v}</div>`,
+                        )
+                        .join("")
+                    : "";
+
                 return `
                 <tr>
-                  <td colspan="2">${name}</td>
+                  <td colspan="2"><strong>${name}</strong></td>
                 </tr>
+                ${choicesHtml}
                 <tr>
                   <td>${item.quantity}x @ ${price.toLocaleString("id-ID")}</td>
                   <td class="right">${(item.quantity * price).toLocaleString("id-ID")}</td>
@@ -613,13 +614,9 @@ export default function CashierDashboard() {
     }
   };
 
-  // 1. FILTER & SORTING OTOMATIS: Tampilkan pesanan yang lunas ATAU pesanan cash yang masih pending kasir
-  // FILTER & SORTING OTOMATIS: Tampilkan pesanan aktif yang belum selesai
   const activeOrders = orders
     .filter((o) => {
       const isNotCompleted = o.orderStatus !== "completed";
-
-      // Tangkap semua variasi status lunas atau pending kasir secara fleksibel
       const isValidPayment =
         o.paymentStatus === "paid" ||
         o.paymentStatus === "success" ||
@@ -1112,6 +1109,15 @@ export default function CashierDashboard() {
                                   const itemImage =
                                     item.menu?.image || item.image || "";
 
+                                  // Konversi pilihan bundle untuk ditampilkan di card kasir
+                                  const choices = item.selectedBundleChoices
+                                    ? item.selectedBundleChoices instanceof Map
+                                      ? Object.fromEntries(
+                                          item.selectedBundleChoices,
+                                        )
+                                      : item.selectedBundleChoices
+                                    : {};
+
                                   return (
                                     <div
                                       key={idx}
@@ -1139,6 +1145,22 @@ export default function CashierDashboard() {
                                             {item.quantity}x @ Rp{" "}
                                             {itemPrice.toLocaleString("id-ID")}
                                           </p>
+
+                                          {/* Tampilkan pilihan kustomisasi paket/bundle di sini */}
+                                          {Object.keys(choices).length > 0 && (
+                                            <div className="text-[10px] text-neutral-500 space-y-0.5 pt-1">
+                                              {Object.entries(choices).map(
+                                                ([title, val], cIdx) => (
+                                                  <p key={cIdx}>
+                                                    • {title}:{" "}
+                                                    <span className="font-bold text-neutral-700">
+                                                      {val}
+                                                    </span>
+                                                  </p>
+                                                ),
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                       <span className="font-mono text-xs font-extrabold text-neutral-900 shrink-0">

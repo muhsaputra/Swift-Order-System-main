@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Sparkles,
   Layers,
+  Package,
 } from "lucide-react";
 
 export default function MenuManagement() {
@@ -33,10 +34,16 @@ export default function MenuManagement() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [originalPrice, setOriginalPrice] = useState("");
   const [category, setCategory] = useState("Makanan");
   const [isAvailable, setIsAvailable] = useState(true);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+
+  // State untuk Fitur Bundle / Paket Promo
+  const [isBundle, setIsBundle] = useState(false);
+  const [bundleItems, setBundleItems] = useState([]);
+  const [bundleOptions, setBundleOptions] = useState([]);
 
   // Form Category State
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -94,15 +101,25 @@ export default function MenuManagement() {
     setPrice(formatted);
   };
 
+  const handleOriginalPriceChange = (e) => {
+    const rawValue = e.target.value;
+    const formatted = formatRupiah(rawValue);
+    setOriginalPrice(formatted);
+  };
+
   const handleOpenAddModal = () => {
     setEditingId(null);
     setName("");
     setDescription("");
     setPrice("");
+    setOriginalPrice("");
     setCategory(categories[0] || "Makanan");
     setIsAvailable(true);
     setImageFile(null);
     setImagePreview("");
+    setIsBundle(false);
+    setBundleItems([]);
+    setBundleOptions([]);
     setShowModal(true);
   };
 
@@ -111,10 +128,16 @@ export default function MenuManagement() {
     setName(menu.name);
     setDescription(menu.description || "");
     setPrice(formatRupiah(menu.price));
+    setOriginalPrice(
+      menu.originalPrice ? formatRupiah(menu.originalPrice) : "",
+    );
     setCategory(menu.category);
     setIsAvailable(menu.isAvailable);
     setImageFile(null);
     setImagePreview(menu.image || "");
+    setIsBundle(menu.isBundle || false);
+    setBundleItems(menu.bundleItems || []);
+    setBundleOptions(menu.bundleOptions || []);
     setShowModal(true);
   };
 
@@ -126,19 +149,77 @@ export default function MenuManagement() {
     }
   };
 
+  // Handler Manajemen Bundle Items & Options
+  const handleAddBundleItem = () => {
+    setBundleItems([...bundleItems, { menu: "", quantity: 1 }]);
+  };
+
+  const handleRemoveBundleItem = (index) => {
+    const updated = bundleItems.filter((_, i) => i !== index);
+    setBundleItems(updated);
+  };
+
+  const handleBundleItemChange = (index, field, value) => {
+    const updated = [...bundleItems];
+    updated[index][field] = value;
+    setBundleItems(updated);
+  };
+
+  const handleAddBundleOption = () => {
+    setBundleOptions([...bundleOptions, { title: "", choices: [""] }]);
+  };
+
+  const handleRemoveBundleOption = (index) => {
+    const updated = bundleOptions.filter((_, i) => i !== index);
+    setBundleOptions(updated);
+  };
+
+  const handleBundleOptionTitleChange = (index, title) => {
+    const updated = [...bundleOptions];
+    updated[index].title = title;
+    setBundleOptions(updated);
+  };
+
+  const handleAddChoice = (optIndex) => {
+    const updated = [...bundleOptions];
+    updated[optIndex].choices.push("");
+    setBundleOptions(updated);
+  };
+
+  const handleRemoveChoice = (optIndex, choiceIndex) => {
+    const updated = [...bundleOptions];
+    updated[optIndex].choices = updated[optIndex].choices.filter(
+      (_, i) => i !== choiceIndex,
+    );
+    setBundleOptions(updated);
+  };
+
+  const handleChoiceChange = (optIndex, choiceIndex, value) => {
+    const updated = [...bundleOptions];
+    updated[optIndex].choices[choiceIndex] = value;
+    setBundleOptions(updated);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
       const rawPrice = Number(price.replace(/\./g, ""));
+      const rawOriginalPrice = originalPrice
+        ? Number(originalPrice.replace(/\./g, ""))
+        : 0;
 
       const formData = new FormData();
       formData.append("name", name);
       formData.append("description", description);
       formData.append("price", rawPrice);
+      formData.append("originalPrice", rawOriginalPrice);
       formData.append("category", category);
       formData.append("isAvailable", isAvailable);
+      formData.append("isBundle", isBundle);
+      formData.append("bundleItems", JSON.stringify(bundleItems));
+      formData.append("bundleOptions", JSON.stringify(bundleOptions));
 
       if (imageFile) {
         formData.append("image", imageFile);
@@ -168,8 +249,15 @@ export default function MenuManagement() {
       formData.append("name", menu.name);
       formData.append("description", menu.description || "");
       formData.append("price", menu.price);
+      formData.append("originalPrice", menu.originalPrice || 0);
       formData.append("category", menu.category);
       formData.append("isAvailable", !menu.isAvailable);
+      formData.append("isBundle", menu.isBundle || false);
+      formData.append("bundleItems", JSON.stringify(menu.bundleItems || []));
+      formData.append(
+        "bundleOptions",
+        JSON.stringify(menu.bundleOptions || []),
+      );
 
       await API.put(`/menus/${menu._id}`, formData);
       toast.success(
@@ -262,8 +350,8 @@ export default function MenuManagement() {
               Manajemen Menu & Kategori
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Atur seluruh ketersediaan produk, harga, foto, dan kelompok
-              kategori menu restoran secara instan.
+              Atur seluruh ketersediaan produk, harga, paket promo, foto, dan
+              kelompok kategori menu restoran secara instan.
             </p>
           </div>
 
@@ -357,7 +445,7 @@ export default function MenuManagement() {
                       </div>
                     )}
 
-                    <div className="absolute top-2.5 right-2.5">
+                    <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end">
                       <button
                         onClick={() => handleToggleAvailability(menu)}
                         title="Klik untuk ubah ketersediaan"
@@ -376,6 +464,12 @@ export default function MenuManagement() {
                         ></span>
                         {menu.isAvailable ? "TERSEDIA" : "HABIS"}
                       </button>
+
+                      {menu.isBundle && (
+                        <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
+                          <Package className="w-3 h-3" /> Paket Promo
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -395,9 +489,16 @@ export default function MenuManagement() {
                         Tidak ada deskripsi
                       </p>
                     )}
-                    <p className="text-emerald-600 font-mono font-black text-sm pt-1">
-                      Rp {menu.price.toLocaleString("id-ID")}
-                    </p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <p className="text-emerald-600 font-mono font-black text-sm">
+                        Rp {menu.price.toLocaleString("id-ID")}
+                      </p>
+                      {menu.originalPrice > menu.price && (
+                        <p className="text-neutral-400 font-mono text-xs line-through">
+                          Rp {menu.originalPrice.toLocaleString("id-ID")}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -546,14 +647,15 @@ export default function MenuManagement() {
 
         {showModal && (
           <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-lg space-y-6 my-8 shadow-xl">
+            <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-xl space-y-6 my-8 shadow-xl max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
                 <div>
                   <h3 className="text-base font-bold text-neutral-900">
                     {editingId ? "Edit Menu" : "Tambah Menu Baru"}
                   </h3>
                   <p className="text-xs text-neutral-500 mt-0.5">
-                    Lengkapi informasi detail produk di bawah ini.
+                    Lengkapi informasi detail produk atau paket promo di bawah
+                    ini.
                   </p>
                 </div>
                 <button
@@ -598,7 +700,7 @@ export default function MenuManagement() {
 
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 mb-1">
-                    Nama Menu
+                    Nama Menu / Paket Promo
                   </label>
                   <input
                     type="text"
@@ -606,7 +708,7 @@ export default function MenuManagement() {
                     onChange={(e) => setName(e.target.value)}
                     required
                     className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium"
-                    placeholder="Contoh: Ayam Goreng Madura"
+                    placeholder="Contoh: Paket Berdua Hemat"
                   />
                 </div>
 
@@ -619,14 +721,14 @@ export default function MenuManagement() {
                     onChange={(e) => setDescription(e.target.value)}
                     rows="2"
                     className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition resize-none font-medium"
-                    placeholder="Contoh: Ayam goreng dengan bumbu Madura yang gurih..."
+                    placeholder="Contoh: 2x Ayam Goreng, 2x Nasi, 2x Es Teh Manis..."
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-neutral-700 mb-1">
-                      Harga (Rp)
+                      Harga Jual (Rp)
                     </label>
                     <div className="relative">
                       <span className="absolute left-3.5 top-2.5 text-xs font-bold text-neutral-400">
@@ -638,27 +740,174 @@ export default function MenuManagement() {
                         onChange={handlePriceChange}
                         required
                         className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium font-mono"
-                        placeholder="25.000"
+                        placeholder="35.000"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-neutral-700 mb-1">
-                      Kategori
+                      Harga Asli / Coret (Opsional)
                     </label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium cursor-pointer"
-                    >
-                      {categories.map((cat, idx) => (
-                        <option key={idx} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-2.5 text-xs font-bold text-neutral-400">
+                        Rp
+                      </span>
+                      <input
+                        type="text"
+                        value={originalPrice}
+                        onChange={handleOriginalPriceChange}
+                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium font-mono"
+                        placeholder="45.000"
+                      />
+                    </div>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 mb-1">
+                    Kategori
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium cursor-pointer"
+                  >
+                    {categories.map((cat, idx) => (
+                      <option key={idx} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* TOGGLE BUNDLE / PAKET PROMO */}
+                <div className="space-y-4 pt-2 border-t border-neutral-100">
+                  <div className="flex items-center justify-between bg-amber-50/50 p-3.5 rounded-2xl border border-amber-200/60">
+                    <div className="flex items-center gap-2.5">
+                      <Package className="w-5 h-5 text-amber-600" />
+                      <div>
+                        <p className="text-xs font-bold text-neutral-900">
+                          Jadikan Menu Paket Promo (Bundle)
+                        </p>
+                        <p className="text-[10px] text-neutral-500">
+                          Aktifkan jika menu ini berisi gabungan beberapa item &
+                          opsi kustomisasi.
+                        </p>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={isBundle}
+                      onChange={(e) => setIsBundle(e.target.checked)}
+                      className="w-4 h-4 rounded bg-white border-neutral-300 text-neutral-900 focus:ring-0 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* BUNDLE BUILDER BUILD SECTION */}
+                  {isBundle && (
+                    <div className="space-y-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80">
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-[11px] font-extrabold uppercase tracking-wider text-neutral-700">
+                            Pilihan Opsi Kustomisasi Pelanggan (`bundleOptions`)
+                          </label>
+                          <button
+                            type="button"
+                            onClick={handleAddBundleOption}
+                            className="bg-neutral-900 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold hover:bg-neutral-800 transition cursor-pointer"
+                          >
+                            + Tambah Opsi
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-neutral-500 mb-3">
+                          Contoh Judul Opsi: "Pilih Minuman" dengan pilihan "Es
+                          Teh Manis", "Lemon Tea".
+                        </p>
+
+                        {bundleOptions.length === 0 ? (
+                          <p className="text-[11px] text-neutral-400 italic py-2">
+                            Belum ada opsi kustomisasi ditambahkan.
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {bundleOptions.map((opt, optIdx) => (
+                              <div
+                                key={optIdx}
+                                className="bg-white p-3 rounded-xl border border-neutral-200 space-y-2 shadow-2xs"
+                              >
+                                <div className="flex gap-2 items-center">
+                                  <input
+                                    type="text"
+                                    value={opt.title}
+                                    onChange={(e) =>
+                                      handleBundleOptionTitleChange(
+                                        optIdx,
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Judul Opsi (Misal: Pilih Minuman)"
+                                    className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-900 focus:outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleRemoveBundleOption(optIdx)
+                                    }
+                                    className="text-red-500 hover:text-red-700 p-1.5 text-xs font-bold cursor-pointer"
+                                  >
+                                    Hapus
+                                  </button>
+                                </div>
+
+                                <div className="space-y-1.5 pl-2">
+                                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                                    Pilihan / Choices:
+                                  </span>
+                                  {opt.choices.map((choice, cIdx) => (
+                                    <div
+                                      key={cIdx}
+                                      className="flex gap-2 items-center"
+                                    >
+                                      <input
+                                        type="text"
+                                        value={choice}
+                                        onChange={(e) =>
+                                          handleChoiceChange(
+                                            optIdx,
+                                            cIdx,
+                                            e.target.value,
+                                          )
+                                        }
+                                        placeholder={`Pilihan ${cIdx + 1}`}
+                                        className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1 text-xs text-neutral-800 focus:outline-none"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleRemoveChoice(optIdx, cIdx)
+                                        }
+                                        className="text-neutral-400 hover:text-red-600 text-xs font-bold px-1"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  ))}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAddChoice(optIdx)}
+                                    className="text-[10px] font-bold text-neutral-700 hover:underline pt-1 block cursor-pointer"
+                                  >
+                                    + Tambah Pilihan Lain
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 bg-neutral-50 p-3 rounded-xl border border-neutral-200/80">

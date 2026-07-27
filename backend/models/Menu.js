@@ -6,8 +6,24 @@ const menuSchema = new mongoose.Schema(
     description: { type: String, default: "" },
     category: { type: String, required: true },
     price: { type: Number, required: true },
+    originalPrice: { type: Number, default: 0 }, // Untuk harga coret/diskon paket
     image: { type: String, default: "" },
     isAvailable: { type: Boolean, default: true },
+
+    // --- TAMBAHAN FITUR BUNDLE / PAKET PROMO ---
+    isBundle: { type: Boolean, default: false },
+    bundleItems: [
+      {
+        menu: { type: mongoose.Schema.Types.ObjectId, ref: "Menu" },
+        quantity: { type: Number, default: 1 },
+      },
+    ],
+    bundleOptions: [
+      {
+        title: { type: String }, // Contoh: "Pilih Minuman" atau "Level Pedas"
+        choices: [{ type: String }], // Contoh: ["Es Teh Manis", "Lemon Tea"]
+      },
+    ],
   },
   { timestamps: true },
 );

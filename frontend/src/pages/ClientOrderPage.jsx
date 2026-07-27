@@ -35,6 +35,10 @@ export default function ClientOrderPage() {
   const [menus, setMenus] = useState([]);
   const [cart, setCart] = useState([]);
 
+  // State untuk Modal Kustomisasi Paket Promo (Bundle)
+  const [selectedBundleModal, setSelectedBundleModal] = useState(null);
+  const [bundleChoices, setBundleChoices] = useState({});
+
   // State untuk pilihan metode pembayaran ("qris" atau "cash")
   const [paymentMethod, setPaymentMethod] = useState("qris");
 
@@ -113,18 +117,36 @@ export default function ClientOrderPage() {
     setIsCustomerModalOpen(false);
   };
 
-  const addToCart = (menu, e) => {
+  // Handler klik pada kartu menu (Mendukung Bundle / Paket Promo)
+  const handleCardClick = (menu) => {
+    if (!menu.isAvailable) return;
+
+    if (menu.isBundle && menu.bundleOptions && menu.bundleOptions.length > 0) {
+      // Jika menu adalah paket dan punya opsi pilihan, buka modal kustomisasi
+      setSelectedBundleModal(menu);
+      setBundleChoices({});
+    } else {
+      // Jika menu biasa, langsung masukkan ke keranjang
+      addToCart(menu, null, {});
+    }
+  };
+
+  const addToCart = (menu, e, choices = {}) => {
     if (e) e.stopPropagation();
     if (!menu.isAvailable) return;
-    const existing = cart.find((item) => item.menuId === menu._id);
-    if (existing) {
-      setCart(
-        cart.map((item) =>
-          item.menuId === menu._id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        ),
-      );
+
+    // Cek apakah item dengan menuId dan pilihan bundle yang SAMA persis sudah ada di keranjang
+    const existingIndex = cart.findIndex((item) => {
+      if (item.menuId !== menu._id) return false;
+      const itemChoicesStr = JSON.stringify(item.selectedBundleChoices || {});
+      const newChoicesStr = JSON.stringify(choices || {});
+      return itemChoicesStr === newChoicesStr;
+    });
+
+    if (existingIndex > -1) {
+      const updated = [...cart];
+      updated[existingIndex].quantity += 1;
+      setCart(updated);
     } else {
       setCart([
         ...cart,
@@ -134,16 +156,23 @@ export default function ClientOrderPage() {
           price: menu.price,
           image: menu.image,
           quantity: 1,
+          selectedBundleChoices: choices,
         },
       ]);
     }
+    toast.info(`${menu.name} ditambahkan ke keranjang`, { autoClose: 1200 });
   };
 
-  const updateQuantity = (menuId, delta, e) => {
+  const updateQuantity = (menuId, bundleChoicesObj, delta, e) => {
     if (e) e.stopPropagation();
     const updatedCart = cart
       .map((item) => {
-        if (item.menuId === menuId) {
+        const isSameMenu = item.menuId === menuId;
+        const isSameChoices =
+          JSON.stringify(item.selectedBundleChoices || {}) ===
+          JSON.stringify(bundleChoicesObj || {});
+
+        if (isSameMenu && isSameChoices) {
           const newQty = item.quantity + delta;
           return newQty > 0 ? { ...item, quantity: newQty } : null;
         }
@@ -160,8 +189,9 @@ export default function ClientOrderPage() {
   };
 
   const getCartQuantity = (menuId) => {
-    const item = cart.find((i) => i.menuId === menuId);
-    return item ? item.quantity : 0;
+    return cart
+      .filter((i) => i.menuId === menuId)
+      .reduce((sum, item) => sum + item.quantity, 0);
   };
 
   const categories = useMemo(() => {
@@ -253,6 +283,7 @@ export default function ClientOrderPage() {
           menu: item.menuId,
           menuId: item.menuId,
           quantity: item.quantity,
+          selectedBundleChoices: item.selectedBundleChoices || {},
         })),
       });
 
@@ -423,6 +454,81 @@ export default function ClientOrderPage() {
         </div>
       )}
 
+      {/* MODAL KUSTOMISASI PAKET PROMO (BUNDLE) */}
+      {selectedBundleModal && (
+        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-neutral-200 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div>
+              <h3 className="text-lg font-extrabold text-neutral-900">
+                Kustomisasi {selectedBundleModal.name}
+              </h3>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Silakan tentukan pilihan komponen untuk paket promo ini.
+              </p>
+            </div>
+
+            <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
+              {selectedBundleModal.bundleOptions?.map((opt, idx) => (
+                <div key={idx} className="space-y-2">
+                  <label className="text-xs font-bold text-neutral-800 uppercase tracking-wider block">
+                    {opt.title} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {opt.choices.map((choice, cIdx) => (
+                      <button
+                        key={cIdx}
+                        type="button"
+                        onClick={() =>
+                          setBundleChoices({
+                            ...bundleChoices,
+                            [opt.title]: choice,
+                          })
+                        }
+                        className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition cursor-pointer text-center ${
+                          bundleChoices[opt.title] === choice
+                            ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
+                            : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-neutral-300"
+                        }`}
+                      >
+                        {choice}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedBundleModal(null)}
+                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3 rounded-2xl text-xs font-bold transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const requiredCount =
+                    selectedBundleModal.bundleOptions?.length || 0;
+                  const chosenCount = Object.keys(bundleChoices).length;
+                  if (chosenCount < requiredCount) {
+                    return alert(
+                      "Mohon lengkapi semua pilihan opsi paket terlebih dahulu!",
+                    );
+                  }
+                  addToCart(selectedBundleModal, null, bundleChoices);
+                  setSelectedBundleModal(null);
+                }}
+                className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
+              >
+                Tambah ke Keranjang
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HERO BANNER ATTRACTION */}
       <div className="relative bg-neutral-900 text-white py-12 px-6 md:px-12 overflow-hidden mb-8 shadow-md">
         <div
@@ -535,7 +641,7 @@ export default function ClientOrderPage() {
                 return (
                   <div
                     key={menu._id}
-                    onClick={() => addToCart(menu)}
+                    onClick={() => handleCardClick(menu)}
                     className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition group relative shadow-2xs hover:shadow-md ${
                       menu.isAvailable
                         ? "border-neutral-200/80 hover:border-neutral-400 cursor-pointer"
@@ -555,7 +661,7 @@ export default function ClientOrderPage() {
                             Tidak ada foto
                           </div>
                         )}
-                        <div className="absolute top-2.5 right-2.5">
+                        <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end">
                           <span
                             className={`px-2.5 py-1 text-[9px] rounded-full font-extrabold shadow-sm backdrop-blur-md ${
                               menu.isAvailable
@@ -565,6 +671,11 @@ export default function ClientOrderPage() {
                           >
                             {menu.isAvailable ? "Tersedia" : "Habis"}
                           </span>
+                          {menu.isBundle && (
+                            <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs">
+                              Paket Promo
+                            </span>
+                          )}
                         </div>
 
                         {qty > 0 && (
@@ -594,37 +705,21 @@ export default function ClientOrderPage() {
                     </div>
 
                     <div className="p-3.5 pt-0 flex justify-between items-center">
-                      <span className="text-xs font-mono font-black text-emerald-600">
-                        Rp {menu.price.toLocaleString("id-ID")}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-mono font-black text-emerald-600">
+                          Rp {menu.price.toLocaleString("id-ID")}
+                        </span>
+                        {menu.originalPrice > menu.price && (
+                          <span className="text-[9px] font-mono text-neutral-400 line-through">
+                            Rp {menu.originalPrice.toLocaleString("id-ID")}
+                          </span>
+                        )}
+                      </div>
 
                       {menu.isAvailable ? (
-                        qty > 0 ? (
-                          <div
-                            className="flex items-center gap-1.5 bg-neutral-100 p-1 rounded-xl"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <button
-                              onClick={(e) => updateQuantity(menu._id, -1, e)}
-                              className="w-6 h-6 bg-white text-neutral-900 rounded-lg flex items-center justify-center text-xs font-bold hover:bg-neutral-200 shadow-2xs transition"
-                            >
-                              -
-                            </button>
-                            <span className="text-[11px] font-black w-4 text-center text-neutral-900">
-                              {qty}
-                            </span>
-                            <button
-                              onClick={(e) => updateQuantity(menu._id, 1, e)}
-                              className="w-6 h-6 bg-white text-neutral-900 rounded-lg flex items-center justify-center text-xs font-bold hover:bg-neutral-200 shadow-2xs transition"
-                            >
-                              +
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] font-bold text-neutral-900 bg-neutral-100 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded-xl transition shadow-2xs">
-                            + Tambah
-                          </span>
-                        )
+                        <span className="text-[10px] font-bold text-neutral-900 bg-neutral-100 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded-xl transition shadow-2xs">
+                          {menu.isBundle ? "+ Pilih Paket" : "+ Tambah"}
+                        </span>
                       ) : (
                         <span className="text-[10px] font-bold text-neutral-400">
                           Habis
@@ -815,9 +910,9 @@ export default function ClientOrderPage() {
             </div>
 
             <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
-              {cart.map((item) => (
+              {cart.map((item, idx) => (
                 <div
-                  key={item.menuId}
+                  key={idx}
                   className="flex items-center justify-between text-xs border-b border-neutral-100 pb-3.5 gap-3"
                 >
                   <div className="flex items-center gap-3">
@@ -839,12 +934,35 @@ export default function ClientOrderPage() {
                       <p className="text-xs text-neutral-500 font-mono font-semibold pt-0.5">
                         Rp {item.price.toLocaleString("id-ID")}
                       </p>
+                      {/* Tampilkan pilihan bundle di keranjang */}
+                      {item.selectedBundleChoices &&
+                        Object.keys(item.selectedBundleChoices).length > 0 && (
+                          <div className="text-[10px] text-neutral-500 space-y-0.5 pt-1">
+                            {Object.entries(item.selectedBundleChoices).map(
+                              ([title, val], cIdx) => (
+                                <p key={cIdx}>
+                                  • {title}:{" "}
+                                  <span className="font-bold text-neutral-700">
+                                    {val}
+                                  </span>
+                                </p>
+                              ),
+                            )}
+                          </div>
+                        )}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 bg-neutral-50 p-1 rounded-xl border border-neutral-200/60">
                     <button
-                      onClick={(e) => updateQuantity(item.menuId, -1, e)}
+                      onClick={(e) =>
+                        updateQuantity(
+                          item.menuId,
+                          item.selectedBundleChoices,
+                          -1,
+                          e,
+                        )
+                      }
                       className="w-6 h-6 bg-white text-neutral-700 rounded-lg flex items-center justify-center text-xs font-bold hover:bg-neutral-200 transition shadow-2xs"
                     >
                       -
@@ -853,7 +971,14 @@ export default function ClientOrderPage() {
                       {item.quantity}
                     </span>
                     <button
-                      onClick={(e) => updateQuantity(item.menuId, 1, e)}
+                      onClick={(e) =>
+                        updateQuantity(
+                          item.menuId,
+                          item.selectedBundleChoices,
+                          1,
+                          e,
+                        )
+                      }
                       className="w-6 h-6 bg-white text-neutral-700 rounded-lg flex items-center justify-center text-xs font-bold hover:bg-neutral-200 transition shadow-2xs"
                     >
                       +

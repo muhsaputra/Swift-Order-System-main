@@ -496,11 +496,14 @@ export default function ClientWaitingPage() {
       return sum;
     }, 0) || 0;
 
+  // Biaya layanan dihitung dari subtotal setelah diskon (standar industri yang adil untuk pembeli)
   const calculatedServiceFee =
     Number(order?.serviceFee) ||
     Math.round((subtotalAmount - discountAmountVal) * 0.05);
 
-  const originalServiceFee = Math.round(subtotalOriginalAmount * 0.05);
+  const originalServiceFee = Math.round(
+    (subtotalOriginalAmount - totalMenuSavings - discountAmountVal) * 0.05,
+  );
   const originalTotalBeforeDiscount =
     subtotalOriginalAmount + originalServiceFee;
 
@@ -604,125 +607,144 @@ export default function ClientWaitingPage() {
         </div>
 
         {order && (
-          <div className="bg-neutral-50 border border-neutral-200/80 rounded-2xl p-4 text-left space-y-3 shadow-2xs">
-            <div className="flex items-center gap-1.5 text-neutral-900 border-b border-neutral-200/80 pb-2">
-              <Receipt className="w-4 h-4 text-emerald-600" />
-              <h3 className="text-xs font-black uppercase tracking-wider">
-                Rincian Pembayaran
-              </h3>
+          <div className="bg-neutral-50 border border-neutral-200/80 rounded-2xl p-4 text-left space-y-4 shadow-2xs">
+            {/* Header Rincian */}
+            <div className="flex items-center gap-2 text-neutral-900 border-b border-neutral-200/80 pb-3">
+              <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
+                <Receipt className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider">
+                  Rincian Pembayaran
+                </h3>
+                <p className="text-[10px] text-neutral-400 font-medium">
+                  Detail transaksi pesanan Anda
+                </p>
+              </div>
             </div>
 
-            <div className="flex justify-between text-xs">
-              <span className="text-neutral-400 font-semibold">Nomor Meja</span>
-              <span className="font-extrabold text-neutral-900 bg-white px-2 py-0.5 rounded-lg border border-neutral-200">
-                #{order.tableNumber}
-              </span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-neutral-400 font-semibold">Pemesan</span>
-              <span className="font-bold text-neutral-900">
-                {order.customerName}
-              </span>
+            {/* Informasi Meja & Pemesan */}
+            <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-neutral-200/60 text-xs">
+              <div>
+                <span className="text-neutral-400 font-semibold block text-[10px] uppercase">
+                  Nomor Meja
+                </span>
+                <span className="font-extrabold text-neutral-900 mt-0.5 inline-block">
+                  #{order.tableNumber}
+                </span>
+              </div>
+              <div>
+                <span className="text-neutral-400 font-semibold block text-[10px] uppercase">
+                  Pemesan
+                </span>
+                <span className="font-bold text-neutral-900 mt-0.5 truncate block">
+                  {order.customerName}
+                </span>
+              </div>
             </div>
 
-            <div className="pt-2 border-t border-neutral-200/80 space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block mb-1">
+            {/* Daftar Item & Add-on */}
+            <div className="space-y-2.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block px-0.5">
                 Daftar Menu & Add-On:
               </span>
-              {order.items?.map((item, idx) => {
-                const itemPrice = item.price || item.menu?.price || 0;
-                const origItemPrice =
-                  item.menu?.originalPrice || item.originalPrice || itemPrice;
-                const itemName = item.menu?.name || item.name || "Menu";
-                const hasPromo = origItemPrice > itemPrice;
+              <div className="bg-white rounded-xl border border-neutral-200/60 divide-y divide-neutral-100 overflow-hidden">
+                {order.items?.map((item, idx) => {
+                  const itemPrice = item.price || item.menu?.price || 0;
+                  const origItemPrice =
+                    item.menu?.originalPrice || item.originalPrice || itemPrice;
+                  const itemName = item.menu?.name || item.name || "Menu";
+                  const hasPromo = origItemPrice > itemPrice;
 
-                let itemAddonSubtotal = 0;
-                let origItemAddonSubtotal = 0;
-                if (
-                  item.selectedBundleChoices &&
-                  typeof item.selectedBundleChoices === "object"
-                ) {
-                  Object.entries(item.selectedBundleChoices).forEach(
-                    ([title, addons]) => {
-                      if (Array.isArray(addons)) {
-                        addons.forEach((addon) => {
-                          const addonP = Number(addon.price || 0);
-                          itemAddonSubtotal += addonP;
-                          origItemAddonSubtotal += addonP;
-                        });
-                      }
-                    },
-                  );
-                }
+                  let itemAddonSubtotal = 0;
+                  let origItemAddonSubtotal = 0;
+                  if (
+                    item.selectedBundleChoices &&
+                    typeof item.selectedBundleChoices === "object"
+                  ) {
+                    Object.entries(item.selectedBundleChoices).forEach(
+                      ([title, addons]) => {
+                        if (Array.isArray(addons)) {
+                          addons.forEach((addon) => {
+                            const addonP = Number(addon.price || 0);
+                            itemAddonSubtotal += addonP;
+                            origItemAddonSubtotal += addonP;
+                          });
+                        }
+                      },
+                    );
+                  }
 
-                const totalItemPriceWithAddon =
-                  (itemPrice + itemAddonSubtotal) * item.quantity;
-                const origTotalItemPriceWithAddon =
-                  (origItemPrice + origItemAddonSubtotal) * item.quantity;
+                  const totalItemPriceWithAddon =
+                    (itemPrice + itemAddonSubtotal) * item.quantity;
+                  const origTotalItemPriceWithAddon =
+                    (origItemPrice + origItemAddonSubtotal) * item.quantity;
 
-                return (
-                  <div
-                    key={idx}
-                    className="text-xs text-neutral-800 font-medium space-y-1 pb-2 border-b border-neutral-100 last:border-b-0"
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold flex items-center gap-1.5">
-                        {item.quantity}x {itemName}
-                        {hasPromo && (
-                          <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.2 rounded">
-                            Promo
+                  return (
+                    <div key={idx} className="p-3 text-xs space-y-1.5">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-extrabold text-neutral-900">
+                            {item.quantity}x {itemName}
                           </span>
-                        )}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {hasPromo && (
-                          <span className="font-mono text-neutral-400 line-through text-[11px] font-normal">
-                            Rp{" "}
-                            {origTotalItemPriceWithAddon.toLocaleString(
-                              "id-ID",
-                            )}
+                          {hasPromo && (
+                            <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                              <Zap className="w-2.5 h-2.5 fill-current" /> Promo
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-right">
+                          {hasPromo && (
+                            <span className="font-mono text-neutral-400 line-through text-[11px]">
+                              Rp{" "}
+                              {origTotalItemPriceWithAddon.toLocaleString(
+                                "id-ID",
+                              )}
+                            </span>
+                          )}
+                          <span className="font-mono font-bold text-neutral-900">
+                            Rp {totalItemPriceWithAddon.toLocaleString("id-ID")}
                           </span>
-                        )}
-                        <span className="font-mono font-semibold">
-                          Rp {totalItemPriceWithAddon.toLocaleString("id-ID")}
-                        </span>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Rincian Add-On jika ada */}
-                    {item.selectedBundleChoices &&
-                      Object.entries(item.selectedBundleChoices).map(
-                        ([title, addons], aIdx) => (
-                          <div
-                            key={aIdx}
-                            className="text-[10px] text-neutral-500 pl-3 space-y-0.5"
-                          >
-                            {Array.isArray(addons) &&
-                              addons.map((addon, adIdx) => (
-                                <div
-                                  key={adIdx}
-                                  className="flex justify-between"
-                                >
-                                  <span>• + {addon.name}</span>
-                                  {addon.price > 0 && (
-                                    <span className="font-mono text-emerald-600 font-semibold">
-                                      +Rp {addon.price.toLocaleString("id-ID")}
-                                    </span>
-                                  )}
-                                </div>
-                              ))}
-                          </div>
-                        ),
-                      )}
-                  </div>
-                );
-              })}
+                      {/* Rincian Add-On */}
+                      {item.selectedBundleChoices &&
+                        Object.entries(item.selectedBundleChoices).map(
+                          ([title, addons], aIdx) => (
+                            <div
+                              key={aIdx}
+                              className="text-[11px] text-neutral-500 pl-2 space-y-1 border-l-2 border-neutral-100 my-1"
+                            >
+                              {Array.isArray(addons) &&
+                                addons.map((addon, adIdx) => (
+                                  <div
+                                    key={adIdx}
+                                    className="flex justify-between items-center"
+                                  >
+                                    <span>• {addon.name}</span>
+                                    {addon.price > 0 && (
+                                      <span className="font-mono text-emerald-600 font-medium">
+                                        +Rp{" "}
+                                        {addon.price.toLocaleString("id-ID")}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                            </div>
+                          ),
+                        )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="pt-2.5 border-t border-neutral-200/80 space-y-1.5 text-xs text-neutral-600">
+            {/* Kalkulasi Ringkasan Biaya */}
+            <div className="bg-white p-3.5 rounded-xl border border-neutral-200/60 space-y-2 text-xs text-neutral-600">
               <div className="flex justify-between">
                 <span>Subtotal Menu</span>
-                <span className="font-mono font-semibold">
+                <span className="font-mono font-semibold text-neutral-900">
                   Rp {subtotalAmount.toLocaleString("id-ID")}
                 </span>
               </div>
@@ -732,7 +754,7 @@ export default function ClientWaitingPage() {
                 <div className="flex justify-between text-amber-700 font-bold">
                   <span className="flex items-center gap-1">
                     <Zap className="w-3 h-3 text-amber-500 fill-current" />{" "}
-                    Diskon
+                    Diskon Menu
                   </span>
                   <span className="font-mono">
                     - Rp {totalMenuSavings.toLocaleString("id-ID")}
@@ -753,30 +775,31 @@ export default function ClientWaitingPage() {
                 </div>
               )}
 
-              <div className="flex justify-between text-neutral-800 font-medium">
+              <div className="flex justify-between text-neutral-700 pt-1 border-t border-dashed border-neutral-200">
                 <span className="flex items-center gap-1">
                   <Percent className="w-3 h-3 text-emerald-600" /> Biaya Layanan
                   (Service 5%)
                 </span>
-                <span className="font-mono font-semibold">
+                <span className="font-mono font-semibold text-neutral-900">
                   Rp {calculatedServiceFee.toLocaleString("id-ID")}
                 </span>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-neutral-200/80 flex justify-between items-center text-xs font-bold text-neutral-900">
-              <span className="text-neutral-500 font-bold">
+            {/* Total Pembayaran Final */}
+            <div className="pt-3 border-t border-neutral-200 flex justify-between items-center text-xs">
+              <span className="text-neutral-500 font-extrabold uppercase tracking-wider">
                 Total Pembayaran
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {/* Harga Coret sebelum promo/diskon di sebelah kiri */}
                 {(totalMenuSavings > 0 || discountAmountVal > 0) &&
                   originalTotalBeforeDiscount > order.totalAmount && (
-                    <span className="font-mono text-neutral-400 line-through text-[11px] font-normal">
+                    <span className="font-mono text-neutral-400 line-through text-xs font-normal">
                       Rp {originalTotalBeforeDiscount.toLocaleString("id-ID")}
                     </span>
                   )}
-                <span className="font-mono text-emerald-600 font-black text-sm">
+                <span className="font-mono text-emerald-600 font-black text-base">
                   Rp {order.totalAmount?.toLocaleString("id-ID")}
                 </span>
               </div>

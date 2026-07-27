@@ -28,6 +28,11 @@ import {
   Percent,
   BarChart3,
   Activity,
+  Calculator,
+  Wallet,
+  CheckCircle2,
+  AlertCircle,
+  HelpCircle,
 } from "lucide-react";
 
 // Import react-day-picker dan stylenya
@@ -41,6 +46,23 @@ export default function TransactionHistory() {
   // State untuk Modal Detail Item & Struk
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
+
+  // State untuk Modal Rekap Kasir / Shift Reconciliation (Z-Report)
+  const [showShiftModal, setShowShiftModal] = useState(false);
+  const [shiftName, setShiftName] = useState("Shift Pagi");
+  const [cashierNameInput, setCashierNameInput] = useState("Putra Cashier");
+
+  // State Input Pecahan Rupiah Fisik di Laci Kasir
+  const [denominations, setDenominations] = useState({
+    100000: "",
+    50000: "",
+    20000: "",
+    10000: "",
+    5000: "",
+    2000: "",
+    1000: "",
+    coins: "", // Untuk uang koin / pecahan kecil total
+  });
 
   // State untuk Pencarian & Filter Metode Pembayaran
   const [searchTerm, setSearchTerm] = useState("");
@@ -99,6 +121,112 @@ export default function TransactionHistory() {
   const handleOpenModal = (order) => {
     setSelectedOrder(order);
     setShowModal(true);
+  };
+
+  // --- LOGIKA REKAP KAS FISIK VS OMSET DIGITAL (SHIFT RECONCILIATION) ---
+  const handleDenominationChange = (nominal, value) => {
+    setDenominations((prev) => ({
+      ...prev,
+      [nominal]: value,
+    }));
+  };
+
+  // Hitung total uang fisik kasir berdasarkan lembar pecahan
+  const calculateTotalPhysicalCash = () => {
+    return Object.keys(denominations).reduce((sum, key) => {
+      const count = Number(denominations[key]) || 0;
+      if (key === "coins") {
+        return sum + count; // Koin langsung dimasukkan nilai totalnya
+      }
+      return sum + Number(key) * count;
+    }, 0);
+  };
+
+  // Omset Tunai (Cash) Sistem dari transaksi selesai yang metode bayar-nya cash
+  const expectedCashRevenue = completedOrders
+    .filter((order) => {
+      const method = (order.paymentMethod || "qris").toLowerCase();
+      return method === "cash";
+    })
+    .reduce((acc, order) => acc + (order.totalAmount || 0), 0);
+
+  // Omset Digital (QRIS) Sistem
+  const expectedDigitalRevenue = completedOrders
+    .filter((order) => {
+      const method = (order.paymentMethod || "qris").toLowerCase();
+      return method !== "cash";
+    })
+    .reduce((acc, order) => acc + (order.totalAmount || 0), 0);
+
+  const totalPhysicalCash = calculateTotalPhysicalCash();
+  const cashDifference = totalPhysicalCash - expectedCashRevenue; // Selisih: Surplus (+) atau Shortage (-)
+
+  const handlePrintShiftReport = () => {
+    const printWindow = window.open("", "_blank", "width=300,height=650");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Rekap Shift - ${shiftName}</title>
+          <style>
+            body { font-family: 'Courier New', monospace; font-size: 11px; width: 280px; margin: 0; padding: 10px; color: #000; }
+            .center { text-align: center; }
+            .line { border-bottom: 1px dashed #000; margin: 6px 0; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { text-align: left; padding: 2px 0; }
+            .right { text-align: right; }
+          </style>
+        </head>
+        <body>
+          <div class="center">
+            <strong>SWIFT ORDERING</strong><br/>
+            <span>Laporan Rekap Shift (Z-Report)</span>
+            <div class="line"></div>
+          </div>
+          <div>
+            Shift: ${shiftName}<br/>
+            Kasir: ${cashierNameInput}<br/>
+            Waktu: ${new Date().toLocaleString("id-ID")}
+          </div>
+          <div class="line"></div>
+          <table>
+            <tr>
+              <td>Target Kas Sistem (Cash)</td>
+              <td class="right">Rp ${expectedCashRevenue.toLocaleString("id-ID")}</td>
+            </tr>
+            <tr>
+              <td>Total Fisik di Laci</td>
+              <td class="right">Rp ${totalPhysicalCash.toLocaleString("id-ID")}</td>
+            </tr>
+            <tr>
+              <td><strong>Selisih (Cash)</strong></td>
+              <td class="right"><strong>${cashDifference >= 0 ? "+ Rp " : "- Rp "}${Math.abs(cashDifference).toLocaleString("id-ID")}</strong></td>
+            </tr>
+          </table>
+          <div class="line"></div>
+          <table>
+            <tr>
+              <td>Omset Digital (QRIS)</td>
+              <td class="right">Rp ${expectedDigitalRevenue.toLocaleString("id-ID")}</td>
+            </tr>
+            <tr>
+              <td><strong>TOTAL OMSET KESELURUHAN</strong></td>
+              <td class="right"><strong>Rp ${(expectedCashRevenue + expectedDigitalRevenue).toLocaleString("id-ID")}</strong></td>
+            </tr>
+          </table>
+          <div class="line"></div>
+          <div class="center">
+            Pemeriksaan Shift Selesai<br/>
+            <span>Status: ${cashDifference === 0 ? "SEIMBANG (MATCH)" : cashDifference > 0 ? "SURPLUS (LEBIH)" : "SHORTAGE (KURANG)"}</span>
+          </div>
+          <script>
+            window.onload = function() { window.print(); window.close(); }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   const handlePrintReceipt = (order) => {
@@ -455,6 +583,15 @@ export default function TransactionHistory() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {/* Tombol Akses Fitur Rekap Shift Kasir */}
+            <button
+              onClick={() => setShowShiftModal(true)}
+              className="bg-amber-500 hover:bg-amber-600 text-neutral-950 px-5 py-3 rounded-2xl text-xs font-black transition shadow-lg flex items-center gap-2 cursor-pointer"
+            >
+              <Calculator className="w-4 h-4" />
+              <span>Rekap Shift & Kas Fisik (Z-Report)</span>
+            </button>
+
             <div className="bg-white/15 backdrop-blur-xl border border-white/20 p-4 rounded-3xl flex items-center gap-4 shadow-xl">
               <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center font-black">
                 <Receipt className="w-5 h-5" />
@@ -931,6 +1068,215 @@ export default function TransactionHistory() {
                 >
                   Selanjutnya
                   <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- MODAL REKAP KASIR & KAS FISIK (SHIFT RECONCILIATION) --- */}
+        {showShiftModal && (
+          <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white border border-neutral-200 rounded-3xl p-6 md:p-8 w-full max-w-2xl space-y-6 my-8 shadow-2xl">
+              <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                    <Calculator className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-neutral-900">
+                      Rekapitulasi Shift Kerja & Kas Fisik (Z-Report)
+                    </h3>
+                    <p className="text-xs text-neutral-500">
+                      Hitung uang fisik di laci kasir vs target omset sistem.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowShiftModal(false)}
+                  className="text-neutral-400 hover:text-neutral-700 p-2 rounded-xl hover:bg-neutral-100 transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Informasi Shift & Kasir */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-200/60">
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-600 uppercase mb-1">
+                    Pilih Shift Kerja
+                  </label>
+                  <select
+                    value={shiftName}
+                    onChange={(e) => setShiftName(e.target.value)}
+                    className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs font-semibold text-neutral-800 focus:outline-none"
+                  >
+                    <option value="Shift Pagi">
+                      Shift Pagi (08:00 - 16:00)
+                    </option>
+                    <option value="Shift Malam">
+                      Shift Malam (16:00 - 00:00)
+                    </option>
+                    <option value="Shift Full Day">Full Day Operational</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-600 uppercase mb-1">
+                    Nama Kasir
+                  </label>
+                  <input
+                    type="text"
+                    value={cashierNameInput}
+                    onChange={(e) => setCashierNameInput(e.target.value)}
+                    className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs font-semibold text-neutral-800 focus:outline-none"
+                    placeholder="Nama petugas kasir"
+                  />
+                </div>
+              </div>
+
+              {/* Form Input Lembar Pecahan Rupiah Fisik */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-neutral-700">
+                    Input Lembar / Keping Pecahan Rupiah di Laci
+                  </span>
+                  <span className="text-[11px] text-neutral-400 font-medium">
+                    Masukkan jumlah lembar per pecahan
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[100000, 50000, 20000, 10000, 5000, 2000, 1000].map(
+                    (nominal) => (
+                      <div
+                        key={nominal}
+                        className="bg-neutral-50/80 border border-neutral-200/80 p-3 rounded-2xl space-y-1"
+                      >
+                        <label className="block text-[11px] font-bold font-mono text-neutral-600">
+                          Rp {nominal.toLocaleString("id-ID")}
+                        </label>
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={denominations[nominal]}
+                            onChange={(e) =>
+                              handleDenominationChange(nominal, e.target.value)
+                            }
+                            className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-neutral-900"
+                          />
+                          <span className="text-[10px] text-neutral-400 font-semibold">
+                            lbr
+                          </span>
+                        </div>
+                      </div>
+                    ),
+                  )}
+
+                  {/* Koin / Pecahan Kecil Total */}
+                  <div className="bg-neutral-50/80 border border-neutral-200/80 p-3 rounded-2xl space-y-1 col-span-2 sm:col-span-1">
+                    <label className="block text-[11px] font-bold text-neutral-600">
+                      Total Koin / Lain
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="Rp 0"
+                        value={denominations.coins}
+                        onChange={(e) =>
+                          handleDenominationChange("coins", e.target.value)
+                        }
+                        className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-neutral-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rekapitulasi Hasil Perbandingan Sistem vs Fisik */}
+              <div className="bg-neutral-900 text-white p-5 rounded-3xl space-y-4 shadow-xl">
+                <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                  <span className="text-xs text-neutral-400 font-bold uppercase tracking-wider">
+                    Target Kas Sistem (Tunai / Cash)
+                  </span>
+                  <span className="font-mono font-black text-sm text-white">
+                    Rp {expectedCashRevenue.toLocaleString("id-ID")}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                  <span className="text-xs text-neutral-400 font-bold uppercase tracking-wider">
+                    Total Fisik Uang di Laci
+                  </span>
+                  <span className="font-mono font-black text-sm text-amber-400">
+                    Rp {totalPhysicalCash.toLocaleString("id-ID")}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center pt-1">
+                  <div>
+                    <span className="text-xs text-neutral-300 font-bold block">
+                      Status Selisih (Surplus / Shortage)
+                    </span>
+                    <span className="text-[10px] text-neutral-400">
+                      {cashDifference === 0
+                        ? "Uang di laci pas dan seimbang dengan sistem"
+                        : cashDifference > 0
+                          ? "Uang fisik melebihi target sistem (Surplus)"
+                          : "Uang fisik kurang dari target sistem (Shortage)"}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span
+                      className={`font-mono font-black text-base px-3 py-1 rounded-xl border ${
+                        cashDifference === 0
+                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                          : cashDifference > 0
+                            ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                            : "bg-red-500/20 text-red-400 border-red-500/30"
+                      }`}
+                    >
+                      {cashDifference >= 0 ? "+ Rp " : "- Rp "}
+                      {Math.abs(cashDifference).toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-white/10 flex justify-between items-center text-xs text-neutral-300">
+                  <span>
+                    Omset Digital (QRIS):{" "}
+                    <strong className="font-mono text-white">
+                      Rp {expectedDigitalRevenue.toLocaleString("id-ID")}
+                    </strong>
+                  </span>
+                  <span>
+                    Total Seluruh Omset:{" "}
+                    <strong className="font-mono text-emerald-400">
+                      Rp{" "}
+                      {(
+                        expectedCashRevenue + expectedDigitalRevenue
+                      ).toLocaleString("id-ID")}
+                    </strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* Tombol Aksi Shift */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handlePrintShiftReport}
+                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 border border-neutral-200 shadow-2xs"
+                >
+                  <Printer className="w-4 h-4" />
+                  Cetak Laporan Shift (Z-Report)
+                </button>
+                <button
+                  onClick={() => setShowShiftModal(false)}
+                  className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-md"
+                >
+                  Tutup & Selesai
                 </button>
               </div>
             </div>

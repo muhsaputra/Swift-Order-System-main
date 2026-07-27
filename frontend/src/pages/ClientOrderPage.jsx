@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useNavigate, useParams } from "react-router-dom";
+import {
+  useSearchParams,
+  useNavigate,
+  useParams,
+  Link,
+} from "react-router-dom";
 import API from "../services/api";
 import axios from "axios";
 import { io } from "socket.io-client";
@@ -16,6 +21,7 @@ import {
   Tag,
   X,
   Check,
+  Clock,
 } from "lucide-react";
 
 export default function ClientOrderPage() {
@@ -429,9 +435,19 @@ export default function ClientOrderPage() {
 
         <div className="relative z-10 max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-white/10">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Self-Ordering Digital Experience</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-white/10">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Self-Ordering Digital Experience</span>
+              </div>
+              {/* TOMBOL MENU RIWAYAT PESANAN */}
+              <Link
+                to={`/order-history?table=${tableNumber}`}
+                className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-white border border-white/20 transition cursor-pointer"
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>Riwayat Pesanan</span>
+              </Link>
             </div>
             <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
               Nikmati Hidangan Terbaik Kami

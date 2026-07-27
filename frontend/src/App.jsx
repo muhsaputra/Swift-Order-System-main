@@ -18,6 +18,7 @@ import ClientPaymentPage from "./pages/ClientPaymentPage";
 import ClientWaitingPage from "./pages/ClientWaitingPage";
 import ClientHistoryPage from "./pages/ClientHistoryPage";
 import DashboardLayout from "./components/DashboardLayout";
+import ClientOrderHistory from "./pages/ClientOrderHistory";
 
 export default function App() {
   return (
@@ -65,6 +66,8 @@ export default function App() {
           <Route path="tables" element={<TableManagement />} />
           <Route path="history" element={<TransactionHistory />} />
         </Route>
+
+        <Route path="/order-history" element={<ClientOrderHistory />} />
 
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

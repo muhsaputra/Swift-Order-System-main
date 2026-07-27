@@ -117,8 +117,12 @@ export default function CashierDashboard() {
     // fetchCashierProfile();
     fetchCoupons();
 
-    const socket = io(import.meta.env.VITE_API_URL.replace("/api", ""), {
-      transports: ["websocket"],
+    const backendUrl = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace("/api", "")
+      : "https://swift-ordering-backend.onrender.com";
+
+    const socket = io(backendUrl, {
+      transports: ["websocket", "polling"],
     });
 
     // Tangkap pesanan baru (baik QRIS paid maupun Cash pending)
@@ -600,14 +604,21 @@ export default function CashierDashboard() {
   };
 
   // 1. FILTER & SORTING OTOMATIS: Tampilkan pesanan yang lunas ATAU pesanan cash yang masih pending kasir
+  // FILTER & SORTING OTOMATIS: Tampilkan pesanan aktif yang belum selesai
   const activeOrders = orders
-    .filter(
-      (o) =>
-        o.orderStatus !== "completed" &&
-        (o.paymentStatus === "paid" ||
-          o.isPaid === true ||
-          o.paymentStatus === "cash_pending"),
-    )
+    .filter((o) => {
+      const isNotCompleted = o.orderStatus !== "completed";
+
+      // Tangkap semua variasi status lunas atau pending kasir secara fleksibel
+      const isValidPayment =
+        o.paymentStatus === "paid" ||
+        o.paymentStatus === "success" ||
+        o.paymentStatus === "settlement" ||
+        o.isPaid === true ||
+        o.paymentStatus === "cash_pending";
+
+      return isNotCompleted && isValidPayment;
+    })
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
   const filteredActiveOrders = activeOrders.filter((order) => {

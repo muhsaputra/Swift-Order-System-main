@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import API from "../services/api";
 import axios from "axios";
 import { io } from "socket.io-client";
@@ -19,9 +19,12 @@ import {
 } from "lucide-react";
 
 export default function ClientOrderPage() {
+  const { tableNumber: paramTableNumber } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const tableNumber = searchParams.get("table") || "1";
+
+  // Menangkap nomor meja dari URL path (/order/:tableNumber) atau query parameter (?table=...)
+  const tableNumber = paramTableNumber || searchParams.get("table") || "1";
 
   const [menus, setMenus] = useState([]);
   const [cart, setCart] = useState([]);

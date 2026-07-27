@@ -561,10 +561,12 @@ export default function ClientWaitingPage() {
                 </span>
               </div>
 
+              {/* TAMPILKAN POTONGAN KUPON JIKA ADA */}
               {discountAmountVal > 0 && (
-                <div className="flex justify-between text-red-600 font-medium">
+                <div className="flex justify-between text-purple-700 font-bold">
                   <span className="flex items-center gap-1">
-                    <Tag className="w-3 h-3" /> Potongan Kupon ({couponCodeVal})
+                    <Tag className="w-3 h-3 text-purple-600" /> Potongan Kupon (
+                    {couponCodeVal})
                   </span>
                   <span className="font-mono">
                     - Rp {discountAmountVal.toLocaleString("id-ID")}

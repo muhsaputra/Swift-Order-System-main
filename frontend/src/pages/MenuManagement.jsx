@@ -13,6 +13,7 @@ import {
   Sparkles,
   Layers,
   Package,
+  Percent,
 } from "lucide-react";
 
 export default function MenuManagement() {
@@ -107,6 +108,17 @@ export default function MenuManagement() {
     setOriginalPrice(formatted);
   };
 
+  // Kalkulator persentase diskon otomatis untuk preview di admin
+  const calculateDiscountPercentage = () => {
+    const rawPrice = Number(price.replace(/\./g, "")) || 0;
+    const rawOrig = Number(originalPrice.replace(/\./g, "")) || 0;
+    if (rawOrig > rawPrice && rawPrice > 0) {
+      const discount = ((rawOrig - rawPrice) / rawOrig) * 100;
+      return Math.round(discount);
+    }
+    return 0;
+  };
+
   const handleOpenAddModal = () => {
     setEditingId(null);
     setName("");
@@ -147,22 +159,6 @@ export default function MenuManagement() {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
-  };
-
-  // Handler Manajemen Bundle Items & Options
-  const handleAddBundleItem = () => {
-    setBundleItems([...bundleItems, { menu: "", quantity: 1 }]);
-  };
-
-  const handleRemoveBundleItem = (index) => {
-    const updated = bundleItems.filter((_, i) => i !== index);
-    setBundleItems(updated);
-  };
-
-  const handleBundleItemChange = (index, field, value) => {
-    const updated = [...bundleItems];
-    updated[index][field] = value;
-    setBundleItems(updated);
   };
 
   const handleAddBundleOption = () => {
@@ -350,7 +346,7 @@ export default function MenuManagement() {
               Manajemen Menu & Kategori
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Atur seluruh ketersediaan produk, harga, paket promo, foto, dan
+              Atur seluruh ketersediaan produk, harga coret promo, foto, dan
               kelompok kategori menu restoran secara instan.
             </p>
           </div>
@@ -465,9 +461,11 @@ export default function MenuManagement() {
                         {menu.isAvailable ? "TERSEDIA" : "HABIS"}
                       </button>
 
-                      {menu.isBundle && (
+                      {(menu.isBundle ||
+                        (menu.originalPrice &&
+                          menu.originalPrice > menu.price)) && (
                         <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                          <Package className="w-3 h-3" /> Paket Promo
+                          <Package className="w-3 h-3" /> Promo / Diskon
                         </span>
                       )}
                     </div>
@@ -651,11 +649,13 @@ export default function MenuManagement() {
               <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
                 <div>
                   <h3 className="text-base font-bold text-neutral-900">
-                    {editingId ? "Edit Menu" : "Tambah Menu Baru"}
+                    {editingId
+                      ? "Edit Menu & Promo"
+                      : "Tambah Menu & Promo Baru"}
                   </h3>
                   <p className="text-xs text-neutral-500 mt-0.5">
-                    Lengkapi informasi detail produk atau paket promo di bawah
-                    ini.
+                    Lengkapi informasi produk serta atur harga coret promosi di
+                    sini.
                   </p>
                 </div>
                 <button
@@ -700,7 +700,7 @@ export default function MenuManagement() {
 
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 mb-1">
-                    Nama Menu / Paket Promo
+                    Nama Menu / Promo
                   </label>
                   <input
                     type="text"
@@ -708,7 +708,7 @@ export default function MenuManagement() {
                     onChange={(e) => setName(e.target.value)}
                     required
                     className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium"
-                    placeholder="Contoh: Paket Berdua Hemat"
+                    placeholder="Contoh: Ayam Goreng Spesial / Paket Hemat"
                   />
                 </div>
 
@@ -721,45 +721,65 @@ export default function MenuManagement() {
                     onChange={(e) => setDescription(e.target.value)}
                     rows="2"
                     className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition resize-none font-medium"
-                    placeholder="Contoh: 2x Ayam Goreng, 2x Nasi, 2x Es Teh Manis..."
+                    placeholder="Contoh: Diskon spesial akhir pekan..."
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1">
-                      Harga Jual (Rp)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-2.5 text-xs font-bold text-neutral-400">
-                        Rp
+                {/* PENGATURAN HARGA & PROMO DISKON */}
+                <div className="bg-amber-50/40 p-4 rounded-2xl border border-amber-200/70 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-neutral-900 flex items-center gap-1.5">
+                      <Percent className="w-4 h-4 text-amber-600" />
+                      Pengaturan Harga & Diskon Promo
+                    </span>
+                    {calculateDiscountPercentage() > 0 && (
+                      <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1 rounded-full border border-amber-300">
+                        Diskon {calculateDiscountPercentage()}%
                       </span>
-                      <input
-                        type="text"
-                        value={price}
-                        onChange={handlePriceChange}
-                        required
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium font-mono"
-                        placeholder="35.000"
-                      />
-                    </div>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1">
-                      Harga Asli / Coret (Opsional)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-2.5 text-xs font-bold text-neutral-400">
-                        Rp
-                      </span>
-                      <input
-                        type="text"
-                        value={originalPrice}
-                        onChange={handleOriginalPriceChange}
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium font-mono"
-                        placeholder="45.000"
-                      />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-700 mb-1">
+                        Harga Jual Sekarang (Rp){" "}
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-2.5 text-xs font-bold text-neutral-400">
+                          Rp
+                        </span>
+                        <input
+                          type="text"
+                          value={price}
+                          onChange={handlePriceChange}
+                          required
+                          className="w-full bg-white border border-neutral-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium font-mono"
+                          placeholder="25.000"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-700 mb-1">
+                        Harga Asli / Coret (Opsional)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-2.5 text-xs font-bold text-neutral-400">
+                          Rp
+                        </span>
+                        <input
+                          type="text"
+                          value={originalPrice}
+                          onChange={handleOriginalPriceChange}
+                          className="w-full bg-white border border-neutral-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium font-mono"
+                          placeholder="35.000"
+                        />
+                      </div>
+                      <p className="text-[10px] text-neutral-500 mt-1">
+                        Isi lebih besar dari harga jual untuk menampilkan label
+                        promo/diskon di pelanggan.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -783,9 +803,9 @@ export default function MenuManagement() {
 
                 {/* TOGGLE BUNDLE / PAKET PROMO */}
                 <div className="space-y-4 pt-2 border-t border-neutral-100">
-                  <div className="flex items-center justify-between bg-amber-50/50 p-3.5 rounded-2xl border border-amber-200/60">
+                  <div className="flex items-center justify-between bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80">
                     <div className="flex items-center gap-2.5">
-                      <Package className="w-5 h-5 text-amber-600" />
+                      <Package className="w-5 h-5 text-neutral-700" />
                       <div>
                         <p className="text-xs font-bold text-neutral-900">
                           Jadikan Menu Paket Promo (Bundle)
@@ -804,7 +824,6 @@ export default function MenuManagement() {
                     />
                   </div>
 
-                  {/* BUNDLE BUILDER BUILD SECTION */}
                   {isBundle && (
                     <div className="space-y-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80">
                       <div>
@@ -895,7 +914,7 @@ export default function MenuManagement() {
                                   ))}
                                   <button
                                     type="button"
-                                    onClick={() => handleAddChoice(optIdx)}
+                                    onClick={() => addAddChoice(optIdx)}
                                     className="text-[10px] font-bold text-neutral-700 hover:underline pt-1 block cursor-pointer"
                                   >
                                     + Tambah Pilihan Lain

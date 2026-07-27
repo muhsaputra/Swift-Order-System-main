@@ -460,6 +460,33 @@ export default function ClientWaitingPage() {
       return acc + (p + addonSum) * item.quantity;
     }, 0) || 0;
 
+  // Hitung subtotal asli sebelum promo/harga coret menu
+  const subtotalOriginalAmount =
+    order?.items?.reduce((acc, item) => {
+      const origPrice =
+        item.menu?.originalPrice ||
+        item.originalPrice ||
+        item.price ||
+        item.menu?.price ||
+        0;
+      let addonSum = 0;
+      if (
+        item.selectedBundleChoices &&
+        typeof item.selectedBundleChoices === "object"
+      ) {
+        Object.entries(item.selectedBundleChoices).forEach(
+          ([title, addons]) => {
+            if (Array.isArray(addons)) {
+              addons.forEach((addon) => {
+                addonSum += Number(addon.price || 0);
+              });
+            }
+          },
+        );
+      }
+      return acc + (origPrice + addonSum) * item.quantity;
+    }, 0) || 0;
+
   const totalMenuSavings =
     order?.items?.reduce((sum, item) => {
       const orig = item.menu?.originalPrice || item.originalPrice || 0;
@@ -474,7 +501,12 @@ export default function ClientWaitingPage() {
     Number(order?.serviceFee) ||
     Math.round((subtotalAmount - discountAmountVal) * 0.05);
 
-  const originalTotalBeforeDiscount = subtotalAmount + calculatedServiceFee;
+  // Biaya layanan asli dihitung dari subtotal asli sebelum diskon menu
+  const originalServiceFee = Math.round(subtotalOriginalAmount * 0.05);
+
+  // Total keseluruhan sebelum diskon menu & kupon
+  const originalTotalBeforeDiscount =
+    subtotalOriginalAmount + originalServiceFee;
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 flex items-center justify-center p-4 sm:p-6 relative">
@@ -726,7 +758,7 @@ export default function ClientWaitingPage() {
                 Total Pembayaran
               </span>
               <div className="flex items-center gap-2">
-                {/* Harga Coret di sebelah kiri harga diskon */}
+                {/* Harga Coret sebelum promo/diskon di sebelah kiri */}
                 {(totalMenuSavings > 0 || discountAmountVal > 0) &&
                   originalTotalBeforeDiscount > order.totalAmount && (
                     <span className="font-mono text-neutral-400 line-through text-[11px] font-normal">

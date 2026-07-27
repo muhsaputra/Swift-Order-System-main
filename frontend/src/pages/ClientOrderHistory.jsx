@@ -37,16 +37,28 @@ export default function ClientOrderHistory() {
       const res = await API.get("/orders");
       const allOrders = res.data;
 
+      // Ambil daftar ID pesanan yang pernah dibuat oleh perangkat ini dari localStorage
+      const localOrderIds = JSON.parse(
+        localStorage.getItem("swift_client_order_ids") || "[]",
+      );
+
       const filtered = allOrders.filter((order) => {
+        // 1. Prioritaskan kecocokan berdasarkan ID pesanan yang tersimpan di perangkat lokal
+        const isLocalDeviceOrder = localOrderIds.includes(order._id);
+
+        // 2. Jika belum ada di local ID, cocokkan secara ketat berdasarkan Nama (harus ada & sama) DAN Nomor Meja
+        const hasValidName =
+          customerInfo.name && customerInfo.name.trim() !== "";
         const isSameName =
-          customerInfo.name &&
+          hasValidName &&
           order.customerName?.toLowerCase().trim() ===
             customerInfo.name.toLowerCase().trim();
 
         const isSameTable =
           tableNumber && Number(order.tableNumber) === Number(tableNumber);
 
-        return isSameName || isSameTable;
+        // Hanya tampilkan jika pesanan berasal dari perangkat ini ATAU (nama valid dan meja sama persis)
+        return isLocalDeviceOrder || (isSameName && isSameTable);
       });
 
       filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -114,14 +126,6 @@ export default function ClientOrderHistory() {
             <ArrowLeft className="w-4 h-4" />
             Kembali
           </button>
-
-          {/* <button
-            onClick={() => navigate(`/order?table=${tableNumber}`)}
-            className="inline-flex items-center gap-2 text-xs font-bold text-neutral-900 bg-white border border-neutral-200/80 hover:bg-neutral-50 px-4 py-2.5 rounded-2xl transition-all shadow-2xs cursor-pointer"
-          >
-            <Store className="w-4 h-4 text-neutral-700" />
-            Menu Awal
-          </button> */}
         </div>
 
         {/* Banner Section */}
@@ -161,7 +165,7 @@ export default function ClientOrderHistory() {
               </p>
             </div>
             <button
-              onClick={() => navigate(`/order?table=${tableNumber}`)}
+              onClick={() => navigate(`/menu/${tableNumber}`)}
               className="mt-3 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold px-6 py-3 rounded-2xl transition-all cursor-pointer shadow-md inline-flex items-center gap-2"
             >
               <Store className="w-4 h-4" />
@@ -181,7 +185,6 @@ export default function ClientOrderHistory() {
                   })
                 : "";
 
-              // Hitung Subtotal barang jika belum tersedia
               const itemsSubtotal =
                 order.items?.reduce((acc, item) => {
                   const p = item.price || item.menu?.price || 0;
@@ -244,7 +247,7 @@ export default function ClientOrderHistory() {
                     </div>
                   </div>
 
-                  {/* Rincian Pembayaran (Subtotal, Diskon, Biaya Layanan, Total) */}
+                  {/* Rincian Pembayaran */}
                   <div className="bg-neutral-50/60 rounded-2xl p-4 border border-neutral-100 space-y-2 text-xs">
                     <div className="flex justify-between text-neutral-500 font-medium">
                       <span>Subtotal Produk</span>
@@ -253,7 +256,6 @@ export default function ClientOrderHistory() {
                       </span>
                     </div>
 
-                    {/* Jika ada kupon / diskon */}
                     {discountAmount > 0 && (
                       <div className="flex justify-between text-emerald-600 font-medium items-center">
                         <span className="inline-flex items-center gap-1.5">
@@ -267,7 +269,6 @@ export default function ClientOrderHistory() {
                       </div>
                     )}
 
-                    {/* Biaya Layanan */}
                     {serviceFee > 0 && (
                       <div className="flex justify-between text-neutral-500 font-medium">
                         <span>Biaya Layanan</span>

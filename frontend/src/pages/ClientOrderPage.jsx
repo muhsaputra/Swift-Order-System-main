@@ -1285,7 +1285,7 @@ export default function ClientOrderPage() {
 
               {totalMenuSavings > 0 && (
                 <div className="flex justify-between items-center text-xs text-amber-700 font-bold">
-                  <span>Total Hemat Harga Coret</span>
+                  <span>Diskon</span>
                   <span className="font-mono">
                     - Rp {totalMenuSavings.toLocaleString("id-ID")}
                   </span>

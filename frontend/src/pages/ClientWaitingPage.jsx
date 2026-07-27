@@ -691,7 +691,7 @@ export default function ClientWaitingPage() {
                 <div className="flex justify-between text-amber-700 font-bold">
                   <span className="flex items-center gap-1">
                     <Zap className="w-3 h-3 text-amber-500 fill-current" />{" "}
-                    Total Hemat Harga Coret
+                    Diskon
                   </span>
                   <span className="font-mono">
                     - Rp {totalMenuSavings.toLocaleString("id-ID")}

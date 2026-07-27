@@ -914,7 +914,7 @@ export default function MenuManagement() {
                                   ))}
                                   <button
                                     type="button"
-                                    onClick={() => addAddChoice(optIdx)}
+                                    onClick={() => handleAddChoice(optIdx)}
                                     className="text-[10px] font-bold text-neutral-700 hover:underline pt-1 block cursor-pointer"
                                   >
                                     + Tambah Pilihan Lain

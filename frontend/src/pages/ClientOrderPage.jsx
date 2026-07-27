@@ -96,6 +96,19 @@ export default function ClientOrderPage() {
       );
     });
 
+    socket.on("menu-updated", (updatedMenu) => {
+      setMenus((prevMenus) => {
+        const exists = prevMenus.some((m) => m._id === updatedMenu._id);
+        if (exists) {
+          return prevMenus.map((menu) =>
+            menu._id === updatedMenu._id ? updatedMenu : menu,
+          );
+        } else {
+          return [updatedMenu, ...prevMenus];
+        }
+      });
+    });
+
     return () => {
       socket.disconnect();
       if (scriptTag && scriptTag.parentNode) {
@@ -237,16 +250,10 @@ export default function ClientOrderPage() {
     }
 
     filteredMenus.forEach((menu) => {
-      const isPromo =
-        menu.isBundle === true ||
-        (menu.originalPrice && menu.originalPrice > menu.price);
-      // Jika ingin item promo hanya muncul di sekat promo, lewati dari kategori aslinya atau biarkan.
-      // Di sini kita masukkan ke kategori aslinya jika bukan item promo eksklusif, atau kelompokkan berdasarkan kategori.
       const cat = menu.category || "Lainnya";
       if (!groups[cat]) {
         groups[cat] = [];
       }
-      // Hindari duplikasi jika sudah masuk grup promo atas
       if (!groups[cat].some((m) => m._id === menu._id)) {
         groups[cat].push(menu);
       }
@@ -680,7 +687,6 @@ export default function ClientOrderPage() {
               </p>
             </div>
           ) : selectedCategory === "Semua" && groupedMenus ? (
-            // JIKA PILIH "SEMUA", TAMPILKAN PROMO DI PALING ATAS DIKUTIP KATEGORI LAINNYA
             Object.entries(groupedMenus).map(
               ([categoryName, menusInCategory]) => (
                 <div key={categoryName} className="space-y-3">
@@ -796,7 +802,6 @@ export default function ClientOrderPage() {
               ),
             )
           ) : (
-            // JIKA PILIH KATEGORI SPESIFIK (TERMASUK TAB PROMO KHUSUS)
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {filteredMenus.map((menu) => {
                 const qty = getCartQuantity(menu._id);

@@ -43,12 +43,19 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 2. Tambah menu baru dengan gambar
+// 2. Tambah menu baru dengan gambar & dukungan promo/bundle
 router.post("/", verifyToken, upload.single("image"), async (req, res) => {
   try {
-    const { name, price, category } = req.body;
+    const {
+      name,
+      description,
+      price,
+      originalPrice,
+      category,
+      isBundle,
+      bundleOptions,
+    } = req.body;
 
-    // Ambil langsung URL dari Cloudinary yang disediakan oleh multer storage
     let imageUrl = "";
     if (req.file && req.file.path) {
       imageUrl = req.file.path;
@@ -56,10 +63,14 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
 
     const newMenu = new Menu({
       name,
+      description: description || "",
       price: Number(price),
+      originalPrice: originalPrice ? Number(originalPrice) : 0,
       category,
       image: imageUrl,
       isAvailable: true,
+      isBundle: isBundle === "true" || isBundle === true,
+      bundleOptions: bundleOptions ? JSON.parse(bundleOptions) : [],
     });
 
     const savedMenu = await newMenu.save();
@@ -77,28 +88,49 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
   }
 });
 
-// 3. Update Menu
+// 3. Update Menu (Mendukung pembaruan harga, originalPrice, dan bundle)
 router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
   try {
-    const { name, price, category, isAvailable } = req.body;
+    const {
+      name,
+      description,
+      price,
+      originalPrice,
+      category,
+      isAvailable,
+      isBundle,
+      bundleOptions,
+    } = req.body;
 
     const menu = await Menu.findById(req.params.id);
     if (!menu) return res.status(404).json({ error: "Menu tidak ditemukan" });
 
     let imageUrl = menu.image;
-
-    // Ambil URL baru jika ada file yang di-upload
     if (req.file && req.file.path) {
       imageUrl = req.file.path;
     }
 
     menu.name = name !== undefined ? name : menu.name;
+    menu.description =
+      description !== undefined ? description : menu.description;
     menu.price = price !== undefined ? Number(price) : menu.price;
+    menu.originalPrice =
+      originalPrice !== undefined ? Number(originalPrice) : menu.originalPrice;
     menu.category = category !== undefined ? category : menu.category;
     menu.isAvailable =
       isAvailable !== undefined
         ? isAvailable === "true" || isAvailable === true
         : menu.isAvailable;
+    menu.isBundle =
+      isBundle !== undefined
+        ? isBundle === "true" || isBundle === true
+        : menu.isBundle;
+    menu.bundleOptions =
+      bundleOptions !== undefined
+        ? typeof bundleOptions === "string"
+          ? JSON.parse(bundleOptions)
+          : bundleOptions
+        : menu.bundleOptions;
     menu.image = imageUrl;
 
     const updatedMenu = await menu.save();

@@ -23,6 +23,7 @@ import {
   Tag,
   Receipt,
   Percent,
+  Zap,
 } from "lucide-react";
 import jsPDF from "jspdf";
 
@@ -109,7 +110,6 @@ export default function ClientWaitingPage() {
       try {
         const statusCode = searchParams.get("status_code");
 
-        // Jika ada status sukses dari Midtrans, lakukan patch pembayaran ke backend
         if (statusCode === "200" || statusCode === "201") {
           try {
             const patchRes = await API.patch(`/orders/${id}/pay`);
@@ -211,7 +211,7 @@ export default function ClientWaitingPage() {
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
-      format: [80, 180],
+      format: [80, 200],
     });
 
     let y = 10;
@@ -269,6 +269,31 @@ export default function ClientWaitingPage() {
 
       const priceText = `Rp ${totalItemPrice.toLocaleString("id-ID")}`;
       doc.text(priceText, pageWidth - margin, y, { align: "right" });
+
+      // Cetak Add-On di PDF jika ada
+      if (
+        item.selectedBundleChoices &&
+        typeof item.selectedBundleChoices === "object"
+      ) {
+        Object.entries(item.selectedBundleChoices).forEach(
+          ([title, addons]) => {
+            if (Array.isArray(addons)) {
+              addons.forEach((addon) => {
+                y += 3;
+                doc.setFontSize(7);
+                doc.setTextColor(80);
+                doc.text(
+                  `  + ${addon.name} ${addon.price > 0 ? `(Rp ${addon.price.toLocaleString("id-ID")})` : ""}`,
+                  margin,
+                  y,
+                );
+                doc.setFontSize(8);
+                doc.setTextColor(0);
+              });
+            }
+          },
+        );
+      }
 
       y += 4;
       doc.setFontSize(7);
@@ -404,6 +429,17 @@ export default function ClientWaitingPage() {
       return acc + p * item.quantity;
     }, 0) || 0;
 
+  // Hitung total penghematan promo harga coret jika ada
+  const totalMenuSavings =
+    order?.items?.reduce((sum, item) => {
+      const orig = item.menu?.originalPrice || item.originalPrice || 0;
+      const base = item.menu?.price || item.price || 0;
+      if (orig > base) {
+        return sum + (orig - base) * item.quantity;
+      }
+      return sum;
+    }, 0) || 0;
+
   const calculatedServiceFee =
     Number(order?.serviceFee) ||
     Math.round((subtotalAmount - discountAmountVal) * 0.05);
@@ -529,25 +565,61 @@ export default function ClientWaitingPage() {
               </span>
             </div>
 
-            <div className="pt-2 border-t border-neutral-200/80 space-y-1.5">
+            <div className="pt-2 border-t border-neutral-200/80 space-y-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block mb-1">
-                Daftar Menu:
+                Daftar Menu & Add-On:
               </span>
               {order.items?.map((item, idx) => {
                 const itemPrice = item.price || item.menu?.price || 0;
                 const itemName = item.menu?.name || item.name || "Menu";
+                const hasPromo =
+                  item.menu?.originalPrice &&
+                  item.menu.originalPrice > itemPrice;
 
                 return (
                   <div
                     key={idx}
-                    className="flex justify-between text-xs text-neutral-800 font-medium"
+                    className="text-xs text-neutral-800 font-medium space-y-1 pb-2 border-b border-neutral-100 last:border-b-0"
                   >
-                    <span>
-                      {item.quantity}x {itemName}
-                    </span>
-                    <span className="font-mono font-semibold">
-                      Rp {(itemPrice * item.quantity).toLocaleString("id-ID")}
-                    </span>
+                    <div className="flex justify-between">
+                      <span className="font-bold flex items-center gap-1.5">
+                        {item.quantity}x {itemName}
+                        {hasPromo && (
+                          <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.2 rounded">
+                            Promo
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-mono font-semibold">
+                        Rp {(itemPrice * item.quantity).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+
+                    {/* Rincian Add-On jika ada */}
+                    {item.selectedBundleChoices &&
+                      Object.entries(item.selectedBundleChoices).map(
+                        ([title, addons], aIdx) => (
+                          <div
+                            key={aIdx}
+                            className="text-[10px] text-neutral-500 pl-3 space-y-0.5"
+                          >
+                            {Array.isArray(addons) &&
+                              addons.map((addon, adIdx) => (
+                                <div
+                                  key={adIdx}
+                                  className="flex justify-between"
+                                >
+                                  <span>• + {addon.name}</span>
+                                  {addon.price > 0 && (
+                                    <span className="font-mono text-emerald-600 font-semibold">
+                                      +Rp {addon.price.toLocaleString("id-ID")}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                          </div>
+                        ),
+                      )}
                   </div>
                 );
               })}
@@ -560,6 +632,19 @@ export default function ClientWaitingPage() {
                   Rp {subtotalAmount.toLocaleString("id-ID")}
                 </span>
               </div>
+
+              {/* TAMPILKAN TOTAL HEMAT PROMO JIKA ADA */}
+              {totalMenuSavings > 0 && (
+                <div className="flex justify-between text-amber-700 font-bold">
+                  <span className="flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-amber-500 fill-current" />{" "}
+                    Total Hemat Harga Coret
+                  </span>
+                  <span className="font-mono">
+                    - Rp {totalMenuSavings.toLocaleString("id-ID")}
+                  </span>
+                </div>
+              )}
 
               {/* TAMPILKAN POTONGAN KUPON JIKA ADA */}
               {discountAmountVal > 0 && (

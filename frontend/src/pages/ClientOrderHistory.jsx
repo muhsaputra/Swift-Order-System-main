@@ -115,13 +115,13 @@ export default function ClientOrderHistory() {
             Kembali
           </button>
 
-          <button
+          {/* <button
             onClick={() => navigate(`/order?table=${tableNumber}`)}
             className="inline-flex items-center gap-2 text-xs font-bold text-neutral-900 bg-white border border-neutral-200/80 hover:bg-neutral-50 px-4 py-2.5 rounded-2xl transition-all shadow-2xs cursor-pointer"
           >
             <Store className="w-4 h-4 text-neutral-700" />
             Menu Awal
-          </button>
+          </button> */}
         </div>
 
         {/* Banner Section */}

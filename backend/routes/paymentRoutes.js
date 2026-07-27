@@ -51,7 +51,15 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
     }
 
     // C. Masukkan Potongan Diskon Kupon jika ada (Sebagai item harga negatif)
-    const discountAmount = Number(order.discountAmount || 0);
+    let discountAmount = Number(order.discountAmount || 0);
+
+    // Pengaman jika kupon tercatat di order tapi discountAmount masih 0 di database
+    if (discountAmount === 0 && order.couponCode) {
+      if (order.couponCode.toUpperCase() === "HEMAT50") {
+        discountAmount = 5000; // Sesuaikan nominal atau logika diskon Anda
+      }
+    }
+
     if (discountAmount > 0) {
       midtransItems.push({
         id: `DISCOUNT-${order.couponCode || "PROMO"}`,

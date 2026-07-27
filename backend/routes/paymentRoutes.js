@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const snap = require("../config/midtrans"); // Sesuaikan jalur relatif file konfigurasi Anda
-const Order = require("../models/Order"); // Sesuaikan model pesanan Anda
-const Coupon = require("../models/Coupon"); // Model kupon untuk pencarian dinamis
+const snap = require("../config/midtrans");
+const Order = require("../models/Order");
+const Coupon = require("../models/Coupon");
 
 // 1. Endpoint untuk Membuat Transaksi Midtrans
 router.post("/create-transaction", async (routerReq, routerRes) => {

@@ -10,7 +10,6 @@ import {
   Sparkles,
   Store,
   AlertTriangle,
-  Bell,
 } from "lucide-react";
 import { io } from "socket.io-client";
 
@@ -47,7 +46,7 @@ export default function DashboardLayout() {
         },
       );
 
-      // Tambahkan penghitung badge pesanan baru jika tidak sedang di Dashboard Utama
+      // Tambahkan penghitung badge pesanan baru
       setNewOrdersCount((prev) => prev + 1);
     });
 
@@ -109,9 +108,9 @@ export default function DashboardLayout() {
                 <LayoutDashboard className="w-4 h-4" />
                 <span>Dashboard Utama</span>
               </div>
+              {/* Badge Angka Jumlah Pesanan Baru di Samping Tulisan Dashboard Utama */}
               {newOrdersCount > 0 && (
-                <span className="flex items-center gap-1 bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse shadow-sm">
-                  <Bell className="w-3 h-3" />
+                <span className="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse shadow-sm">
                   {newOrdersCount}
                 </span>
               )}

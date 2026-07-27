@@ -144,7 +144,6 @@ export default function ClientOrderPage() {
     }
   };
 
-  // Toggle pilihan add-on (bisa pilih banyak / multi-select)
   const toggleAddonSelection = (optionTitle, choiceObj) => {
     setSelectedAddons((prev) => {
       const currentList = prev[optionTitle] || [];
@@ -170,8 +169,17 @@ export default function ClientOrderPage() {
     if (e) e.stopPropagation();
     if (!menu.isAvailable) return;
 
-    // Harga dasar menu di-fix agar tidak bertambah otomatis jika add-on sudah termasuk atau dipilih terpisah
+    let addonTotalPrice = 0;
+    Object.values(chosenAddons).forEach((addonArray) => {
+      if (Array.isArray(addonArray)) {
+        addonArray.forEach((addon) => {
+          addonTotalPrice += Number(addon.price || 0);
+        });
+      }
+    });
+
     const baseMenuPrice = menu.price;
+    const finalItemPrice = baseMenuPrice + addonTotalPrice;
 
     const existingIndex = cart.findIndex((item) => {
       if (item.menuId !== menu._id) return false;
@@ -191,7 +199,7 @@ export default function ClientOrderPage() {
         {
           menuId: menu._id,
           name: menu.name,
-          price: baseMenuPrice,
+          price: finalItemPrice,
           basePrice: baseMenuPrice,
           originalPrice: menu.originalPrice || 0,
           image: menu.image,
@@ -292,8 +300,24 @@ export default function ClientOrderPage() {
 
   const subtotalOriginalPrice = cart.reduce((sum, item) => {
     const itemPrice = item.price || 0;
-    const origItemPrice = item.originalPrice || itemPrice;
-    const origTotalItemPriceWithAddon = origItemPrice * item.quantity;
+    const origItemPrice = item.originalPrice || item.basePrice || itemPrice;
+
+    let itemAddonSubtotal = 0;
+    if (
+      item.selectedBundleChoices &&
+      typeof item.selectedBundleChoices === "object"
+    ) {
+      Object.entries(item.selectedBundleChoices).forEach(([title, addons]) => {
+        if (Array.isArray(addons)) {
+          addons.forEach((addon) => {
+            itemAddonSubtotal += Number(addon.price || 0);
+          });
+        }
+      });
+    }
+
+    const origTotalItemPriceWithAddon =
+      (origItemPrice + itemAddonSubtotal) * item.quantity;
     return sum + origTotalItemPriceWithAddon;
   }, 0);
 
@@ -1203,9 +1227,10 @@ export default function ClientOrderPage() {
             <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
               {cart.map((item, idx) => {
                 const itemPrice = item.price || 0;
-                const origItemPrice = item.originalPrice || itemPrice;
+                const origItemPrice =
+                  item.originalPrice || item.basePrice || itemPrice;
                 const itemName = item.name || "Menu";
-                const hasPromo = origItemPrice > itemPrice;
+                const hasPromo = origItemPrice > item.basePrice;
 
                 let itemAddonSubtotal = 0;
                 let origItemAddonSubtotal = 0;
@@ -1227,7 +1252,7 @@ export default function ClientOrderPage() {
                 }
 
                 const totalItemPriceWithAddon =
-                  (itemPrice + itemAddonSubtotal) * item.quantity;
+                  (item.basePrice + itemAddonSubtotal) * item.quantity;
                 const origTotalItemPriceWithAddon =
                   (origItemPrice + origItemAddonSubtotal) * item.quantity;
 

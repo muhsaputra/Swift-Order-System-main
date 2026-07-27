@@ -578,7 +578,7 @@ export default function TransactionHistory() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none" />
 
-        <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-white/10">
               <Sparkles className="w-3.5 h-3.5" />
@@ -620,7 +620,7 @@ export default function TransactionHistory() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-8">
         {/* Metrik Finansial Tambahan (Service Fee & Diskon Kupon) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl shadow-2xs flex items-center gap-4">
@@ -715,7 +715,7 @@ export default function TransactionHistory() {
             </div>
           </div>
 
-          {/* Grid Grafik: 1. Tren Omset (Area Chart), 2. Kategori Menu (Bar Chart), 3. Metode Pembayaran QRIS vs Cash (Bar Chart) */}
+          {/* Grid Grafik: Diperlebar menggunakan max-w-7xl dan grid-cols-1 lg:grid-cols-3 agar setiap grafik punya ruang leluasa */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 1. Tren Omset Area Chart */}
             <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
@@ -730,7 +730,7 @@ export default function TransactionHistory() {
                   </p>
                 </div>
               </div>
-              <div className="h-64 w-full pt-2">
+              <div className="h-72 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
@@ -798,9 +798,9 @@ export default function TransactionHistory() {
                   </p>
                 </div>
               </div>
-              <div className="h-64 w-full pt-2">
+              <div className="h-72 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={categoryBarData}>
+                  <BarChart data={categoryBarData} barSize={42}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="category" stroke="#737373" fontSize={11} />
                     <YAxis
@@ -843,9 +843,9 @@ export default function TransactionHistory() {
                   </p>
                 </div>
               </div>
-              <div className="h-64 w-full pt-2">
+              <div className="h-72 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={paymentComparisonBarData}>
+                  <BarChart data={paymentComparisonBarData} barSize={50}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="name" stroke="#737373" fontSize={11} />
                     <YAxis

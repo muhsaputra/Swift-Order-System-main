@@ -508,20 +508,28 @@ export default function CashierDashboard() {
                 const name = item.menu?.name || item.name || "Menu Item";
                 const price = item.price || item.menu?.price || 0;
 
-                // Konversi selectedBundleChoices menjadi objek/map aman
                 const choices = item.selectedBundleChoices
                   ? item.selectedBundleChoices instanceof Map
                     ? Object.fromEntries(item.selectedBundleChoices)
                     : item.selectedBundleChoices
                   : {};
-                const choicesHtml =
-                  Object.keys(choices).length > 0
-                    ? Object.entries(choices)
-                        .map(
-                          ([k, v]) => `<div class="choices">• ${k}: ${v}</div>`,
-                        )
-                        .join("")
-                    : "";
+
+                let choicesHtml = "";
+                if (Object.keys(choices).length > 0) {
+                  choicesHtml = Object.entries(choices)
+                    .map(([k, v]) => {
+                      if (Array.isArray(v)) {
+                        return v
+                          .map(
+                            (addon) =>
+                              `<div class="choices">• + ${addon.name} ${addon.price > 0 ? `(Rp ${addon.price.toLocaleString("id-ID")})` : ""}</div>`,
+                          )
+                          .join("");
+                      }
+                      return `<div class="choices">• ${k}: ${v}</div>`;
+                    })
+                    .join("");
+                }
 
                 return `
                 <tr>
@@ -1109,7 +1117,6 @@ export default function CashierDashboard() {
                                   const itemImage =
                                     item.menu?.image || item.image || "";
 
-                                  // Konversi pilihan bundle untuk ditampilkan di card kasir
                                   const choices = item.selectedBundleChoices
                                     ? item.selectedBundleChoices instanceof Map
                                       ? Object.fromEntries(
@@ -1146,18 +1153,36 @@ export default function CashierDashboard() {
                                             {itemPrice.toLocaleString("id-ID")}
                                           </p>
 
-                                          {/* Tampilkan pilihan kustomisasi paket/bundle di sini */}
+                                          {/* Tampilkan pilihan kustomisasi / add-on dengan aman */}
                                           {Object.keys(choices).length > 0 && (
                                             <div className="text-[10px] text-neutral-500 space-y-0.5 pt-1">
                                               {Object.entries(choices).map(
-                                                ([title, val], cIdx) => (
-                                                  <p key={cIdx}>
-                                                    • {title}:{" "}
-                                                    <span className="font-bold text-neutral-700">
-                                                      {val}
-                                                    </span>
-                                                  </p>
-                                                ),
+                                                ([title, val], cIdx) => {
+                                                  if (Array.isArray(val)) {
+                                                    return val.map(
+                                                      (addon, aIdx) => (
+                                                        <p
+                                                          key={`${cIdx}-${aIdx}`}
+                                                        >
+                                                          • +{" "}
+                                                          <span className="font-bold text-neutral-700">
+                                                            {addon.name}
+                                                          </span>
+                                                          {addon.price > 0 &&
+                                                            ` (+Rp ${addon.price.toLocaleString("id-ID")})`}
+                                                        </p>
+                                                      ),
+                                                    );
+                                                  }
+                                                  return (
+                                                    <p key={cIdx}>
+                                                      • {title}:{" "}
+                                                      <span className="font-bold text-neutral-700">
+                                                        {val}
+                                                      </span>
+                                                    </p>
+                                                  );
+                                                },
                                               )}
                                             </div>
                                           )}

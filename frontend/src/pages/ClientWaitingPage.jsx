@@ -261,7 +261,25 @@ export default function ClientWaitingPage() {
     order.items?.forEach((item) => {
       const itemName = item.menu?.name || item.name || "Menu Item";
       const itemPrice = item.price || item.menu?.price || 0;
-      const totalItemPrice = itemPrice * item.quantity;
+      let itemAddonTotal = 0;
+
+      // Hitung total harga add-on untuk item ini
+      if (
+        item.selectedBundleChoices &&
+        typeof item.selectedBundleChoices === "object"
+      ) {
+        Object.entries(item.selectedBundleChoices).forEach(
+          ([title, addons]) => {
+            if (Array.isArray(addons)) {
+              addons.forEach((addon) => {
+                itemAddonTotal += Number(addon.price || 0);
+              });
+            }
+          },
+        );
+      }
+
+      const totalItemPrice = (itemPrice + itemAddonTotal) * item.quantity;
       calculatedSubtotal += totalItemPrice;
 
       y += 4;
@@ -299,7 +317,7 @@ export default function ClientWaitingPage() {
       doc.setFontSize(7);
       doc.setTextColor(100);
       doc.text(
-        `${item.quantity}x @ Rp ${itemPrice.toLocaleString("id-ID")}`,
+        `${item.quantity}x @ Rp ${(itemPrice + itemAddonTotal).toLocaleString("id-ID")}`,
         margin,
         y,
       );
@@ -423,10 +441,26 @@ export default function ClientWaitingPage() {
 
   const currentStatusInfo = getStatusContent();
 
+  // Hitung subtotal dengan benar dengan mengakumulasikan harga menu + add-on dikali kuantitas
   const subtotalAmount =
     order?.items?.reduce((acc, item) => {
       const p = item.price || item.menu?.price || 0;
-      return acc + p * item.quantity;
+      let addonSum = 0;
+      if (
+        item.selectedBundleChoices &&
+        typeof item.selectedBundleChoices === "object"
+      ) {
+        Object.entries(item.selectedBundleChoices).forEach(
+          ([title, addons]) => {
+            if (Array.isArray(addons)) {
+              addons.forEach((addon) => {
+                addonSum += Number(addon.price || 0);
+              });
+            }
+          },
+        );
+      }
+      return acc + (p + addonSum) * item.quantity;
     }, 0) || 0;
 
   // Hitung total penghematan promo harga coret jika ada
@@ -576,6 +610,25 @@ export default function ClientWaitingPage() {
                   item.menu?.originalPrice &&
                   item.menu.originalPrice > itemPrice;
 
+                let itemAddonSubtotal = 0;
+                if (
+                  item.selectedBundleChoices &&
+                  typeof item.selectedBundleChoices === "object"
+                ) {
+                  Object.entries(item.selectedBundleChoices).forEach(
+                    ([title, addons]) => {
+                      if (Array.isArray(addons)) {
+                        addons.forEach((addon) => {
+                          itemAddonSubtotal += Number(addon.price || 0);
+                        });
+                      }
+                    },
+                  );
+                }
+
+                const totalItemPriceWithAddon =
+                  (itemPrice + itemAddonSubtotal) * item.quantity;
+
                 return (
                   <div
                     key={idx}
@@ -591,7 +644,7 @@ export default function ClientWaitingPage() {
                         )}
                       </span>
                       <span className="font-mono font-semibold">
-                        Rp {(itemPrice * item.quantity).toLocaleString("id-ID")}
+                        Rp {totalItemPriceWithAddon.toLocaleString("id-ID")}
                       </span>
                     </div>
 

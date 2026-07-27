@@ -416,6 +416,10 @@ export default function CashierDashboard() {
 
   const handleSubmitManualOrder = async (e) => {
     e.preventDefault();
+
+    // Cegah eksekusi ganda jika sedang dalam proses submit
+    if (submittingOrder) return;
+
     if (cart.length === 0) {
       toast.warning("Keranjang pesanan masih kosong.");
       return;
@@ -443,7 +447,7 @@ export default function CashierDashboard() {
         totalAmount: totalAmount,
         orderStatus: "processing",
         paymentMethod: "cash",
-        paymentStatus: "paid", // POS walk-in langsung lunas
+        paymentStatus: "paid",
       };
 
       const res = await API.post("/orders", payload);
@@ -1402,11 +1406,20 @@ export default function CashierDashboard() {
                       <button
                         type="submit"
                         disabled={submittingOrder || cart.length === 0}
-                        className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition shadow-2xs disabled:opacity-50 cursor-pointer mt-3"
+                        className={`w-full py-3 rounded-2xl text-xs font-bold transition shadow-2xs mt-3 flex items-center justify-center gap-2 ${
+                          submittingOrder || cart.length === 0
+                            ? "bg-neutral-300 text-neutral-500 cursor-not-allowed"
+                            : "bg-neutral-900 hover:bg-neutral-800 text-white cursor-pointer shadow-md"
+                        }`}
                       >
-                        {submittingOrder
-                          ? "Memproses Pesanan..."
-                          : "Buat Pesanan & Proses"}
+                        {submittingOrder && (
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        )}
+                        <span>
+                          {submittingOrder
+                            ? "Memproses Pesanan..."
+                            : "Buat Pesanan & Proses"}
+                        </span>
                       </button>
                     </div>
                   </form>

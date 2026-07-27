@@ -199,28 +199,7 @@ export default function ClientOrderPage() {
       .reduce((sum, item) => sum + item.quantity, 0);
   };
 
-  // Daftar kategori tetap yang disusun rapi sesuai permintaan
-  const presetCategories = [
-    "Semua",
-    "Terpopuler",
-    "Promo",
-    "Makanan",
-    "Minuman",
-    "Snack",
-    "Dessert",
-  ];
-
-  const categories = useMemo(() => {
-    const apiCats = menus.map((m) => m.category).filter(Boolean);
-    const combined = [
-      "Semua",
-      "Terpopuler",
-      "Promo",
-      ...new Set([...presetCategories.slice(3), ...apiCats]),
-    ];
-    return [...new Set(combined)];
-  }, [menus]);
-
+  // Filter menu berdasarkan search query & kategori aktif
   const filteredMenus = useMemo(() => {
     return menus.filter((menu) => {
       const matchesSearch =
@@ -234,7 +213,6 @@ export default function ClientOrderPage() {
       } else if (selectedCategory === "Promo") {
         matchesCategory = menu.isBundle === true;
       } else if (selectedCategory === "Terpopuler") {
-        // Simulasi menu terpopuler (bisa disesuaikan atau berdasarkan flag khusus jika ada)
         matchesCategory = true;
       } else {
         matchesCategory =
@@ -244,6 +222,28 @@ export default function ClientOrderPage() {
       return matchesSearch && matchesCategory;
     });
   }, [menus, searchQuery, selectedCategory]);
+
+  // Mengelompokkan menu berdasarkan kategori jika tab "Semua" dipilih
+  const groupedMenus = useMemo(() => {
+    if (selectedCategory !== "Semua") return null;
+
+    const groups = {};
+    filteredMenus.forEach((menu) => {
+      const cat = menu.category || "Lainnya";
+      if (!groups[cat]) {
+        groups[cat] = [];
+      }
+      groups[cat].push(menu);
+    });
+
+    // Tambahkan juga kelompok khusus "Promo / Bundle" jika ada menu bundle
+    const bundleMenus = filteredMenus.filter((m) => m.isBundle);
+    if (bundleMenus.length > 0 && !groups["Paket Promo"]) {
+      // Opsional: Kelompokkan atau biarkan di kategorinya
+    }
+
+    return groups;
+  }, [filteredMenus, selectedCategory]);
 
   // --- KALKULASI FINANSIAL (SUBTOTAL, DISKON, BIAYA LAYANAN, GRAND TOTAL) ---
   const subtotalPrice = cart.reduce(
@@ -301,7 +301,6 @@ export default function ClientOrderPage() {
 
     setIsSubmitting(true);
     try {
-      // 1. Buat pesanan ke backend dengan menyertakan paymentMethod, discountAmount, serviceFee, & couponCode
       const response = await API.post("/orders", {
         tableNumber: Number(tableNumber),
         customerName: customerInfo.name,
@@ -323,7 +322,6 @@ export default function ClientOrderPage() {
 
       const newOrder = response.data.order || response.data;
 
-      // 2. Percabangan berdasarkan Metode Pembayaran
       if (paymentMethod === "cash") {
         toast.success(
           "Pesanan berhasil dibuat! Silakan lakukan pembayaran tunai di kasir.",
@@ -341,7 +339,6 @@ export default function ClientOrderPage() {
           return;
         }
 
-        // PaymentRes
         const paymentRes = await API.post("/payments/create-transaction", {
           orderId: newOrder._id,
           totalAmount: newOrder.totalAmount,
@@ -354,7 +351,6 @@ export default function ClientOrderPage() {
         const snapToken = paymentRes.data.token;
         setIsCartOpen(false);
 
-        // Munculkan Popup Midtrans Snap di layar Pelanggan
         window.snap.pay(snapToken, {
           onSuccess: async function (result) {
             toast.success("Pembayaran Berhasil! Pesanan diproses ke dapur.");
@@ -660,8 +656,8 @@ export default function ClientOrderPage() {
           </div>
         </div>
 
-        {/* MENU LIST */}
-        <div className="space-y-4">
+        {/* MENU LIST DENGAN PEMBAGIAN SEKAT PER KATEGORI JIKA PILIH "SEMUA" */}
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-extrabold text-neutral-900 flex items-center gap-2">
               <Flame className="w-4 h-4 text-amber-500" />
@@ -681,7 +677,122 @@ export default function ClientOrderPage() {
                 Coba kata kunci atau pilih kategori lain.
               </p>
             </div>
+          ) : selectedCategory === "Semua" && groupedMenus ? (
+            // JIKA PILIH "SEMUA", TAMPILKAN DENGAN SEKAT PER KATEGORI
+            Object.entries(groupedMenus).map(
+              ([categoryName, menusInCategory]) => (
+                <div key={categoryName} className="space-y-3">
+                  <div className="flex items-center gap-3 pt-4 pb-1 border-b border-neutral-200/60">
+                    <h3 className="text-sm font-black text-neutral-900 uppercase tracking-wider flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                      {categoryName}
+                    </h3>
+                    <span className="text-[10px] font-bold text-neutral-400 font-mono bg-neutral-200/60 px-2 py-0.5 rounded-full">
+                      {menusInCategory.length} Item
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {menusInCategory.map((menu) => {
+                      const qty = getCartQuantity(menu._id);
+                      return (
+                        <div
+                          key={menu._id}
+                          onClick={() => handleCardClick(menu)}
+                          className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition group relative shadow-2xs hover:shadow-md ${
+                            menu.isAvailable
+                              ? "border-neutral-200/80 hover:border-neutral-400 cursor-pointer"
+                              : "border-neutral-200/50 opacity-60 cursor-not-allowed bg-neutral-100/50"
+                          }`}
+                        >
+                          <div>
+                            <div className="relative h-32 w-full bg-neutral-100 overflow-hidden">
+                              {menu.image ? (
+                                <img
+                                  src={menu.image}
+                                  alt={menu.name}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-neutral-400 text-[10px] font-medium">
+                                  Tidak ada foto
+                                </div>
+                              )}
+                              <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end">
+                                <span
+                                  className={`px-2.5 py-1 text-[9px] rounded-full font-extrabold shadow-sm backdrop-blur-md ${
+                                    menu.isAvailable
+                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                      : "bg-neutral-200 text-neutral-600 border border-neutral-300"
+                                  }`}
+                                >
+                                  {menu.isAvailable ? "Tersedia" : "Habis"}
+                                </span>
+                                {menu.isBundle && (
+                                  <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
+                                    <Package className="w-3 h-3" /> Paket Promo
+                                  </span>
+                                )}
+                              </div>
+
+                              {qty > 0 && (
+                                <div className="absolute top-2.5 left-2.5 bg-neutral-900 text-white font-black text-[10px] w-6 h-6 rounded-full flex items-center justify-center shadow-md animate-bounce">
+                                  {qty}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="p-3.5 space-y-1">
+                              <span className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider">
+                                {menu.category}
+                              </span>
+                              <h3 className="text-xs sm:text-sm font-bold text-neutral-900 line-clamp-1">
+                                {menu.name}
+                              </h3>
+                              {menu.description ? (
+                                <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                                  {menu.description}
+                                </p>
+                              ) : (
+                                <p className="text-[11px] text-neutral-300 italic">
+                                  Tanpa deskripsi
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="p-3.5 pt-0 flex justify-between items-center">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-mono font-black text-emerald-600">
+                                Rp {menu.price.toLocaleString("id-ID")}
+                              </span>
+                              {menu.originalPrice > menu.price && (
+                                <span className="text-[9px] font-mono text-neutral-400 line-through">
+                                  Rp{" "}
+                                  {menu.originalPrice.toLocaleString("id-ID")}
+                                </span>
+                              )}
+                            </div>
+
+                            {menu.isAvailable ? (
+                              <span className="text-[10px] font-bold text-neutral-900 bg-neutral-100 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded-xl transition shadow-2xs">
+                                {menu.isBundle ? "+ Pilih Paket" : "+ Tambah"}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold text-neutral-400">
+                                Habis
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ),
+            )
           ) : (
+            // JIKA PILIH KATEGORI SPESIFIK LAINNYA, TAMPILKAN GRID BIASA
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {filteredMenus.map((menu) => {
                 const qty = getCartQuantity(menu._id);

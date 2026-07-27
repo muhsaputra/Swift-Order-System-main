@@ -24,6 +24,9 @@ import {
   Receipt,
   Percent,
   Zap,
+  Phone,
+  Mail,
+  User,
 } from "lucide-react";
 import jsPDF from "jspdf";
 
@@ -205,6 +208,10 @@ export default function ClientWaitingPage() {
   const couponCodeVal =
     order?.couponCode || order?.coupon || order?.promoCode || "PROMO";
 
+  const customerPhone =
+    order?.customerPhone || order?.phone || order?.whatsapp || "-";
+  const customerEmail = order?.customerEmail || order?.email || "-";
+
   const handleDownloadPDF = () => {
     if (!order) return;
 
@@ -236,6 +243,14 @@ export default function ClientWaitingPage() {
     doc.text(`ID: #${order._id.slice(-6).toUpperCase()}`, margin, y);
     y += 4;
     doc.text(`Pelanggan: ${order.customerName}`, margin, y);
+    if (customerPhone !== "-") {
+      y += 4;
+      doc.text(`Telepon: ${customerPhone}`, margin, y);
+    }
+    if (customerEmail !== "-") {
+      y += 4;
+      doc.text(`Email: ${customerEmail}`, margin, y);
+    }
     y += 4;
     doc.text(`Meja: #${order.tableNumber}`, margin, y);
     y += 4;
@@ -496,7 +511,6 @@ export default function ClientWaitingPage() {
       return sum;
     }, 0) || 0;
 
-  // Biaya layanan dihitung dari subtotal setelah diskon (standar industri yang adil untuk pembeli)
   const calculatedServiceFee =
     Number(order?.serviceFee) ||
     Math.round((subtotalAmount - discountAmountVal) * 0.05);
@@ -623,22 +637,41 @@ export default function ClientWaitingPage() {
               </div>
             </div>
 
-            {/* Informasi Meja & Pemesan */}
-            <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-neutral-200/60 text-xs">
-              <div>
-                <span className="text-neutral-400 font-semibold block text-[10px] uppercase">
-                  Nomor Meja
+            {/* Informasi Pelanggan & Meja (Terstruktur) */}
+            <div className="bg-white p-3.5 rounded-xl border border-neutral-200/60 space-y-2.5 text-xs">
+              <div className="flex justify-between items-center border-b border-neutral-100 pb-2">
+                <span className="text-neutral-400 font-semibold uppercase text-[10px] flex items-center gap-1">
+                  <User className="w-3 h-3 text-neutral-400" /> Nama Pemesan
                 </span>
-                <span className="font-extrabold text-neutral-900 mt-0.5 inline-block">
-                  #{order.tableNumber}
+                <span className="font-extrabold text-neutral-900">
+                  {order.customerName}
                 </span>
               </div>
-              <div>
-                <span className="text-neutral-400 font-semibold block text-[10px] uppercase">
-                  Pemesan
+
+              <div className="flex justify-between items-center border-b border-neutral-100 pb-2">
+                <span className="text-neutral-400 font-semibold uppercase text-[10px] flex items-center gap-1">
+                  <Phone className="w-3 h-3 text-neutral-400" /> No. Telepon
                 </span>
-                <span className="font-bold text-neutral-900 mt-0.5 truncate block">
-                  {order.customerName}
+                <span className="font-mono font-bold text-neutral-800">
+                  {customerPhone}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center border-b border-neutral-100 pb-2">
+                <span className="text-neutral-400 font-semibold uppercase text-[10px] flex items-center gap-1">
+                  <Mail className="w-3 h-3 text-neutral-400" /> Email
+                </span>
+                <span className="font-mono font-medium text-neutral-800 truncate max-w-[200px]">
+                  {customerEmail}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center pt-0.5">
+                <span className="text-neutral-400 font-semibold uppercase text-[10px]">
+                  Nomor Meja
+                </span>
+                <span className="font-extrabold text-neutral-900 bg-neutral-100 px-2.5 py-0.5 rounded-lg border border-neutral-200/80">
+                  #{order.tableNumber}
                 </span>
               </div>
             </div>

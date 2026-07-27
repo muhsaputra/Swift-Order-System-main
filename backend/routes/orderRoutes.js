@@ -7,8 +7,19 @@ const { verifyToken } = require("../middleware/auth");
 // 1. Buat Pesanan Baru (Client Checkout - Publik)
 router.post("/", async (req, res) => {
   try {
-    const { tableNumber, customerName, items, totalAmount, paymentMethod } =
-      req.body;
+    const {
+      tableNumber,
+      customerName,
+      customerEmail,
+      customerPhone,
+      items,
+      subtotal,
+      discountAmount,
+      couponCode,
+      serviceFee,
+      totalAmount,
+      paymentMethod,
+    } = req.body;
 
     // Tentukan paymentStatus awal berdasarkan metode pembayaran yang dipilih
     // Jika 'cash', statusnya 'cash_pending'. Jika 'qris', statusnya 'pending'.
@@ -21,7 +32,13 @@ router.post("/", async (req, res) => {
       orderId: customOrderId, // Simpan orderId kustom agar cocok dengan Midtrans / pencarian fleksibel
       tableNumber,
       customerName,
+      customerEmail,
+      customerPhone,
       items,
+      subtotal,
+      discountAmount: discountAmount || 0, // <-- Diperbarui agar tersimpan dengan benar
+      couponCode: couponCode || null, // <-- Diperbarui agar tersimpan dengan benar
+      serviceFee,
       totalAmount,
       paymentMethod: paymentMethod || "qris",
       paymentStatus: initialPaymentStatus,

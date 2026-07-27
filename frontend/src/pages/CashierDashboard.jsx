@@ -417,7 +417,7 @@ export default function CashierDashboard() {
   const handleSubmitManualOrder = async (e) => {
     e.preventDefault();
 
-    // Cegah eksekusi ganda jika sedang dalam proses submit
+    // Hentikan eksekusi jika sedang dalam proses pengiriman
     if (submittingOrder) return;
 
     if (cart.length === 0) {
@@ -451,7 +451,13 @@ export default function CashierDashboard() {
       };
 
       const res = await API.post("/orders", payload);
-      setOrders((prev) => [res.data, ...prev]);
+
+      // Update state orders hanya jika ID belum ada di dalam state (mencegah duplikat dari socket vs response API)
+      setOrders((prev) => {
+        const exists = prev.some((ord) => ord._id === res.data._id);
+        if (exists) return prev;
+        return [res.data, ...prev];
+      });
 
       setCustomerName("");
       setTableNumber("");

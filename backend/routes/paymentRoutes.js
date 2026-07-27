@@ -100,21 +100,29 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
 router.post("/notification", async (req, res) => {
   try {
     const notification = req.body;
+    const midtransOrderId = notification.order_id; // Contoh format: ORDER-6a65b7...-178505...
+
+    // A. ABAIKAN JIKA INI ADALAH PING / TEST DARI DASHBOARD MIDTRANS
+    if (!midtransOrderId || midtransOrderId.startsWith("payment_notif_test_")) {
+      return res
+        .status(200)
+        .json({ status: "OK", message: "Test notification received" });
+    }
 
     const transactionStatus = notification.transaction_status;
     const fraudStatus = notification.fraud_status;
-    const midtransOrderId = notification.order_id; // Contoh format: ORDER-6a65b7...-178505...
 
     // Ekstrak ID asli pesanan dari string order_id Midtrans
     const cleanOrderId = midtransOrderId.replace(/^ORDER-/, "").split("-")[0];
+    const isValidObjectId = cleanOrderId.match(/^[0-9a-fA-F]{24}$/);
 
-    // Cari pesanan berdasarkan _id MongoDB atau orderId kustom
+    // Cari pesanan berdasarkan _id MongoDB atau orderId kustom dengan filter aman
     let order = await Order.findOne({
       $or: [
-        { _id: cleanOrderId.match(/^[0-9a-fA-F]{24}$/) ? cleanOrderId : null },
+        { _id: isValidObjectId ? cleanOrderId : null },
         { orderId: cleanOrderId },
         { _id: midtransOrderId },
-      ],
+      ].filter((condition) => Object.values(condition)[0] !== null),
     });
 
     if (!order) {

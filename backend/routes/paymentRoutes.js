@@ -100,9 +100,9 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
 router.post("/notification", async (req, res) => {
   try {
     const notification = req.body;
-    const midtransOrderId = notification.order_id; // Contoh format: ORDER-6a65b7...-178505...
+    const midtransOrderId = notification.order_id; // Contoh format: ORDER-6a6740af1c9aa89be84c4427-1785151663363
 
-    // A. ABAIKAN JIKA INI ADALAH PING / TEST DARI DASHBOARD MIDTRANS
+    // A. Abaikan jika ini adalah ping / test dari dashboard Midtrans
     if (!midtransOrderId || midtransOrderId.startsWith("payment_notif_test_")) {
       return res
         .status(200)
@@ -112,18 +112,21 @@ router.post("/notification", async (req, res) => {
     const transactionStatus = notification.transaction_status;
     const fraudStatus = notification.fraud_status;
 
-    // Ekstrak ID asli pesanan dari string order_id Midtrans
+    // B. Ekstrak ID asli pesanan dari string order_id Midtrans
     const cleanOrderId = midtransOrderId.replace(/^ORDER-/, "").split("-")[0];
     const isValidObjectId = cleanOrderId.match(/^[0-9a-fA-F]{24}$/);
 
-    // Cari pesanan berdasarkan _id MongoDB atau orderId kustom dengan filter aman
-    let order = await Order.findOne({
-      $or: [
-        { _id: isValidObjectId ? cleanOrderId : null },
-        { orderId: cleanOrderId },
-        { _id: midtransOrderId },
-      ].filter((condition) => Object.values(condition)[0] !== null),
-    });
+    // C. Susun kondisi query secara aman tanpa mencocokkan string panjang langsung ke _id
+    let queryConditions = [];
+
+    if (isValidObjectId) {
+      queryConditions.push({ _id: cleanOrderId });
+    }
+
+    queryConditions.push({ orderId: cleanOrderId });
+    queryConditions.push({ orderId: midtransOrderId });
+
+    let order = await Order.findOne({ $or: queryConditions });
 
     if (!order) {
       return res

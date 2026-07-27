@@ -41,7 +41,7 @@ export default function MenuManagement() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
 
-  // State untuk Fitur Bundle / Paket Promo
+  // State untuk Fitur Bundle / Add-On Berharga
   const [isBundle, setIsBundle] = useState(false);
   const [bundleItems, setBundleItems] = useState([]);
   const [bundleOptions, setBundleOptions] = useState([]);
@@ -97,18 +97,13 @@ export default function MenuManagement() {
   };
 
   const handlePriceChange = (e) => {
-    const rawValue = e.target.value;
-    const formatted = formatRupiah(rawValue);
-    setPrice(formatted);
+    setPrice(formatRupiah(e.target.value));
   };
 
   const handleOriginalPriceChange = (e) => {
-    const rawValue = e.target.value;
-    const formatted = formatRupiah(rawValue);
-    setOriginalPrice(formatted);
+    setOriginalPrice(formatRupiah(e.target.value));
   };
 
-  // Kalkulator persentase diskon otomatis untuk preview di admin
   const calculateDiscountPercentage = () => {
     const rawPrice = Number(price.replace(/\./g, "")) || 0;
     const rawOrig = Number(originalPrice.replace(/\./g, "")) || 0;
@@ -149,7 +144,15 @@ export default function MenuManagement() {
     setImagePreview(menu.image || "");
     setIsBundle(menu.isBundle || false);
     setBundleItems(menu.bundleItems || []);
-    setBundleOptions(menu.bundleOptions || []);
+
+    // Normalisasi struktur choices lama agar kompatibel dengan objek name & price
+    const normalizedOptions = (menu.bundleOptions || []).map((opt) => ({
+      title: opt.title || "ADD ON",
+      choices: (opt.choices || []).map((c) =>
+        typeof c === "string" ? { name: c, price: 0 } : c,
+      ),
+    }));
+    setBundleOptions(normalizedOptions);
     setShowModal(true);
   };
 
@@ -161,13 +164,16 @@ export default function MenuManagement() {
     }
   };
 
+  // Handler Add-On Builder
   const handleAddBundleOption = () => {
-    setBundleOptions([...bundleOptions, { title: "", choices: [""] }]);
+    setBundleOptions([
+      ...bundleOptions,
+      { title: "ADD ON", choices: [{ name: "", price: 0 }] },
+    ]);
   };
 
   const handleRemoveBundleOption = (index) => {
-    const updated = bundleOptions.filter((_, i) => i !== index);
-    setBundleOptions(updated);
+    setBundleOptions(bundleOptions.filter((_, i) => i !== index));
   };
 
   const handleBundleOptionTitleChange = (index, title) => {
@@ -178,7 +184,7 @@ export default function MenuManagement() {
 
   const handleAddChoice = (optIndex) => {
     const updated = [...bundleOptions];
-    updated[optIndex].choices.push("");
+    updated[optIndex].choices.push({ name: "", price: 0 });
     setBundleOptions(updated);
   };
 
@@ -190,9 +196,9 @@ export default function MenuManagement() {
     setBundleOptions(updated);
   };
 
-  const handleChoiceChange = (optIndex, choiceIndex, value) => {
+  const handleChoiceFieldChange = (optIndex, choiceIndex, field, value) => {
     const updated = [...bundleOptions];
-    updated[optIndex].choices[choiceIndex] = value;
+    updated[optIndex].choices[choiceIndex][field] = value;
     setBundleOptions(updated);
   };
 
@@ -223,10 +229,10 @@ export default function MenuManagement() {
 
       if (editingId) {
         await API.put(`/menus/${editingId}`, formData);
-        toast.success("Menu berhasil diperbarui!");
+        toast.success("Menu & Add-On berhasil diperbarui!");
       } else {
         await API.post("/menus", formData);
-        toast.success("Menu baru berhasil ditambahkan!");
+        toast.success("Menu & Add-On baru berhasil ditambahkan!");
       }
 
       setShowModal(false);
@@ -261,7 +267,6 @@ export default function MenuManagement() {
       );
       fetchMenus();
     } catch (err) {
-      console.error("Gagal memperbarui ketersediaan menu", err);
       toast.error("Gagal memperbarui status menu.");
     }
   };
@@ -274,7 +279,6 @@ export default function MenuManagement() {
       setDeleteTarget(null);
       fetchMenus();
     } catch (err) {
-      console.error("Gagal menghapus menu", err);
       toast.error("Gagal menghapus menu.");
     }
   };
@@ -292,34 +296,18 @@ export default function MenuManagement() {
     } catch (err) {
       if (!categories.includes(trimmedCategory)) {
         setCategories([...categories, trimmedCategory]);
-        toast.success(
-          `Kategori "${trimmedCategory}" ditambahkan secara lokal!`,
-        );
-      } else {
-        toast.warning("Kategori sudah ada.");
       }
       setNewCategoryName("");
     }
   };
 
-  const promptDeleteCategory = (catToDelete) => {
-    if (categories.length <= 1) {
-      toast.warning("Minimal harus ada 1 kategori aktif.");
-      return;
-    }
-    setDeleteCategoryTarget(catToDelete);
-  };
-
   const confirmDeleteCategory = async () => {
     if (!deleteCategoryTarget) return;
-
     try {
       await API.delete(`/categories/${deleteCategoryTarget}`);
-      toast.info(`Kategori "${deleteCategoryTarget}" dihapus.`);
       fetchCategories();
     } catch (err) {
       setCategories(categories.filter((c) => c !== deleteCategoryTarget));
-      toast.info(`Kategori "${deleteCategoryTarget}" dihapus secara lokal.`);
     } finally {
       setDeleteCategoryTarget(null);
     }
@@ -343,11 +331,11 @@ export default function MenuManagement() {
               <span>Katalog & Manajemen Produk</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
-              Manajemen Menu & Kategori
+              Manajemen Menu & Add-On
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Atur seluruh ketersediaan produk, harga coret promo, foto, dan
-              kelompok kategori menu restoran secara instan.
+              Atur produk, harga diskon, foto, serta pilihan add-on berharga
+              dengan mudah.
             </p>
           </div>
 
@@ -376,8 +364,7 @@ export default function MenuManagement() {
               Daftar Katalog Produk
             </h2>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Kelola produk, harga, ketersediaan, dan kategori menu dengan
-              mudah.
+              Kelola produk, harga, add-on, ketersediaan, dan kategori menu.
             </p>
           </div>
 
@@ -461,11 +448,9 @@ export default function MenuManagement() {
                         {menu.isAvailable ? "TERSEDIA" : "HABIS"}
                       </button>
 
-                      {(menu.isBundle ||
-                        (menu.originalPrice &&
-                          menu.originalPrice > menu.price)) && (
+                      {menu.isBundle && (
                         <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                          <Package className="w-3 h-3" /> Promo / Diskon
+                          <Package className="w-3 h-3" /> Add-On Tersedia
                         </span>
                       )}
                     </div>
@@ -478,15 +463,6 @@ export default function MenuManagement() {
                     <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
                       {menu.name}
                     </h3>
-                    {menu.description ? (
-                      <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
-                        {menu.description}
-                      </p>
-                    ) : (
-                      <p className="text-[11px] text-neutral-400 italic">
-                        Tidak ada deskripsi
-                      </p>
-                    )}
                     <div className="flex items-center gap-2 pt-1">
                       <p className="text-emerald-600 font-mono font-black text-sm">
                         Rp {menu.price.toLocaleString("id-ID")}
@@ -505,15 +481,13 @@ export default function MenuManagement() {
                     onClick={() => handleOpenEditModal(menu)}
                     className="bg-white hover:bg-neutral-100 text-neutral-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer flex items-center gap-1"
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    Edit
+                    <Edit3 className="w-3.5 h-3.5" /> Edit
                   </button>
                   <button
                     onClick={() => setDeleteTarget(menu)}
                     className="bg-white hover:bg-red-50 text-neutral-700 hover:text-red-600 px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-neutral-200/80 hover:border-red-200 shadow-2xs cursor-pointer flex items-center gap-1"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Hapus
+                    <Trash2 className="w-3.5 h-3.5" /> Hapus
                   </button>
                 </div>
               </div>
@@ -536,21 +510,21 @@ export default function MenuManagement() {
                   <span className="font-bold text-neutral-800">
                     "{deleteTarget.name}"
                   </span>{" "}
-                  secara permanen dari katalog.
+                  secara permanen.
                 </p>
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setDeleteTarget(null)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                  className="flex-1 bg-neutral-100 text-neutral-700 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="button"
                   onClick={confirmDeleteMenu}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+                  className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Ya, Hapus
                 </button>
@@ -563,81 +537,47 @@ export default function MenuManagement() {
           <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-md space-y-6 shadow-xl">
               <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
-                <div>
-                  <h3 className="text-base font-bold text-neutral-900">
-                    Kelola Kategori Menu
-                  </h3>
-                  <p className="text-xs text-neutral-500 mt-0.5">
-                    Tambah atau hapus kelompok kategori produk makanan/minuman.
-                  </p>
-                </div>
+                <h3 className="text-base font-bold text-neutral-900">
+                  Kelola Kategori Menu
+                </h3>
                 <button
                   onClick={() => setShowCategoryModal(false)}
-                  className="text-neutral-400 hover:text-neutral-700 p-2 rounded-xl hover:bg-neutral-100 transition cursor-pointer"
+                  className="text-neutral-400 p-2"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
-
               <form onSubmit={handleAddCategory} className="flex gap-2">
-                <div className="relative flex-1">
-                  <Tag className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder="Nama kategori baru..."
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-medium"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Nama kategori baru..."
+                  className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium"
+                />
                 <button
                   type="submit"
-                  className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-2xs"
+                  className="bg-neutral-900 text-white px-4 py-2.5 rounded-xl text-xs font-bold"
                 >
                   Tambah
                 </button>
               </form>
-
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
-                  Daftar Kategori Aktif ({categories.length})
-                </label>
-                {categories.map((cat, idx) => {
-                  const categoryName =
-                    typeof cat === "object" && cat !== null
-                      ? cat.name || cat.categoryName
-                      : cat;
-
-                  return (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-200/80 rounded-xl text-xs font-bold text-neutral-800"
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {categories.map((cat, idx) => (
+                  <div
+                    key={idx}
+                    className="flex justify-between items-center p-3 bg-neutral-50 rounded-xl text-xs font-bold"
+                  >
+                    <span>{cat}</span>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteCategoryTarget(cat)}
+                      className="text-red-500"
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-neutral-400"></span>
-                        <span>{categoryName}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => promptDeleteCategory(categoryName)}
-                        className="text-neutral-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition cursor-pointer"
-                        title="Hapus Kategori"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="pt-3 border-t border-neutral-100 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowCategoryModal(false)}
-                  className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
-                >
-                  Tutup
-                </button>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -650,17 +590,16 @@ export default function MenuManagement() {
                 <div>
                   <h3 className="text-base font-bold text-neutral-900">
                     {editingId
-                      ? "Edit Menu & Promo"
-                      : "Tambah Menu & Promo Baru"}
+                      ? "Edit Menu & Add-On"
+                      : "Tambah Menu & Add-On Baru"}
                   </h3>
                   <p className="text-xs text-neutral-500 mt-0.5">
-                    Lengkapi informasi produk serta atur harga coret promosi di
-                    sini.
+                    Lengkapi informasi produk dan atur daftar add-on.
                   </p>
                 </div>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-neutral-400 hover:text-neutral-700 p-2 rounded-xl hover:bg-neutral-100 transition cursor-pointer"
+                  className="text-neutral-400 p-2"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -672,7 +611,7 @@ export default function MenuManagement() {
                     Foto Produk
                   </label>
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-neutral-100 border border-neutral-200 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-2xl bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center">
                       {imagePreview ? (
                         <img
                           src={imagePreview}
@@ -683,32 +622,26 @@ export default function MenuManagement() {
                         <ImageIcon className="w-6 h-6 text-neutral-300" />
                       )}
                     </div>
-                    <div className="flex-1">
-                      <input
-                        type="file"
-                        id="image"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="w-full text-xs text-neutral-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-neutral-100 file:text-neutral-700 hover:file:bg-neutral-200 file:cursor-pointer cursor-pointer"
-                      />
-                      <p className="text-[10px] text-neutral-400 mt-1">
-                        Format: JPG, PNG, atau WEBP (Maks. 2MB).
-                      </p>
-                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="w-full text-xs text-neutral-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-neutral-100 file:text-neutral-700 cursor-pointer"
+                    />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 mb-1">
-                    Nama Menu / Promo
+                    Nama Menu
                   </label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium"
-                    placeholder="Contoh: Ayam Goreng Spesial / Paket Hemat"
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium"
+                    placeholder="Contoh: Spaghetti"
                   />
                 </div>
 
@@ -720,67 +653,36 @@ export default function MenuManagement() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows="2"
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition resize-none font-medium"
-                    placeholder="Contoh: Diskon spesial akhir pekan..."
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs resize-none font-medium"
+                    placeholder="Deskripsi produk..."
                   />
                 </div>
 
-                {/* PENGATURAN HARGA & PROMO DISKON */}
-                <div className="bg-amber-50/40 p-4 rounded-2xl border border-amber-200/70 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-neutral-900 flex items-center gap-1.5">
-                      <Percent className="w-4 h-4 text-amber-600" />
-                      Pengaturan Harga & Diskon Promo
-                    </span>
-                    {calculateDiscountPercentage() > 0 && (
-                      <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1 rounded-full border border-amber-300">
-                        Diskon {calculateDiscountPercentage()}%
-                      </span>
-                    )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                      Harga Jual (Rp) *
+                    </label>
+                    <input
+                      type="text"
+                      value={price}
+                      onChange={handlePriceChange}
+                      required
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium"
+                      placeholder="25.000"
+                    />
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-neutral-700 mb-1">
-                        Harga Jual Sekarang (Rp){" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-2.5 text-xs font-bold text-neutral-400">
-                          Rp
-                        </span>
-                        <input
-                          type="text"
-                          value={price}
-                          onChange={handlePriceChange}
-                          required
-                          className="w-full bg-white border border-neutral-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium font-mono"
-                          placeholder="25.000"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-neutral-700 mb-1">
-                        Harga Asli / Coret (Opsional)
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-2.5 text-xs font-bold text-neutral-400">
-                          Rp
-                        </span>
-                        <input
-                          type="text"
-                          value={originalPrice}
-                          onChange={handleOriginalPriceChange}
-                          className="w-full bg-white border border-neutral-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium font-mono"
-                          placeholder="35.000"
-                        />
-                      </div>
-                      <p className="text-[10px] text-neutral-500 mt-1">
-                        Isi lebih besar dari harga jual untuk menampilkan label
-                        promo/diskon di pelanggan.
-                      </p>
-                    </div>
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                      Harga Coret (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      value={originalPrice}
+                      onChange={handleOriginalPriceChange}
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium"
+                      placeholder="35.000"
+                    />
                   </div>
                 </div>
 
@@ -791,7 +693,7 @@ export default function MenuManagement() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium cursor-pointer"
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer"
                   >
                     {categories.map((cat, idx) => (
                       <option key={idx} value={cat}>
@@ -801,130 +703,125 @@ export default function MenuManagement() {
                   </select>
                 </div>
 
-                {/* TOGGLE BUNDLE / PAKET PROMO */}
+                {/* TOGGLE & BUILDER FITUR ADD-ON */}
                 <div className="space-y-4 pt-2 border-t border-neutral-100">
                   <div className="flex items-center justify-between bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80">
-                    <div className="flex items-center gap-2.5">
-                      <Package className="w-5 h-5 text-neutral-700" />
-                      <div>
-                        <p className="text-xs font-bold text-neutral-900">
-                          Jadikan Menu Paket Promo (Bundle)
-                        </p>
-                        <p className="text-[10px] text-neutral-500">
-                          Aktifkan jika menu ini berisi gabungan beberapa item &
-                          opsi kustomisasi.
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-xs font-bold text-neutral-900">
+                        Aktifkan Fitur Pilihan Add-On
+                      </p>
+                      <p className="text-[10px] text-neutral-500">
+                        Memungkinkan pelanggan memilih tambahan item berharga.
+                      </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={isBundle}
                       onChange={(e) => setIsBundle(e.target.checked)}
-                      className="w-4 h-4 rounded bg-white border-neutral-300 text-neutral-900 focus:ring-0 cursor-pointer"
+                      className="w-4 h-4 rounded cursor-pointer"
                     />
                   </div>
 
                   {isBundle && (
                     <div className="space-y-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80">
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <label className="text-[11px] font-extrabold uppercase tracking-wider text-neutral-700">
-                            Pilihan Opsi Kustomisasi Pelanggan (`bundleOptions`)
-                          </label>
-                          <button
-                            type="button"
-                            onClick={handleAddBundleOption}
-                            className="bg-neutral-900 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold hover:bg-neutral-800 transition cursor-pointer"
-                          >
-                            + Tambah Opsi
-                          </button>
-                        </div>
-                        <p className="text-[10px] text-neutral-500 mb-3">
-                          Contoh Judul Opsi: "Pilih Minuman" dengan pilihan "Es
-                          Teh Manis", "Lemon Tea".
-                        </p>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-[11px] font-extrabold uppercase tracking-wider text-neutral-700">
+                          Daftar Kategori Add-On
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleAddBundleOption}
+                          className="bg-neutral-900 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer"
+                        >
+                          + Tambah Kategori Add-On
+                        </button>
+                      </div>
 
-                        {bundleOptions.length === 0 ? (
-                          <p className="text-[11px] text-neutral-400 italic py-2">
-                            Belum ada opsi kustomisasi ditambahkan.
-                          </p>
-                        ) : (
-                          <div className="space-y-3">
-                            {bundleOptions.map((opt, optIdx) => (
+                      {bundleOptions.map((opt, optIdx) => (
+                        <div
+                          key={optIdx}
+                          className="bg-white p-3.5 rounded-xl border border-neutral-200 space-y-2.5"
+                        >
+                          <div className="flex gap-2 items-center">
+                            <input
+                              type="text"
+                              value={opt.title}
+                              onChange={(e) =>
+                                handleBundleOptionTitleChange(
+                                  optIdx,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Judul Add-On (Misal: ADD ON)"
+                              className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs font-semibold"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveBundleOption(optIdx)}
+                              className="text-red-500 text-xs font-bold cursor-pointer"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+
+                          <div className="space-y-2 pl-2">
+                            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                              Pilihan Add-On & Harga Tambahan:
+                            </span>
+                            {opt.choices.map((choice, cIdx) => (
                               <div
-                                key={optIdx}
-                                className="bg-white p-3 rounded-xl border border-neutral-200 space-y-2 shadow-2xs"
+                                key={cIdx}
+                                className="flex gap-2 items-center"
                               >
-                                <div className="flex gap-2 items-center">
-                                  <input
-                                    type="text"
-                                    value={opt.title}
-                                    onChange={(e) =>
-                                      handleBundleOptionTitleChange(
-                                        optIdx,
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder="Judul Opsi (Misal: Pilih Minuman)"
-                                    className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-900 focus:outline-none"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleRemoveBundleOption(optIdx)
-                                    }
-                                    className="text-red-500 hover:text-red-700 p-1.5 text-xs font-bold cursor-pointer"
-                                  >
-                                    Hapus
-                                  </button>
-                                </div>
-
-                                <div className="space-y-1.5 pl-2">
-                                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-                                    Pilihan / Choices:
-                                  </span>
-                                  {opt.choices.map((choice, cIdx) => (
-                                    <div
-                                      key={cIdx}
-                                      className="flex gap-2 items-center"
-                                    >
-                                      <input
-                                        type="text"
-                                        value={choice}
-                                        onChange={(e) =>
-                                          handleChoiceChange(
-                                            optIdx,
-                                            cIdx,
-                                            e.target.value,
-                                          )
-                                        }
-                                        placeholder={`Pilihan ${cIdx + 1}`}
-                                        className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1 text-xs text-neutral-800 focus:outline-none"
-                                      />
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleRemoveChoice(optIdx, cIdx)
-                                        }
-                                        className="text-neutral-400 hover:text-red-600 text-xs font-bold px-1"
-                                      >
-                                        ✕
-                                      </button>
-                                    </div>
-                                  ))}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAddChoice(optIdx)}
-                                    className="text-[10px] font-bold text-neutral-700 hover:underline pt-1 block cursor-pointer"
-                                  >
-                                    + Tambah Pilihan Lain
-                                  </button>
-                                </div>
+                                <input
+                                  type="text"
+                                  value={choice.name}
+                                  onChange={(e) =>
+                                    handleChoiceFieldChange(
+                                      optIdx,
+                                      cIdx,
+                                      "name",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="Nama Add-On (Misal: Extra Keju)"
+                                  className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs font-medium"
+                                />
+                                <input
+                                  type="number"
+                                  value={choice.price}
+                                  onChange={(e) =>
+                                    handleChoiceFieldChange(
+                                      optIdx,
+                                      cIdx,
+                                      "price",
+                                      Number(e.target.value),
+                                    )
+                                  }
+                                  placeholder="Harga (Rp)"
+                                  className="w-28 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleRemoveChoice(optIdx, cIdx)
+                                  }
+                                  className="text-neutral-400 hover:text-red-600 text-xs font-bold px-1 cursor-pointer"
+                                >
+                                  ✕
+                                </button>
                               </div>
                             ))}
+                            <button
+                              type="button"
+                              onClick={() => handleAddChoice(optIdx)}
+                              className="text-[10px] font-bold text-neutral-700 hover:underline pt-1 block cursor-pointer"
+                            >
+                              + Tambah Pilihan Add-On Lain
+                            </button>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -935,11 +832,11 @@ export default function MenuManagement() {
                     id="isAvailable"
                     checked={isAvailable}
                     onChange={(e) => setIsAvailable(e.target.checked)}
-                    className="w-4 h-4 rounded bg-white border-neutral-300 text-neutral-900 focus:ring-0 cursor-pointer"
+                    className="w-4 h-4 rounded cursor-pointer"
                   />
                   <label
                     htmlFor="isAvailable"
-                    className="text-xs text-neutral-700 font-semibold cursor-pointer select-none"
+                    className="text-xs text-neutral-700 font-semibold cursor-pointer"
                   >
                     Menu Tersedia (Ready to Order)
                   </label>
@@ -949,14 +846,14 @@ export default function MenuManagement() {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                    className="flex-1 bg-neutral-100 text-neutral-700 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-2.5 rounded-xl text-xs font-bold transition shadow-2xs disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 bg-neutral-900 text-white py-2.5 rounded-xl text-xs font-bold transition disabled:opacity-50 cursor-pointer"
                   >
                     {submitting
                       ? "Menyimpan..."
@@ -984,22 +881,22 @@ export default function MenuManagement() {
                   Tindakan ini akan menghapus kategori{" "}
                   <span className="font-bold text-neutral-800">
                     "{deleteCategoryTarget}"
-                  </span>{" "}
-                  dari daftar pilihan menu.
+                  </span>
+                  .
                 </p>
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setDeleteCategoryTarget(null)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                  className="flex-1 bg-neutral-100 text-neutral-700 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="button"
                   onClick={confirmDeleteCategory}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+                  className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Ya, Hapus
                 </button>

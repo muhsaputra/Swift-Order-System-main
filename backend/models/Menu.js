@@ -6,11 +6,10 @@ const menuSchema = new mongoose.Schema(
     description: { type: String, default: "" },
     category: { type: String, required: true },
     price: { type: Number, required: true },
-    originalPrice: { type: Number, default: 0 }, // Field untuk menyimpan harga coret / promo
+    originalPrice: { type: Number, default: 0 },
     image: { type: String, default: "" },
     isAvailable: { type: Boolean, default: true },
 
-    // --- FITUR BUNDLE / PAKET PROMO ---
     isBundle: { type: Boolean, default: false },
     bundleItems: [
       {
@@ -18,10 +17,16 @@ const menuSchema = new mongoose.Schema(
         quantity: { type: Number, default: 1 },
       },
     ],
+    // Diubah agar mendukung Add-On dengan harga masing-masing
     bundleOptions: [
       {
-        title: { type: String }, // Contoh: "Pilih Minuman"
-        choices: [{ type: String }], // Contoh: ["Es Teh Manis", "Lemon Tea"]
+        title: { type: String }, // Contoh: "ADD ON"
+        choices: [
+          {
+            name: { type: String }, // Contoh: "Extra Keju"
+            price: { type: Number, default: 0 }, // Contoh: 5000
+          },
+        ],
       },
     ],
   },

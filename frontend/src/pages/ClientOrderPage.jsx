@@ -41,8 +41,9 @@ export default function ClientOrderPage() {
   const [menus, setMenus] = useState([]);
   const [cart, setCart] = useState([]);
 
+  // State untuk Modal Add-On (Multi-select)
   const [selectedBundleModal, setSelectedBundleModal] = useState(null);
-  const [bundleChoices, setBundleChoices] = useState({});
+  const [selectedAddons, setSelectedAddons] = useState({});
 
   const [paymentMethod, setPaymentMethod] = useState("qris");
 
@@ -137,21 +138,56 @@ export default function ClientOrderPage() {
 
     if (menu.isBundle && menu.bundleOptions && menu.bundleOptions.length > 0) {
       setSelectedBundleModal(menu);
-      setBundleChoices({});
+      setSelectedAddons({});
     } else {
       addToCart(menu, null, {});
     }
   };
 
-  const addToCart = (menu, e, choices = {}) => {
+  // Toggle pilihan add-on (bisa pilih banyak / multi-select)
+  const toggleAddonSelection = (optionTitle, choiceObj) => {
+    setSelectedAddons((prev) => {
+      const currentList = prev[optionTitle] || [];
+      const exists = currentList.some((item) => item.name === choiceObj.name);
+
+      let updatedList;
+      if (exists) {
+        updatedList = currentList.filter(
+          (item) => item.name !== choiceObj.name,
+        );
+      } else {
+        updatedList = [...currentList, choiceObj];
+      }
+
+      return {
+        ...prev,
+        [optionTitle]: updatedList,
+      };
+    });
+  };
+
+  const addToCart = (menu, e, chosenAddons = {}) => {
     if (e) e.stopPropagation();
     if (!menu.isAvailable) return;
 
+    // Hitung total tambahan harga dari add-on yang dipilih
+    let addonTotalPrice = 0;
+    Object.values(chosenAddons).forEach((addonArray) => {
+      if (Array.isArray(addonArray)) {
+        addonArray.forEach((addon) => {
+          addonTotalPrice += Number(addon.price || 0);
+        });
+      }
+    });
+
+    const finalItemPrice = menu.price + addonTotalPrice;
+
     const existingIndex = cart.findIndex((item) => {
       if (item.menuId !== menu._id) return false;
-      const itemChoicesStr = JSON.stringify(item.selectedBundleChoices || {});
-      const newChoicesStr = JSON.stringify(choices || {});
-      return itemChoicesStr === newChoicesStr;
+      return (
+        JSON.stringify(item.selectedBundleChoices || {}) ===
+        JSON.stringify(chosenAddons || {})
+      );
     });
 
     if (existingIndex > -1) {
@@ -164,11 +200,12 @@ export default function ClientOrderPage() {
         {
           menuId: menu._id,
           name: menu.name,
-          price: menu.price,
+          price: finalItemPrice,
+          basePrice: menu.price,
           originalPrice: menu.originalPrice || 0,
           image: menu.image,
           quantity: 1,
-          selectedBundleChoices: choices,
+          selectedBundleChoices: chosenAddons,
         },
       ]);
     }
@@ -262,10 +299,10 @@ export default function ClientOrderPage() {
     0,
   );
 
-  // Total penghematan dari harga coret menu
   const totalMenuSavings = cart.reduce((sum, item) => {
-    if (item.originalPrice && item.originalPrice > item.price) {
-      return sum + (item.originalPrice - item.price) * item.quantity;
+    const base = item.basePrice !== undefined ? item.basePrice : item.price;
+    if (item.originalPrice && item.originalPrice > base) {
+      return sum + (item.originalPrice - base) * item.quantity;
     }
     return sum;
   }, 0);
@@ -497,45 +534,67 @@ export default function ClientOrderPage() {
         </div>
       )}
 
-      {/* MODAL KUSTOMISASI PAKET PROMO (BUNDLE) */}
+      {/* MODAL PILIHAN ADD-ON BERBAYAR (MULTI-SELECT & TOMBOL LEWATI) */}
       {selectedBundleModal && (
         <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-neutral-200 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div>
               <h3 className="text-lg font-extrabold text-neutral-900">
-                Kustomisasi {selectedBundleModal.name}
+                Pilih Add-On: {selectedBundleModal.name}
               </h3>
               <p className="text-xs text-neutral-500 mt-0.5">
-                Silakan tentukan pilihan komponen untuk paket promo ini.
+                Pilih beberapa tambahan add-on sesuai selera Anda, atau lewati
+                jika tidak ingin menambah.
               </p>
             </div>
 
             <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
               {selectedBundleModal.bundleOptions?.map((opt, idx) => (
                 <div key={idx} className="space-y-2">
-                  <label className="text-xs font-bold text-neutral-800 uppercase tracking-wider block">
-                    {opt.title} <span className="text-red-500">*</span>
+                  <label className="text-xs font-extrabold text-neutral-800 uppercase tracking-wider block">
+                    {opt.title || "ADD ON"}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {opt.choices.map((choice, cIdx) => (
-                      <button
-                        key={cIdx}
-                        type="button"
-                        onClick={() =>
-                          setBundleChoices({
-                            ...bundleChoices,
-                            [opt.title]: choice,
-                          })
-                        }
-                        className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition cursor-pointer text-center ${
-                          bundleChoices[opt.title] === choice
-                            ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
-                            : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-neutral-300"
-                        }`}
-                      >
-                        {choice}
-                      </button>
-                    ))}
+                    {opt.choices.map((choice, cIdx) => {
+                      const choiceObj =
+                        typeof choice === "string"
+                          ? { name: choice, price: 0 }
+                          : choice;
+                      const isSelected = (
+                        selectedAddons[opt.title || "ADD ON"] || []
+                      ).some((item) => item.name === choiceObj.name);
+
+                      return (
+                        <button
+                          key={cIdx}
+                          type="button"
+                          onClick={() =>
+                            toggleAddonSelection(
+                              opt.title || "ADD ON",
+                              choiceObj,
+                            )
+                          }
+                          className={`py-2.5 px-3 rounded-2xl text-xs font-bold border transition cursor-pointer flex flex-col items-center justify-center gap-1 ${
+                            isSelected
+                              ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
+                              : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-neutral-300"
+                          }`}
+                        >
+                          <span>{choiceObj.name}</span>
+                          {choiceObj.price > 0 && (
+                            <span
+                              className={`text-[10px] font-mono ${
+                                isSelected
+                                  ? "text-amber-300"
+                                  : "text-emerald-600"
+                              }`}
+                            >
+                              +Rp {choiceObj.price.toLocaleString("id-ID")}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -544,23 +603,18 @@ export default function ClientOrderPage() {
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setSelectedBundleModal(null)}
+                onClick={() => {
+                  addToCart(selectedBundleModal, null, {});
+                  setSelectedBundleModal(null);
+                }}
                 className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3 rounded-2xl text-xs font-bold transition cursor-pointer"
               >
-                Batal
+                Tanpa Add-On
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  const requiredCount =
-                    selectedBundleModal.bundleOptions?.length || 0;
-                  const chosenCount = Object.keys(bundleChoices).length;
-                  if (chosenCount < requiredCount) {
-                    return alert(
-                      "Mohon lengkapi semua pilihan opsi paket terlebih dahulu!",
-                    );
-                  }
-                  addToCart(selectedBundleModal, null, bundleChoices);
+                  addToCart(selectedBundleModal, null, selectedAddons);
                   setSelectedBundleModal(null);
                 }}
                 className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
@@ -638,7 +692,7 @@ export default function ClientOrderPage() {
             />
           </div>
 
-          {/* SUB-KATEGORI / FILTER PILIHAN (PROMO DIURUTKAN DI DEPAN SETELAH SEMUA) */}
+          {/* SUB-KATEGORI / FILTER PILIHAN */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             {[
               { name: "Semua", icon: Utensils },
@@ -668,7 +722,7 @@ export default function ClientOrderPage() {
           </div>
         </div>
 
-        {/* MENU LIST DENGAN PROMO DI POSISI PALING ATAS PADA TAB SEMUA */}
+        {/* MENU LIST */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-extrabold text-neutral-900 flex items-center gap-2">
@@ -775,12 +829,9 @@ export default function ClientOrderPage() {
                                 >
                                   {menu.isAvailable ? "Tersedia" : "Habis"}
                                 </span>
-                                {isPromoItem && (
-                                  <span className="px-2.5 py-1 text-[9px] rounded-full font-black bg-amber-500 text-white shadow-md flex items-center gap-1 animate-pulse">
-                                    <Zap className="w-3 h-3 fill-current" />
-                                    {discountPercentage > 0
-                                      ? `Hemat ${discountPercentage}%`
-                                      : "Promo Spesial"}
+                                {menu.isBundle && (
+                                  <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
+                                    <Package className="w-3 h-3" /> Add-On
                                   </span>
                                 )}
                               </div>
@@ -827,12 +878,12 @@ export default function ClientOrderPage() {
                             {menu.isAvailable ? (
                               <span
                                 className={`text-[10px] font-bold px-3 py-1.5 rounded-xl transition shadow-2xs ${
-                                  isPromoItem
+                                  menu.isBundle
                                     ? "bg-amber-500 text-white hover:bg-amber-600 shadow-amber-200"
                                     : "bg-neutral-100 text-neutral-900 hover:bg-neutral-900 hover:text-white"
                                 }`}
                               >
-                                {menu.isBundle ? "+ Pilih Paket" : "+ Tambah"}
+                                {menu.isBundle ? "+ Pilih Add-On" : "+ Tambah"}
                               </span>
                             ) : (
                               <span className="text-[10px] font-bold text-neutral-400">
@@ -851,27 +902,13 @@ export default function ClientOrderPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {filteredMenus.map((menu) => {
                 const qty = getCartQuantity(menu._id);
-                const isPromoItem =
-                  menu.isBundle ||
-                  (menu.originalPrice && menu.originalPrice > menu.price);
-                const discountPercentage =
-                  menu.originalPrice > menu.price
-                    ? Math.round(
-                        ((menu.originalPrice - menu.price) /
-                          menu.originalPrice) *
-                          100,
-                      )
-                    : 0;
-
                 return (
                   <div
                     key={menu._id}
                     onClick={() => handleCardClick(menu)}
                     className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition group relative shadow-2xs hover:shadow-md ${
                       menu.isAvailable
-                        ? isPromoItem
-                          ? "border-amber-300 ring-1 ring-amber-200 hover:border-amber-400 cursor-pointer bg-gradient-to-b from-amber-50/20 to-white"
-                          : "border-neutral-200/80 hover:border-neutral-400 cursor-pointer"
+                        ? "border-neutral-200/80 hover:border-neutral-400 cursor-pointer"
                         : "border-neutral-200/50 opacity-60 cursor-not-allowed bg-neutral-100/50"
                     }`}
                   >
@@ -898,12 +935,9 @@ export default function ClientOrderPage() {
                           >
                             {menu.isAvailable ? "Tersedia" : "Habis"}
                           </span>
-                          {isPromoItem && (
-                            <span className="px-2.5 py-1 text-[9px] rounded-full font-black bg-amber-500 text-white shadow-md flex items-center gap-1 animate-pulse">
-                              <Zap className="w-3 h-3 fill-current" />
-                              {discountPercentage > 0
-                                ? `Hemat ${discountPercentage}%`
-                                : "Promo Spesial"}
+                          {menu.isBundle && (
+                            <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
+                              <Package className="w-3 h-3" /> Add-On
                             </span>
                           )}
                         </div>
@@ -922,15 +956,6 @@ export default function ClientOrderPage() {
                         <h3 className="text-xs sm:text-sm font-bold text-neutral-900 line-clamp-1">
                           {menu.name}
                         </h3>
-                        {menu.description ? (
-                          <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
-                            {menu.description}
-                          </p>
-                        ) : (
-                          <p className="text-[11px] text-neutral-300 italic">
-                            Tanpa deskripsi
-                          </p>
-                        )}
                       </div>
                     </div>
 
@@ -947,14 +972,8 @@ export default function ClientOrderPage() {
                       </div>
 
                       {menu.isAvailable ? (
-                        <span
-                          className={`text-[10px] font-bold px-3 py-1.5 rounded-xl transition shadow-2xs ${
-                            isPromoItem
-                              ? "bg-amber-500 text-white hover:bg-amber-600 shadow-amber-200"
-                              : "bg-neutral-100 text-neutral-900 hover:bg-neutral-900 hover:text-white"
-                          }`}
-                        >
-                          {menu.isBundle ? "+ Pilih Paket" : "+ Tambah"}
+                        <span className="text-[10px] font-bold text-neutral-900 bg-neutral-100 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded-xl transition shadow-2xs">
+                          {menu.isBundle ? "+ Pilih Add-On" : "+ Tambah"}
                         </span>
                       ) : (
                         <span className="text-[10px] font-bold text-neutral-400">
@@ -1165,7 +1184,7 @@ export default function ClientOrderPage() {
             <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
               {cart.map((item, idx) => {
                 const hasPromo =
-                  item.originalPrice && item.originalPrice > item.price;
+                  item.originalPrice && item.originalPrice > item.basePrice;
                 return (
                   <div
                     key={idx}
@@ -1198,27 +1217,24 @@ export default function ClientOrderPage() {
                           <span className="text-xs text-emerald-600 font-mono font-bold">
                             Rp {item.price.toLocaleString("id-ID")}
                           </span>
-                          {hasPromo && (
-                            <span className="text-[10px] text-neutral-400 font-mono line-through">
-                              Rp {item.originalPrice.toLocaleString("id-ID")}
-                            </span>
-                          )}
                         </div>
                         {item.selectedBundleChoices &&
-                          Object.keys(item.selectedBundleChoices).length >
-                            0 && (
-                            <div className="text-[10px] text-neutral-500 space-y-0.5 pt-1">
-                              {Object.entries(item.selectedBundleChoices).map(
-                                ([title, val], cIdx) => (
-                                  <p key={cIdx}>
-                                    • {title}:{" "}
-                                    <span className="font-bold text-neutral-700">
-                                      {val}
-                                    </span>
-                                  </p>
-                                ),
-                              )}
-                            </div>
+                          Object.entries(item.selectedBundleChoices).map(
+                            ([title, addons], aIdx) => (
+                              <div
+                                key={aIdx}
+                                className="text-[10px] text-neutral-500 space-y-0.5 pt-1"
+                              >
+                                {Array.isArray(addons) &&
+                                  addons.map((addon, adIdx) => (
+                                    <p key={adIdx}>
+                                      • + {addon.name}{" "}
+                                      {addon.price > 0 &&
+                                        `(+Rp ${addon.price.toLocaleString("id-ID")})`}
+                                    </p>
+                                  ))}
+                              </div>
+                            ),
                           )}
                       </div>
                     </div>

@@ -170,16 +170,8 @@ export default function ClientOrderPage() {
     if (e) e.stopPropagation();
     if (!menu.isAvailable) return;
 
-    let addonTotalPrice = 0;
-    Object.values(chosenAddons).forEach((addonArray) => {
-      if (Array.isArray(addonArray)) {
-        addonArray.forEach((addon) => {
-          addonTotalPrice += Number(addon.price || 0);
-        });
-      }
-    });
-
-    const finalItemPrice = menu.price + addonTotalPrice;
+    // Harga dasar menu di-fix agar tidak bertambah otomatis jika add-on sudah termasuk atau dipilih terpisah
+    const baseMenuPrice = menu.price;
 
     const existingIndex = cart.findIndex((item) => {
       if (item.menuId !== menu._id) return false;
@@ -199,8 +191,8 @@ export default function ClientOrderPage() {
         {
           menuId: menu._id,
           name: menu.name,
-          price: finalItemPrice,
-          basePrice: menu.price,
+          price: baseMenuPrice,
+          basePrice: baseMenuPrice,
           originalPrice: menu.originalPrice || 0,
           image: menu.image,
           quantity: 1,
@@ -301,21 +293,7 @@ export default function ClientOrderPage() {
   const subtotalOriginalPrice = cart.reduce((sum, item) => {
     const itemPrice = item.price || 0;
     const origItemPrice = item.originalPrice || itemPrice;
-    let itemAddonSubtotal = 0;
-    if (
-      item.selectedBundleChoices &&
-      typeof item.selectedBundleChoices === "object"
-    ) {
-      Object.entries(item.selectedBundleChoices).forEach(([title, addons]) => {
-        if (Array.isArray(addons)) {
-          addons.forEach((addon) => {
-            itemAddonSubtotal += Number(addon.price || 0);
-          });
-        }
-      });
-    }
-    const origTotalItemPriceWithAddon =
-      (origItemPrice + itemAddonSubtotal) * item.quantity;
+    const origTotalItemPriceWithAddon = origItemPrice * item.quantity;
     return sum + origTotalItemPriceWithAddon;
   }, 0);
 

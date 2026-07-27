@@ -275,6 +275,8 @@ export default function ClientOrderPage() {
           totalAmount: newOrder.totalAmount,
           customerName: newOrder.customerName,
           items: newOrder.items,
+          couponCode: appliedCoupon,
+          discountAmount: discountAmount,
         });
 
         const snapToken = paymentRes.data.token;

@@ -22,6 +22,11 @@ import {
   X,
   Check,
   Clock,
+  Package,
+  Star,
+  Coffee,
+  Cookie,
+  IceCream,
 } from "lucide-react";
 
 export default function ClientOrderPage() {
@@ -194,9 +199,26 @@ export default function ClientOrderPage() {
       .reduce((sum, item) => sum + item.quantity, 0);
   };
 
+  // Daftar kategori tetap yang disusun rapi sesuai permintaan
+  const presetCategories = [
+    "Semua",
+    "Terpopuler",
+    "Promo",
+    "Makanan",
+    "Minuman",
+    "Snack",
+    "Dessert",
+  ];
+
   const categories = useMemo(() => {
-    const cats = menus.map((m) => m.category).filter(Boolean);
-    return ["Semua", ...new Set(cats)];
+    const apiCats = menus.map((m) => m.category).filter(Boolean);
+    const combined = [
+      "Semua",
+      "Terpopuler",
+      "Promo",
+      ...new Set([...presetCategories.slice(3), ...apiCats]),
+    ];
+    return [...new Set(combined)];
   }, [menus]);
 
   const filteredMenus = useMemo(() => {
@@ -205,8 +227,20 @@ export default function ClientOrderPage() {
         menu.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (menu.description &&
           menu.description.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesCategory =
-        selectedCategory === "Semua" || menu.category === selectedCategory;
+
+      let matchesCategory = true;
+      if (selectedCategory === "Semua") {
+        matchesCategory = true;
+      } else if (selectedCategory === "Promo") {
+        matchesCategory = menu.isBundle === true;
+      } else if (selectedCategory === "Terpopuler") {
+        // Simulasi menu terpopuler (bisa disesuaikan atau berdasarkan flag khusus jika ada)
+        matchesCategory = true;
+      } else {
+        matchesCategory =
+          menu.category?.toLowerCase() === selectedCategory.toLowerCase();
+      }
+
       return matchesSearch && matchesCategory;
     });
   }, [menus, searchQuery, selectedCategory]);
@@ -583,7 +617,7 @@ export default function ClientOrderPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 md:px-6 space-y-6">
-        {/* SEARCH & CATEGORY BAR */}
+        {/* SEARCH & CATEGORY BAR DENGAN SUB-KATEGORI */}
         <div className="space-y-4">
           <div className="relative">
             <Search className="absolute left-4 top-3.5 w-4 h-4 text-neutral-400" />
@@ -596,20 +630,33 @@ export default function ClientOrderPage() {
             />
           </div>
 
+          {/* SUB-KATEGORI / FILTER PILIHAN */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition cursor-pointer shadow-2xs ${
-                  selectedCategory === cat
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "bg-white text-neutral-600 border border-neutral-200/80 hover:text-neutral-900 hover:border-neutral-300"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {[
+              { name: "Semua", icon: Utensils },
+              { name: "Terpopuler", icon: Star },
+              { name: "Promo", icon: Package },
+              { name: "Makanan", icon: Flame },
+              { name: "Minuman", icon: Coffee },
+              { name: "Snack", icon: Cookie },
+              { name: "Dessert", icon: IceCream },
+            ].map((cat) => {
+              const IconComponent = cat.icon;
+              return (
+                <button
+                  key={cat.name}
+                  onClick={() => setSelectedCategory(cat.name)}
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition cursor-pointer shadow-2xs flex items-center gap-2 ${
+                    selectedCategory === cat.name
+                      ? "bg-neutral-900 text-white shadow-sm"
+                      : "bg-white text-neutral-600 border border-neutral-200/80 hover:text-neutral-900 hover:border-neutral-300"
+                  }`}
+                >
+                  <IconComponent className="w-3.5 h-3.5" />
+                  <span>{cat.name}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -618,7 +665,7 @@ export default function ClientOrderPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-extrabold text-neutral-900 flex items-center gap-2">
               <Flame className="w-4 h-4 text-amber-500" />
-              Katalog Menu Pilihan
+              Katalog Menu: {selectedCategory}
             </h2>
             <span className="text-xs font-bold text-neutral-400 font-mono">
               {filteredMenus.length} Menu Tersedia
@@ -628,10 +675,10 @@ export default function ClientOrderPage() {
           {filteredMenus.length === 0 ? (
             <div className="text-center py-16 bg-white border border-neutral-200/80 rounded-3xl shadow-2xs space-y-2">
               <p className="text-xs font-bold text-neutral-700">
-                Menu tidak ditemukan
+                Menu tidak ditemukan untuk kategori "{selectedCategory}"
               </p>
               <p className="text-[11px] text-neutral-400">
-                Coba kata kunci atau kategori lain.
+                Coba kata kunci atau pilih kategori lain.
               </p>
             </div>
           ) : (
@@ -672,8 +719,8 @@ export default function ClientOrderPage() {
                             {menu.isAvailable ? "Tersedia" : "Habis"}
                           </span>
                           {menu.isBundle && (
-                            <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs">
-                              Paket Promo
+                            <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
+                              <Package className="w-3 h-3" /> Paket Promo
                             </span>
                           )}
                         </div>

@@ -6,7 +6,11 @@ const Order = require("../models/Order"); // Sesuaikan model pesanan Anda
 // 1. Endpoint untuk Membuat Transaksi Midtrans
 router.post("/create-transaction", async (routerReq, routerRes) => {
   try {
-    const { orderId } = routerReq.body;
+    const {
+      orderId,
+      couponCode: bodyCouponCode,
+      discountAmount: bodyDiscountAmount,
+    } = routerReq.body;
 
     // Ambil data pesanan secara lengkap dari database agar subtotal, serviceFee, dan totalAmount akurat
     const order = await Order.findById(orderId).populate("items.menu");
@@ -50,22 +54,24 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
       calculatedSum += serviceFee;
     }
 
-    // C. Masukkan Potongan Diskon Kupon jika ada (Sebagai item harga negatif)
-    let discountAmount = Number(order.discountAmount || 0);
+    // C. Masukkan Potongan Diskon Kupon (Prioritaskan data dari body request / database)
+    let activeCouponCode = order.couponCode || bodyCouponCode;
+    let discountAmount = Number(
+      order.discountAmount || bodyDiscountAmount || 0,
+    );
 
-    // Pengaman jika kupon tercatat di order tapi discountAmount masih 0 di database
-    if (discountAmount === 0 && order.couponCode) {
-      if (order.couponCode.toUpperCase() === "HEMAT50") {
-        discountAmount = 5000; // Sesuaikan nominal atau logika diskon Anda
+    if (discountAmount === 0 && activeCouponCode) {
+      if (activeCouponCode.toUpperCase() === "HEMAT") {
+        discountAmount = 5000; // Sesuaikan nominal potongan diskon kupon Anda
       }
     }
 
     if (discountAmount > 0) {
       midtransItems.push({
-        id: `DISCOUNT-${order.couponCode || "PROMO"}`,
+        id: `DISCOUNT-${activeCouponCode || "PROMO"}`,
         price: -discountAmount,
         quantity: 1,
-        name: `Potongan Kupon (${order.couponCode || "Promo"})`,
+        name: `Potongan Kupon (${activeCouponCode || "Promo"})`,
       });
       calculatedSum -= discountAmount;
     }

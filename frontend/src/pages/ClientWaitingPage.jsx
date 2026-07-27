@@ -460,7 +460,6 @@ export default function ClientWaitingPage() {
       return acc + (p + addonSum) * item.quantity;
     }, 0) || 0;
 
-  // Hitung subtotal asli sebelum promo/harga coret menu
   const subtotalOriginalAmount =
     order?.items?.reduce((acc, item) => {
       const origPrice =
@@ -501,10 +500,7 @@ export default function ClientWaitingPage() {
     Number(order?.serviceFee) ||
     Math.round((subtotalAmount - discountAmountVal) * 0.05);
 
-  // Biaya layanan asli dihitung dari subtotal asli sebelum diskon menu
   const originalServiceFee = Math.round(subtotalOriginalAmount * 0.05);
-
-  // Total keseluruhan sebelum diskon menu & kupon
   const originalTotalBeforeDiscount =
     subtotalOriginalAmount + originalServiceFee;
 
@@ -635,12 +631,13 @@ export default function ClientWaitingPage() {
               </span>
               {order.items?.map((item, idx) => {
                 const itemPrice = item.price || item.menu?.price || 0;
+                const origItemPrice =
+                  item.menu?.originalPrice || item.originalPrice || itemPrice;
                 const itemName = item.menu?.name || item.name || "Menu";
-                const hasPromo =
-                  item.menu?.originalPrice &&
-                  item.menu.originalPrice > itemPrice;
+                const hasPromo = origItemPrice > itemPrice;
 
                 let itemAddonSubtotal = 0;
+                let origItemAddonSubtotal = 0;
                 if (
                   item.selectedBundleChoices &&
                   typeof item.selectedBundleChoices === "object"
@@ -649,7 +646,9 @@ export default function ClientWaitingPage() {
                     ([title, addons]) => {
                       if (Array.isArray(addons)) {
                         addons.forEach((addon) => {
-                          itemAddonSubtotal += Number(addon.price || 0);
+                          const addonP = Number(addon.price || 0);
+                          itemAddonSubtotal += addonP;
+                          origItemAddonSubtotal += addonP;
                         });
                       }
                     },
@@ -658,13 +657,15 @@ export default function ClientWaitingPage() {
 
                 const totalItemPriceWithAddon =
                   (itemPrice + itemAddonSubtotal) * item.quantity;
+                const origTotalItemPriceWithAddon =
+                  (origItemPrice + origItemAddonSubtotal) * item.quantity;
 
                 return (
                   <div
                     key={idx}
                     className="text-xs text-neutral-800 font-medium space-y-1 pb-2 border-b border-neutral-100 last:border-b-0"
                   >
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="font-bold flex items-center gap-1.5">
                         {item.quantity}x {itemName}
                         {hasPromo && (
@@ -673,9 +674,19 @@ export default function ClientWaitingPage() {
                           </span>
                         )}
                       </span>
-                      <span className="font-mono font-semibold">
-                        Rp {totalItemPriceWithAddon.toLocaleString("id-ID")}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {hasPromo && (
+                          <span className="font-mono text-neutral-400 line-through text-[11px] font-normal">
+                            Rp{" "}
+                            {origTotalItemPriceWithAddon.toLocaleString(
+                              "id-ID",
+                            )}
+                          </span>
+                        )}
+                        <span className="font-mono font-semibold">
+                          Rp {totalItemPriceWithAddon.toLocaleString("id-ID")}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Rincian Add-On jika ada */}

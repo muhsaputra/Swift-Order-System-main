@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { gooeyToast } from "goey-toast";
 import API from "../services/api";
 import {
   Plus,
@@ -68,7 +68,7 @@ export default function MenuManagement() {
       setMenus(res.data);
     } catch (err) {
       console.error("Gagal memuat daftar menu", err);
-      toast.error("Gagal memuat daftar menu.");
+      gooeyToast.error("Gagal memuat daftar menu.");
     } finally {
       setLoading(false);
     }
@@ -225,17 +225,17 @@ export default function MenuManagement() {
 
       if (editingId) {
         await API.put(`/menus/${editingId}`, formData);
-        toast.success("Menu & Add-On berhasil diperbarui!");
+        gooeyToast.success("Menu & Add-On berhasil diperbarui!");
       } else {
         await API.post("/menus", formData);
-        toast.success("Menu & Add-On baru berhasil ditambahkan!");
+        gooeyToast.success("Menu & Add-On baru berhasil ditambahkan!");
       }
 
       setShowModal(false);
       fetchMenus();
     } catch (err) {
       console.error("Gagal menyimpan menu", err);
-      toast.error(err.response?.data?.error || "Gagal menyimpan menu.");
+      gooeyToast.error(err.response?.data?.error || "Gagal menyimpan menu.");
     } finally {
       setSubmitting(false);
     }
@@ -258,12 +258,12 @@ export default function MenuManagement() {
       );
 
       await API.put(`/menus/${menu._id}`, formData);
-      toast.success(
+      gooeyToast.success(
         `Status ${menu.name} diubah menjadi ${!menu.isAvailable ? "Tersedia" : "Habis"}`,
       );
       fetchMenus();
     } catch (err) {
-      toast.error("Gagal memperbarui status menu.");
+      gooeyToast.error("Gagal memperbarui status menu.");
     }
   };
 
@@ -271,11 +271,11 @@ export default function MenuManagement() {
     if (!deleteTarget) return;
     try {
       await API.delete(`/menus/${deleteTarget._id}`);
-      toast.info(`Menu "${deleteTarget.name}" berhasil dihapus.`);
+      gooeyToast.info(`Menu "${deleteTarget.name}" berhasil dihapus.`);
       setDeleteTarget(null);
       fetchMenus();
     } catch (err) {
-      toast.error("Gagal menghapus menu.");
+      gooeyToast.error("Gagal menghapus menu.");
     }
   };
 
@@ -286,7 +286,7 @@ export default function MenuManagement() {
 
     try {
       await API.post("/categories", { name: trimmedCategory });
-      toast.success(`Kategori "${trimmedCategory}" berhasil ditambahkan!`);
+      gooeyToast.success(`Kategori "${trimmedCategory}" berhasil ditambahkan!`);
       setNewCategoryName("");
       fetchCategories();
     } catch (err) {

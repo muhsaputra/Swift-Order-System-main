@@ -8,7 +8,7 @@ import {
 import API from "../services/api";
 import axios from "axios";
 import { io } from "socket.io-client";
-import { toast } from "react-toastify";
+import { gooeyToast } from "goey-toast";
 import {
   Sparkles,
   ShoppingBag,
@@ -207,7 +207,9 @@ export default function ClientOrderPage() {
         },
       ]);
     }
-    toast.info(`${menu.name} ditambahkan ke keranjang`, { autoClose: 1200 });
+    gooeyToast.info(`${menu.name} ditambahkan ke keranjang`, {
+      displayDuration: 1200,
+    });
   };
 
   const updateQuantity = (menuId, bundleChoicesObj, delta, e) => {
@@ -354,10 +356,10 @@ export default function ClientOrderPage() {
 
       setAppliedCoupon(res.data.code);
       setDiscountAmount(res.data.discountAmount);
-      toast.success(`Kupon ${res.data.code} berhasil diterapkan!`);
+      gooeyToast.success(`Kupon ${res.data.code} berhasil diterapkan!`);
     } catch (err) {
       console.error("Gagal memvalidasi kupon", err);
-      toast.error(err.response?.data?.error || "Kode kupon tidak valid.");
+      gooeyToast.error(err.response?.data?.error || "Kode kupon tidak valid.");
       removeCoupon();
     } finally {
       setIsValidatingCoupon(false);
@@ -402,7 +404,7 @@ export default function ClientOrderPage() {
       const newOrder = response.data.order || response.data;
 
       if (paymentMethod === "cash") {
-        toast.success(
+        gooeyToast.success(
           "Pesanan berhasil dibuat! Silakan lakukan pembayaran tunai di kasir.",
         );
         setCart([]);
@@ -432,7 +434,9 @@ export default function ClientOrderPage() {
 
         window.snap.pay(snapToken, {
           onSuccess: async function (result) {
-            toast.success("Pembayaran Berhasil! Pesanan diproses ke dapur.");
+            gooeyToast.success(
+              "Pembayaran Berhasil! Pesanan diproses ke dapur.",
+            );
             try {
               await API.patch(`/orders/${newOrder._id}/status`, {
                 status: "processing",
@@ -451,7 +455,7 @@ export default function ClientOrderPage() {
             });
           },
           onPending: function (result) {
-            toast.warning("Menunggu penyelesaian pembayaran.");
+            gooeyToast.warning("Menunggu penyelesaian pembayaran.");
             setCart([]);
             removeCoupon();
             navigate(`/waiting/${newOrder._id}`, {
@@ -459,10 +463,10 @@ export default function ClientOrderPage() {
             });
           },
           onError: function (result) {
-            toast.error("Pembayaran gagal.");
+            gooeyToast.error("Pembayaran gagal.");
           },
           onClose: function () {
-            toast.info(
+            gooeyToast.info(
               "Jendela pembayaran ditutup. Anda dapat melanjutkan pembayaran dari status pesanan.",
             );
           },

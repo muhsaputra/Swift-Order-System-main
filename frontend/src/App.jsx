@@ -5,8 +5,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { GooeyToaster } from "goey-toast";
+import "goey-toast/styles.css";
 
 import Login from "./pages/Login";
 import CashierDashboard from "./pages/CashierDashboard";
@@ -23,26 +23,7 @@ import ClientOrderHistory from "./pages/ClientOrderHistory";
 export default function App() {
   return (
     <Router>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        toastStyle={{
-          borderRadius: "16px",
-          fontFamily: "'Plus Jakarta Sans', sans-serif",
-          fontSize: "12px",
-          fontWeight: "600",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-          border: "1px solid #e5e5e5",
-        }}
-      />
+      <GooeyToaster position="top-right" />
       <Routes>
         <Route path="/login" element={<Login />} />
 

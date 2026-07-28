@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import API from "../services/api";
 import { QrCode, Clock, ShieldCheck, ArrowRight, Wallet } from "lucide-react";
-import { toast } from "react-toastify";
+import { gooeyToast } from "goey-toast";
 
 export default function ClientPaymentPage() {
   const { id } = useParams();
@@ -16,8 +16,7 @@ export default function ClientPaymentPage() {
 
   useEffect(() => {
     if (!order) {
-      axios
-        .get(`http://localhost:5001/api/orders/${id}`)
+      API.get(`/orders/${id}`)
         .then((res) => {
           setOrder(res.data);
           setLoading(false);
@@ -46,13 +45,10 @@ export default function ClientPaymentPage() {
   const handleSimulatePayment = async () => {
     setIsProcessing(true);
     try {
-      const res = await axios.patch(
-        `http://localhost:5001/api/orders/${id}/status`,
-        {
-          status: "processing",
-          isPaid: true,
-        },
-      );
+      const res = await API.patch(`/orders/${id}/status`, {
+        status: "processing",
+        isPaid: true,
+      });
 
       const existingHistory = JSON.parse(
         localStorage.getItem("swift_order_history") || "[]",
@@ -65,11 +61,11 @@ export default function ClientPaymentPage() {
         );
       }
 
-      toast.success("Pembayaran Berhasil!");
+      gooeyToast.success("Pembayaran Berhasil!");
       navigate(`/waiting/${id}`, { state: { order: res.data } });
     } catch (err) {
       console.error("Gagal memproses pembayaran:", err);
-      toast.error("Gagal memproses pembayaran.");
+      gooeyToast.error("Gagal memproses pembayaran.");
       setIsProcessing(false);
     }
   };

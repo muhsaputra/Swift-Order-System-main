@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import API from "../services/api";
 import { io } from "socket.io-client";
-import { toast } from "react-toastify";
+import { gooeyToast } from "goey-toast";
 import {
   ResponsiveContainer,
   BarChart,
@@ -132,14 +132,14 @@ export default function CashierDashboard() {
       });
 
       if (newOrder.paymentMethod === "cash") {
-        toast.info(
+        gooeyToast.info(
           `💵 Pesanan Tunai Baru! Pelanggan ${newOrder.customerName} (Meja #${newOrder.tableNumber}) menunggu konfirmasi pembayaran.`,
-          { autoClose: 5000 },
+          { displayDuration: 5000 },
         );
       } else {
-        toast.info(
+        gooeyToast.info(
           `🔔 Pesanan Masuk! Pelanggan ${newOrder.customerName} (Meja #${newOrder.tableNumber})`,
-          { autoClose: 5000 },
+          { displayDuration: 5000 },
         );
       }
 
@@ -171,9 +171,9 @@ export default function CashierDashboard() {
         return [paidOrder, ...prev];
       });
 
-      toast.info(
+      gooeyToast.info(
         `🔔 Pembayaran Sukses! Pelanggan ${paidOrder.customerName} (Meja #${paidOrder.tableNumber})`,
-        { autoClose: 5000 },
+        { displayDuration: 5000 },
       );
 
       const newNotif = {
@@ -229,7 +229,7 @@ export default function CashierDashboard() {
       setOrders(res.data);
     } catch (err) {
       console.error("Gagal memuat pesanan", err);
-      toast.error("Gagal memuat data pesanan.");
+      gooeyToast.error("Gagal memuat data pesanan.");
     } finally {
       setLoading(false);
     }
@@ -265,14 +265,14 @@ export default function CashierDashboard() {
         expiredAt,
       };
       await API.post("/coupons", payload);
-      toast.success("Kupon diskon berhasil dibuat!");
+      gooeyToast.success("Kupon diskon berhasil dibuat!");
       setNewCouponCode("");
       setDiscountValue("");
       setMinPurchase("");
       setExpiredAt("");
       fetchCoupons();
     } catch (err) {
-      toast.error(err.response?.data?.error || "Gagal membuat kupon.");
+      gooeyToast.error(err.response?.data?.error || "Gagal membuat kupon.");
     }
   };
 
@@ -280,10 +280,10 @@ export default function CashierDashboard() {
     if (!window.confirm("Yakin ingin menghapus kupon ini?")) return;
     try {
       await API.delete(`/coupons/${id}`);
-      toast.success("Kupon berhasil dihapus.");
+      gooeyToast.success("Kupon berhasil dihapus.");
       fetchCoupons();
     } catch (err) {
-      toast.error("Gagal menghapus kupon.");
+      gooeyToast.error("Gagal menghapus kupon.");
     }
   };
 
@@ -306,12 +306,12 @@ export default function CashierDashboard() {
       setOrders((prev) =>
         prev.map((ord) => (ord._id === orderId ? updatedOrder : ord)),
       );
-      toast.success(
+      gooeyToast.success(
         "Pembayaran tunai berhasil dikonfirmasi! Pesanan diteruskan ke dapur.",
       );
     } catch (err) {
       console.error("Gagal konfirmasi pembayaran cash", err);
-      toast.error(
+      gooeyToast.error(
         err.response?.data?.error || "Gagal mengonfirmasi pembayaran tunai.",
       );
     }
@@ -336,17 +336,17 @@ export default function CashierDashboard() {
       );
 
       if (nextStatus === "ready") {
-        toast.warning(
+        gooeyToast.warning(
           `Pesanan Meja #${order.tableNumber} kini siap disajikan / Dalam Pemanggilan (READY)!`,
         );
       } else if (nextStatus === "completed") {
-        toast.success(
+        gooeyToast.success(
           `Pesanan Meja #${order.tableNumber} telah selesai (COMPLETED)! 🎉`,
         );
       }
     } catch (err) {
       console.error("Gagal memperbarui status pesanan", err);
-      toast.error("Gagal memperbarui status pesanan.");
+      gooeyToast.error("Gagal memperbarui status pesanan.");
     }
   };
 
@@ -370,7 +370,9 @@ export default function CashierDashboard() {
         },
       ];
     });
-    toast.info(`${menu.name} ditambahkan ke POS Cart`, { autoClose: 1500 });
+    gooeyToast.info(`${menu.name} ditambahkan ke POS Cart`, {
+      displayDuration: 1500,
+    });
   };
 
   const handleUpdateCartQty = (menuId, delta) => {
@@ -403,11 +405,11 @@ export default function CashierDashboard() {
     if (submittingOrder) return;
 
     if (cart.length === 0) {
-      toast.warning("Keranjang pesanan masih kosong.");
+      gooeyToast.warning("Keranjang pesanan masih kosong.");
       return;
     }
     if (!customerName || !tableNumber) {
-      toast.warning("Nama pelanggan dan nomor meja wajib diisi.");
+      gooeyToast.warning("Nama pelanggan dan nomor meja wajib diisi.");
       return;
     }
 
@@ -445,10 +447,10 @@ export default function CashierDashboard() {
       setTableNumber("");
       setCart([]);
       setActiveTab("active-orders");
-      toast.success("Pesanan manual POS berhasil dibuat!");
+      gooeyToast.success("Pesanan manual POS berhasil dibuat!");
     } catch (err) {
       console.error("Gagal membuat pesanan manual", err);
-      toast.error("Gagal membuat pesanan.");
+      gooeyToast.error("Gagal membuat pesanan.");
     } finally {
       setSubmittingOrder(false);
     }

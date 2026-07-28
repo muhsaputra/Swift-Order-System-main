@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import API from "../services/api";
 import { QRCodeSVG } from "qrcode.react";
 import { io } from "socket.io-client";
-import { toast } from "react-toastify";
+import { gooeyToast } from "goey-toast";
 import {
   Plus,
   Trash2,
@@ -58,10 +58,10 @@ export default function TableManagement() {
       });
       setTableNumber("");
       fetchTables();
-      toast.success("Meja baru berhasil ditambahkan!");
+      gooeyToast.success("Meja baru berhasil ditambahkan!");
     } catch (err) {
       console.error("Gagal menambah meja", err);
-      toast.error(err.response?.data?.error || "Gagal menambah meja");
+      gooeyToast.error(err.response?.data?.error || "Gagal menambah meja");
     }
   };
 
@@ -71,10 +71,10 @@ export default function TableManagement() {
       await API.delete(`/tables/${deleteTarget._id}`);
       setDeleteTarget(null);
       fetchTables();
-      toast.success("Meja berhasil dihapus.");
+      gooeyToast.success("Meja berhasil dihapus.");
     } catch (err) {
       console.error("Gagal menghapus meja", err);
-      toast.error("Gagal menghapus meja.");
+      gooeyToast.error("Gagal menghapus meja.");
     }
   };
 
@@ -85,11 +85,11 @@ export default function TableManagement() {
     navigator.clipboard
       .writeText(tableUrl)
       .then(() => {
-        toast.success(`URL Meja #${tableNumber} berhasil disalin! 📋`);
+        gooeyToast.success(`URL Meja #${tableNumber} berhasil disalin! 📋`);
       })
       .catch((err) => {
         console.error("Gagal menyalin URL:", err);
-        toast.error("Gagal menyalin URL ke clipboard.");
+        gooeyToast.error("Gagal menyalin URL ke clipboard.");
       });
   };
 
@@ -166,7 +166,9 @@ export default function TableManagement() {
       });
 
       doc.save(`QRCode-Meja-${table.tableNumber}.pdf`);
-      toast.success(`PDF QR Code Meja #${table.tableNumber} berhasil diunduh!`);
+      gooeyToast.success(
+        `PDF QR Code Meja #${table.tableNumber} berhasil diunduh!`,
+      );
     };
 
     img.src =

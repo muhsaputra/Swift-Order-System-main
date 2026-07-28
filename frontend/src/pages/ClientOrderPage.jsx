@@ -80,10 +80,9 @@ export default function ClientOrderPage() {
     scriptTag.async = true;
     document.body.appendChild(scriptTag);
 
-    const backendUrl = import.meta.env.VITE_API_URL
-      ? import.meta.env.VITE_API_URL.replace("/api", "")
-      : "https://api.swiftorder.space";
-    const socket = io(backendUrl);
+    const socket = io("https://api.swiftorder.space", {
+      transports: ["websocket", "polling"],
+    });
 
     socket.on("menu-status-updated", (updatedMenu) => {
       setMenus((prevMenus) =>

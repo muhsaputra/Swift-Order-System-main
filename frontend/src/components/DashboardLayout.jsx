@@ -14,9 +14,8 @@ import {
 import { io } from "socket.io-client";
 
 // Sesuaikan URL Backend Anda jika berbeda
-const SOCKET_URL = import.meta.env.VITE_API_URL
-  ? import.meta.env.VITE_API_URL.replace("/api", "")
-  : "https://api.swiftorder.space";
+// URL Backend untuk Socket.io langsung ke domain utama
+const SOCKET_URL = "https://api.swiftorder.space";
 
 export default function DashboardLayout() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -26,7 +25,9 @@ export default function DashboardLayout() {
 
   // Inisialisasi Socket.io dan Audio secara Global di Layout Dashboard
   useEffect(() => {
-    const socket = io(SOCKET_URL);
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+    });
 
     socket.on("new-order", (orderData) => {
       // Mainkan suara notifikasi

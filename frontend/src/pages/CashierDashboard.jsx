@@ -119,11 +119,7 @@ export default function CashierDashboard() {
     fetchMenus();
     fetchCoupons();
 
-    const backendUrl = import.meta.env.VITE_API_URL
-      ? import.meta.env.VITE_API_URL.replace("/api", "")
-      : "https://api.swiftorder.space";
-
-    const socket = io(backendUrl, {
+    const socket = io("https://api.swiftorder.space", {
       transports: ["websocket", "polling"],
     });
 

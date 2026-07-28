@@ -115,16 +115,18 @@ router.post("/create-transaction", async (routerReq, routerRes) => {
   }
 });
 
-// 2. Endpoint Webhook / Notification dari Midtrans (Agar masuk ke Dashboard Kasir)
+// 2. Endpoint Webhook / Notification dari Midtrans (Diperbaiki agar selalu merespon 200 OK)
 router.post("/notification", async (req, res) => {
+  // PENTING: Langsung kirim respons 200 OK di awal agar Midtrans tahu endpoint aktif
+  // dan tidak mengirim email error timeout/retry.
+  res.status(200).json({ status: "OK" });
+
   try {
     const notification = req.body;
     const midtransOrderId = notification.order_id;
 
     if (!midtransOrderId || midtransOrderId.startsWith("payment_notif_test_")) {
-      return res
-        .status(200)
-        .json({ status: "OK", message: "Test notification received" });
+      return;
     }
 
     const transactionStatus = notification.transaction_status;
@@ -143,9 +145,8 @@ router.post("/notification", async (req, res) => {
     let order = await Order.findOne({ $or: queryConditions });
 
     if (!order) {
-      return res
-        .status(404)
-        .json({ message: "Pesanan tidak ditemukan dari webhook" });
+      console.warn("Pesanan tidak ditemukan dari webhook:", midtransOrderId);
+      return;
     }
 
     if (transactionStatus === "capture" || transactionStatus === "settlement") {
@@ -167,11 +168,11 @@ router.post("/notification", async (req, res) => {
       order.paymentStatus = "failed";
       await order.save();
     }
-
-    res.status(200).json({ status: "OK" });
   } catch (err) {
-    console.error("Gagal memproses notification Midtrans:", err);
-    res.status(500).json({ error: err.message });
+    console.error(
+      "Gagal memproses notification Midtrans di latar belakang:",
+      err,
+    );
   }
 });
 

@@ -112,8 +112,16 @@ export default function ClientWaitingPage() {
     const verifyAndFetchOrder = async () => {
       try {
         const statusCode = searchParams.get("status_code");
+        const transactionStatus = searchParams.get("transaction_status");
 
-        if (statusCode === "200" || statusCode === "201") {
+        // Validasi ketat: Hanya proses pembayaran sukses jika parameter Midtrans valid (200/201 atau settlement/success)
+        const isPaymentSuccessful =
+          statusCode === "200" ||
+          statusCode === "201" ||
+          transactionStatus === "settlement" ||
+          transactionStatus === "success";
+
+        if (isPaymentSuccessful) {
           try {
             const patchRes = await API.patch(`/orders/${id}/pay`);
             console.log(
@@ -134,13 +142,15 @@ export default function ClientWaitingPage() {
           );
         }
 
+        // Ambil data terbaru dari server backend
         const res = await API.get(`/orders/${id}`);
-        const serverStatus = res.data.orderStatus;
+        const serverOrder = res.data;
 
-        setOrder(res.data);
-        setStatus(serverStatus);
-        currentStatusRef.current = serverStatus;
-        localStorage.setItem(`order_${id}`, JSON.stringify(res.data));
+        // Pastikan jika pembayaran di database belum 'paid' / 'settlement', jangan anggap lolos begitu saja
+        setOrder(serverOrder);
+        setStatus(serverOrder.orderStatus);
+        currentStatusRef.current = serverOrder.orderStatus;
+        localStorage.setItem(`order_${id}`, JSON.stringify(serverOrder));
       } catch (err) {
         console.error("Gagal memuat detail pesanan", err);
       } finally {

@@ -29,6 +29,8 @@ import {
   IceCream,
   Percent,
   Zap,
+  Gamepad2,
+  Rocket,
 } from "lucide-react";
 
 export default function ClientOrderPage() {
@@ -132,6 +134,9 @@ export default function ClientOrderPage() {
 
     localStorage.setItem("swift_customer_info", JSON.stringify(customerInfo));
     setIsCustomerModalOpen(false);
+    gooeyToast.success(
+      `Misi dimulai! Selamat menikmati, ${customerInfo.name} 🚀`,
+    );
   };
 
   const handleCardClick = (menu) => {
@@ -209,7 +214,7 @@ export default function ClientOrderPage() {
         },
       ]);
     }
-    gooeyToast.info(`${menu.name} ditambahkan ke keranjang`, {
+    gooeyToast.info(`Mantap! ${menu.name} berhasil diamankan ke keranjang 🛒`, {
       displayDuration: 1200,
     });
   };
@@ -494,30 +499,41 @@ export default function ClientOrderPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 pb-28">
-      {/* MODAL CUSTOMER INFO */}
+      {/* MODAL CUSTOMER INFO (INTERACTIVE QUEST STYLE) */}
       {isCustomerModalOpen && (
-        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-200/80 w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div>
-              <div className="w-12 h-12 bg-neutral-900 text-white rounded-2xl flex items-center justify-center shadow-md mb-4">
-                <Utensils className="w-5 h-5" />
+        <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-neutral-200/80 w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-200 relative overflow-hidden">
+            {/* Dekorasi elemen seru di latar belakang modal */}
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-100 rounded-full blur-xl pointer-events-none" />
+            <div className="absolute -left-6 -bottom-6 w-24 h-24 bg-purple-100 rounded-full blur-xl pointer-events-none" />
+
+            <div className="relative z-10">
+              <div className="w-12 h-12 bg-neutral-900 text-amber-300 rounded-2xl flex items-center justify-center shadow-md mb-4">
+                <Gamepad2 className="w-6 h-6 animate-bounce" />
               </div>
-              <h2 className="text-xl font-extrabold text-neutral-900">
-                Selamat Datang di Swift Ordering 👋
+              <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-amber-200 mb-2">
+                <Rocket className="w-3 h-3" /> Level 1: Persiapan Misi Kuliner
+              </div>
+              <h2 className="text-xl font-extrabold text-neutral-900 tracking-tight">
+                Halo Pejuang Lapar! 👋
               </h2>
-              <p className="text-xs text-neutral-500 mt-1">
-                Silakan isi data diri Anda untuk meja{" "}
-                <span className="text-neutral-900 font-extrabold">
+              <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+                Sebelum berburu kuliner di Meja{" "}
+                <span className="text-neutral-900 font-extrabold bg-neutral-100 px-2 py-0.5 rounded-md border border-neutral-200">
                   #{tableNumber}
-                </span>{" "}
-                sebelum mulai memesan.
+                </span>
+                , kenalan dulu yuk supaya misinya lancar!
               </p>
             </div>
 
-            <form onSubmit={handleCustomerSubmit} className="space-y-4">
+            <form
+              onSubmit={handleCustomerSubmit}
+              className="space-y-4 relative z-10"
+            >
               <div>
                 <label className="block text-[11px] font-extrabold text-neutral-700 uppercase mb-1.5 tracking-wider">
-                  Nama Lengkap <span className="text-red-500">*</span>
+                  Nama Panggilan / Kerenmu{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -526,14 +542,14 @@ export default function ClientOrderPage() {
                   onChange={(e) =>
                     setCustomerInfo({ ...customerInfo, name: e.target.value })
                   }
-                  placeholder="Masukkan nama Anda..."
-                  className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-semibold"
+                  placeholder="Contoh: Kapten Budi 🚀"
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 font-semibold transition"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-extrabold text-neutral-700 uppercase mb-1.5 tracking-wider">
-                  Nomor HP / WhatsApp <span className="text-red-500">*</span>
+                  Nomor WhatsApp <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
@@ -543,7 +559,7 @@ export default function ClientOrderPage() {
                     setCustomerInfo({ ...customerInfo, phone: e.target.value })
                   }
                   placeholder="Contoh: 08123456789"
-                  className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-semibold"
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 font-semibold transition"
                 />
               </div>
 
@@ -551,7 +567,7 @@ export default function ClientOrderPage() {
                 <label className="block text-[11px] font-extrabold text-neutral-700 uppercase mb-1.5 tracking-wider">
                   Email{" "}
                   <span className="text-neutral-400 font-normal">
-                    (Opsional)
+                    (Opsional untuk e-receipt)
                   </span>
                 </label>
                 <input
@@ -561,16 +577,16 @@ export default function ClientOrderPage() {
                     setCustomerInfo({ ...customerInfo, email: e.target.value })
                   }
                   placeholder="email@domain.com"
-                  className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-semibold"
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 font-semibold transition"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-neutral-900 text-white py-3.5 rounded-2xl text-xs font-bold hover:bg-neutral-800 transition shadow-md mt-2 cursor-pointer flex items-center justify-center gap-2"
+                className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg mt-2 cursor-pointer flex items-center justify-center gap-2 group"
               >
-                <span>Mulai Pesan Menu</span>
-                <ChevronRight className="w-4 h-4" />
+                <span>Mulai Pilih Menu & Makanan 🍽️</span>
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </form>
           </div>

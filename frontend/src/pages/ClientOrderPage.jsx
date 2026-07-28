@@ -52,16 +52,14 @@ export default function ClientOrderPage() {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-  const [customerInfo, setCustomerInfo] = useState(() => {
-    const saved = localStorage.getItem("swift_customer_info");
-    return saved ? JSON.parse(saved) : { name: "", email: "", phone: "" };
+  // Wajibkan isi ulang informasi pelanggan setiap kali scan QR baru (jangan baca dari localStorage sebelumnya)
+  const [customerInfo, setCustomerInfo] = useState({
+    name: "",
+    email: "",
+    phone: "",
   });
 
-  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(() => {
-    const saved = localStorage.getItem("swift_customer_info");
-    const parsed = saved ? JSON.parse(saved) : {};
-    return !parsed.name || !parsed.phone;
-  });
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(true);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,6 +67,10 @@ export default function ClientOrderPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
+    // Bersihkan sesi info pelanggan lama agar setiap scan QR baru wajib isi ulang data diri
+    localStorage.removeItem("swift_customer_info");
+    setIsCustomerModalOpen(true);
+
     fetchMenus();
 
     const midtransUrl = "https://app.sandbox.midtrans.com/snap/snap.js";

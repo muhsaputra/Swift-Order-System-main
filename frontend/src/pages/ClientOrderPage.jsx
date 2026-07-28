@@ -62,14 +62,13 @@ export default function ClientOrderPage() {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-  // Wajibkan isi ulang informasi pelanggan setiap kali scan QR baru (jangan baca dari localStorage sebelumnya)
   const [customerInfo, setCustomerInfo] = useState({
     name: "",
     email: "",
     phone: "",
   });
 
-  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(true);
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,9 +76,18 @@ export default function ClientOrderPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
-    // Bersihkan sesi info pelanggan lama agar setiap scan QR baru wajib isi ulang data diri
-    localStorage.removeItem("swift_customer_info");
-    setIsCustomerModalOpen(true);
+    // Cek apakah ada data pelanggan di localStorage (untuk membedakan REFRESH vs SCAN QR BARU)
+    const savedCustomer = localStorage.getItem("swift_customer_info");
+
+    if (!savedCustomer) {
+      // Jika belum ada sama sekali (Scan QR baru / sesi bersih), wajibkan isi form
+      setIsCustomerModalOpen(true);
+    } else {
+      // Jika sudah ada (artinya hanya REFRESH halaman), muat datanya kembali & jangan buka modal
+      const parsed = JSON.parse(savedCustomer);
+      setCustomerInfo(parsed);
+      setIsCustomerModalOpen(false);
+    }
 
     fetchMenus();
 
@@ -511,7 +519,6 @@ export default function ClientOrderPage() {
       {isGuideModalOpen && (
         <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-neutral-200/80 w-full max-w-lg rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-200 relative overflow-hidden">
-            {/* Header Modal */}
             <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center font-bold">
@@ -534,9 +541,7 @@ export default function ClientOrderPage() {
               </button>
             </div>
 
-            {/* List Langkah Panduan Visual */}
             <div className="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">
-              {/* Langkah 1 */}
               <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
                 <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
                   1
@@ -556,7 +561,6 @@ export default function ClientOrderPage() {
                 </div>
               </div>
 
-              {/* Langkah 2 */}
               <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
                 <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
                   2
@@ -572,7 +576,6 @@ export default function ClientOrderPage() {
                 </div>
               </div>
 
-              {/* Langkah 3 */}
               <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
                 <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
                   3
@@ -591,7 +594,6 @@ export default function ClientOrderPage() {
                 </div>
               </div>
 
-              {/* Langkah 4 */}
               <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
                 <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
                   4
@@ -608,7 +610,6 @@ export default function ClientOrderPage() {
               </div>
             </div>
 
-            {/* Tombol Tutup Panduan */}
             <button
               onClick={() => setIsGuideModalOpen(false)}
               className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
@@ -623,7 +624,6 @@ export default function ClientOrderPage() {
       {isCustomerModalOpen && (
         <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-neutral-200/80 w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-200 relative overflow-hidden">
-            {/* Dekorasi elemen seru di latar belakang modal */}
             <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-100 rounded-full blur-xl pointer-events-none" />
             <div className="absolute -left-6 -bottom-6 w-24 h-24 bg-purple-100 rounded-full blur-xl pointer-events-none" />
 
@@ -829,7 +829,6 @@ export default function ClientOrderPage() {
                 <Clock className="w-3.5 h-3.5" />
                 <span>Riwayat Pesanan</span>
               </Link>
-              {/* TOMBOL PANDUAN CARA PESAN */}
               <button
                 onClick={() => setIsGuideModalOpen(true)}
                 className="inline-flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-amber-500/30 transition cursor-pointer"
@@ -879,7 +878,6 @@ export default function ClientOrderPage() {
             />
           </div>
 
-          {/* SUB-KATEGORI / FILTER PILIHAN */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             {[
               { name: "Semua", icon: Utensils },
@@ -972,14 +970,6 @@ export default function ClientOrderPage() {
                       const isPromoItem =
                         menu.isBundle ||
                         (menu.originalPrice && menu.originalPrice > menu.price);
-                      const discountPercentage =
-                        menu.originalPrice > menu.price
-                          ? Math.round(
-                              ((menu.originalPrice - menu.price) /
-                                menu.originalPrice) *
-                                100,
-                            )
-                          : 0;
 
                       return (
                         <div

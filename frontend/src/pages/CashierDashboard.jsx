@@ -123,7 +123,7 @@ export default function CashierDashboard() {
       transports: ["websocket", "polling"],
     });
 
-    // Tangkap pesanan baru (baik QRIS paid maupun Cash pending)
+    // Tangkap pesanan baru (Cash pending)
     socket.on("new-order", (newOrder) => {
       setOrders((prev) => {
         const exists = prev.some((ord) => ord._id === newOrder._id);
@@ -136,19 +136,11 @@ export default function CashierDashboard() {
           `💵 Pesanan Tunai Baru! Pelanggan ${newOrder.customerName} (Meja #${newOrder.tableNumber}) menunggu konfirmasi pembayaran.`,
           { displayDuration: 5000 },
         );
-      } else {
-        gooeyToast.info(
-          `🔔 Pesanan Masuk! Pelanggan ${newOrder.customerName} (Meja #${newOrder.tableNumber})`,
-          { displayDuration: 5000 },
-        );
       }
 
       const newNotif = {
         id: Date.now(),
-        title:
-          newOrder.paymentMethod === "cash"
-            ? "Pesanan Tunai Baru!"
-            : "Pesanan Masuk!",
+        title: "Pesanan Tunai Baru!",
         message: `Pelanggan ${newOrder.customerName} di Meja #${newOrder.tableNumber} membuat pesanan baru.`,
         time: new Date().toLocaleTimeString("id-ID", {
           hour: "2-digit",
@@ -160,6 +152,7 @@ export default function CashierDashboard() {
       playNotificationSound();
     });
 
+    // Tangkap pembayaran sukses / pesanan lunas (QRIS / Cash Lunas)
     socket.on("new-paid-order", (paidOrder) => {
       setOrders((prev) => {
         const exists = prev.some((ord) => ord._id === paidOrder._id);
@@ -190,6 +183,7 @@ export default function CashierDashboard() {
       playNotificationSound();
     });
 
+    // Perbarui status atau tambahkan pesanan jika belum ada di state
     socket.on("order-updated", (updatedOrder) => {
       setOrders((prev) => {
         const exists = prev.some((ord) => ord._id === updatedOrder._id);
@@ -198,6 +192,13 @@ export default function CashierDashboard() {
           ord._id === updatedOrder._id ? updatedOrder : ord,
         );
       });
+    });
+
+    // Sinkronisasi pembaruan status pesanan realtime
+    socket.on("order-status-updated", (updatedOrder) => {
+      setOrders((prev) =>
+        prev.map((ord) => (ord._id === updatedOrder._id ? updatedOrder : ord)),
+      );
     });
 
     return () => {

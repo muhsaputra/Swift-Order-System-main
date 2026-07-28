@@ -36,6 +36,10 @@ import {
   CheckCircle2,
   CreditCard,
   ChefHat,
+  ArrowRight,
+  Smartphone,
+  ShieldCheck,
+  History,
 } from "lucide-react";
 
 export default function ClientOrderPage() {
@@ -515,45 +519,51 @@ export default function ClientOrderPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 pb-28">
-      {/* MODAL PANDUAN CARA PESAN (HOW-TO-ORDER VISUAL GUIDE) */}
+      {/* MODAL PANDUAN CARA PESAN (INTERACTIVE & ENHANCED UI/UX) */}
       {isGuideModalOpen && (
-        <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-neutral-200/80 w-full max-w-lg rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-200 relative overflow-hidden">
+            {/* Header dengan efek gradien halus */}
             <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center font-bold">
+                <div className="w-11 h-11 bg-amber-500 text-white rounded-2xl flex items-center justify-center font-bold shadow-md shadow-amber-500/20">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-neutral-900">
-                    Panduan Singkat Pesan Mandiri 📖
+                  <h3 className="text-base font-black text-neutral-900 tracking-tight">
+                    Panduan Interaktif Pesan Mandiri 📖
                   </h3>
-                  <p className="text-[11px] text-neutral-500">
-                    Ikuti 4 langkah mudah menikmati hidangan dari meja Anda.
+                  <p className="text-[11px] text-neutral-500 font-medium">
+                    Nikmati pengalaman kuliner mulus dari meja Anda.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsGuideModalOpen(false)}
-                className="w-8 h-8 rounded-xl bg-neutral-100 text-neutral-500 hover:text-neutral-900 flex items-center justify-center text-xs transition cursor-pointer"
+                className="w-9 h-9 rounded-2xl bg-neutral-100 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200 flex items-center justify-center text-xs transition cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
+            {/* List Langkah Panduan Visual Interaktif */}
             <div className="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">
-              <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
-                <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+              {/* Langkah 1 */}
+              <div className="group relative flex items-start gap-4 bg-gradient-to-r from-neutral-50 to-amber-50/30 border border-neutral-200/70 p-4 rounded-2xl transition hover:border-amber-300">
+                <div className="w-9 h-9 rounded-xl bg-neutral-900 text-amber-300 flex items-center justify-center font-black text-xs shrink-0 shadow-md">
                   1
                 </div>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                    Isi Data Diri Singkat ✍️
+                <div className="space-y-1">
+                  <h4 className="text-xs font-black text-neutral-900 flex items-center gap-1.5 uppercase tracking-wide">
+                    <span>Isi Identitas Singkat</span>
+                    <span className="text-[10px] bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded-full font-bold">
+                      Wajib
+                    </span>
                   </h4>
-                  <p className="text-[11px] text-neutral-500 leading-relaxed">
+                  <p className="text-[11px] text-neutral-600 leading-relaxed">
                     Masukkan nama panggilan dan nomor WhatsApp Anda agar pelayan
-                    tahu pesanan ini untuk meja{" "}
-                    <span className="font-bold text-neutral-800">
+                    dapat mengonfirmasi pesanan untuk Meja{" "}
+                    <span className="font-extrabold text-neutral-900">
                       #{tableNumber}
                     </span>
                     .
@@ -561,60 +571,75 @@ export default function ClientOrderPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
-                <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+              {/* Langkah 2 */}
+              <div className="group relative flex items-start gap-4 bg-gradient-to-r from-neutral-50 to-amber-50/30 border border-neutral-200/70 p-4 rounded-2xl transition hover:border-amber-300">
+                <div className="w-9 h-9 rounded-xl bg-neutral-900 text-amber-300 flex items-center justify-center font-black text-xs shrink-0 shadow-md">
                   2
                 </div>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                    Pilih Menu & Atur Add-On 🍔
+                <div className="space-y-1">
+                  <h4 className="text-xs font-black text-neutral-900 flex items-center gap-1.5 uppercase tracking-wide">
+                    <span>Pilih Menu & Kustomisasi Add-On</span>
                   </h4>
-                  <p className="text-[11px] text-neutral-500 leading-relaxed">
-                    Jelajahi katalog makanan, minuman, atau promo spesial. Pilih
-                    kustomisasi add-on sesuai selera Anda.
+                  <p className="text-[11px] text-neutral-600 leading-relaxed">
+                    Jelajahi berbagai kategori makanan, minuman, atau promo
+                    menarik. Tambahkan pilihan topping atau add-on favorit Anda.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
-                <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+              {/* Langkah 3 (Pembaruan Informasi Pembayaran: QRIS & Cash di Kasir) */}
+              <div className="group relative flex items-start gap-4 bg-gradient-to-r from-neutral-50 to-amber-50/30 border border-neutral-200/70 p-4 rounded-2xl transition hover:border-amber-300">
+                <div className="w-9 h-9 rounded-xl bg-neutral-900 text-amber-300 flex items-center justify-center font-black text-xs shrink-0 shadow-md">
                   3
                 </div>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                    Gunakan Kupon & Pilih Pembayaran 💳
+                <div className="space-y-1">
+                  <h4 className="text-xs font-black text-neutral-900 flex items-center gap-1.5 uppercase tracking-wide">
+                    <span>Pilih Metode Pembayaran Fleksibel</span>
                   </h4>
-                  <p className="text-[11px] text-neutral-500 leading-relaxed">
-                    Masukkan kupon diskon jika ada, lalu pilih pembayaran via{" "}
-                    <span className="font-bold text-neutral-800">
+                  <p className="text-[11px] text-neutral-600 leading-relaxed">
+                    Anda bebas memilih metode pembayaran: secara instan &
+                    digital menggunakan{" "}
+                    <span className="font-extrabold text-neutral-900">
                       QRIS (Midtrans)
                     </span>{" "}
-                    untuk bayar instan atau bayar tunai di kasir.
+                    atau memilih{" "}
+                    <span className="font-extrabold text-neutral-900">
+                      Cash (Bayar Tunai di Kasir)
+                    </span>{" "}
+                    sesuai kenyamanan Anda.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
-                <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+              {/* Langkah 4 (Pembaruan Info Waiting Page & Riwayat Pesanan) */}
+              <div className="group relative flex items-start gap-4 bg-gradient-to-r from-neutral-50 to-amber-50/30 border border-neutral-200/70 p-4 rounded-2xl transition hover:border-amber-300">
+                <div className="w-9 h-9 rounded-xl bg-neutral-900 text-amber-300 flex items-center justify-center font-black text-xs shrink-0 shadow-md">
                   4
                 </div>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                    Duduk Manis & Dapur Menyiapkan 👨‍🍳
+                <div className="space-y-1">
+                  <h4 className="text-xs font-black text-neutral-900 flex items-center gap-1.5 uppercase tracking-wide">
+                    <span>Pantau Status & Riwayat Pesanan</span>
                   </h4>
-                  <p className="text-[11px] text-neutral-500 leading-relaxed">
-                    Pesanan otomatis masuk ke dapur dan kasir. Anda bisa
-                    memantau status pesanan langsung dari layar ini!
+                  <p className="text-[11px] text-neutral-600 leading-relaxed">
+                    Pesanan otomatis dikirim ke dapur. Jika halaman tunggu
+                    (waiting page) tertutup atau tidak terbuka, Anda dapat
+                    dengan mudah melihat status pesanan melalui menu{" "}
+                    <span className="font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-flex items-center gap-1 mt-0.5">
+                      <History className="w-3 h-3" /> Riwayat Pesanan
+                    </span>{" "}
+                    di bagian atas halaman utama.
                   </p>
                 </div>
               </div>
             </div>
 
+            {/* Tombol Tutup Panduan */}
             <button
               onClick={() => setIsGuideModalOpen(false)}
-              className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
+              className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3.5 rounded-2xl text-xs font-extrabold transition shadow-lg cursor-pointer flex items-center justify-center gap-2 group"
             >
-              Mengerti, Lanjutkan Pesan 🚀
+              <span>Siap, Lanjutkan Berburu Kuliner 🚀</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </div>

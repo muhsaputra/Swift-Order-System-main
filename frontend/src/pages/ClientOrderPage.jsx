@@ -31,6 +31,11 @@ import {
   Zap,
   Gamepad2,
   Rocket,
+  BookOpen,
+  HelpCircle,
+  CheckCircle2,
+  CreditCard,
+  ChefHat,
 } from "lucide-react";
 
 export default function ClientOrderPage() {
@@ -46,6 +51,9 @@ export default function ClientOrderPage() {
   // State untuk Modal Add-On (Multi-select)
   const [selectedBundleModal, setSelectedBundleModal] = useState(null);
   const [selectedAddons, setSelectedAddons] = useState({});
+
+  // State untuk Modal Panduan Pesan (How-To-Order)
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
 
   const [paymentMethod, setPaymentMethod] = useState("qris");
 
@@ -499,6 +507,118 @@ export default function ClientOrderPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 pb-28">
+      {/* MODAL PANDUAN CARA PESAN (HOW-TO-ORDER VISUAL GUIDE) */}
+      {isGuideModalOpen && (
+        <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-neutral-200/80 w-full max-w-lg rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-200 relative overflow-hidden">
+            {/* Header Modal */}
+            <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center font-bold">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-neutral-900">
+                    Panduan Singkat Pesan Mandiri 📖
+                  </h3>
+                  <p className="text-[11px] text-neutral-500">
+                    Ikuti 4 langkah mudah menikmati hidangan dari meja Anda.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsGuideModalOpen(false)}
+                className="w-8 h-8 rounded-xl bg-neutral-100 text-neutral-500 hover:text-neutral-900 flex items-center justify-center text-xs transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* List Langkah Panduan Visual */}
+            <div className="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">
+              {/* Langkah 1 */}
+              <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
+                <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                  1
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                    Isi Data Diri Singkat ✍️
+                  </h4>
+                  <p className="text-[11px] text-neutral-500 leading-relaxed">
+                    Masukkan nama panggilan dan nomor WhatsApp Anda agar pelayan
+                    tahu pesanan ini untuk meja{" "}
+                    <span className="font-bold text-neutral-800">
+                      #{tableNumber}
+                    </span>
+                    .
+                  </p>
+                </div>
+              </div>
+
+              {/* Langkah 2 */}
+              <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
+                <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                  2
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                    Pilih Menu & Atur Add-On 🍔
+                  </h4>
+                  <p className="text-[11px] text-neutral-500 leading-relaxed">
+                    Jelajahi katalog makanan, minuman, atau promo spesial. Pilih
+                    kustomisasi add-on sesuai selera Anda.
+                  </p>
+                </div>
+              </div>
+
+              {/* Langkah 3 */}
+              <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
+                <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                  3
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                    Gunakan Kupon & Pilih Pembayaran 💳
+                  </h4>
+                  <p className="text-[11px] text-neutral-500 leading-relaxed">
+                    Masukkan kupon diskon jika ada, lalu pilih pembayaran via{" "}
+                    <span className="font-bold text-neutral-800">
+                      QRIS (Midtrans)
+                    </span>{" "}
+                    untuk bayar instan atau bayar tunai di kasir.
+                  </p>
+                </div>
+              </div>
+
+              {/* Langkah 4 */}
+              <div className="flex items-start gap-3.5 bg-neutral-50 border border-neutral-200/60 p-3.5 rounded-2xl">
+                <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                  4
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                    Duduk Manis & Dapur Menyiapkan 👨‍🍳
+                  </h4>
+                  <p className="text-[11px] text-neutral-500 leading-relaxed">
+                    Pesanan otomatis masuk ke dapur dan kasir. Anda bisa
+                    memantau status pesanan langsung dari layar ini!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tombol Tutup Panduan */}
+            <button
+              onClick={() => setIsGuideModalOpen(false)}
+              className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
+            >
+              Mengerti, Lanjutkan Pesan 🚀
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* MODAL CUSTOMER INFO (INTERACTIVE QUEST STYLE) */}
       {isCustomerModalOpen && (
         <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -709,6 +829,14 @@ export default function ClientOrderPage() {
                 <Clock className="w-3.5 h-3.5" />
                 <span>Riwayat Pesanan</span>
               </Link>
+              {/* TOMBOL PANDUAN CARA PESAN */}
+              <button
+                onClick={() => setIsGuideModalOpen(true)}
+                className="inline-flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-amber-500/30 transition cursor-pointer"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>Panduan Pesan 📖</span>
+              </button>
             </div>
             <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
               Nikmati Hidangan Terbaik Kami

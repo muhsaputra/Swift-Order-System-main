@@ -16,7 +16,7 @@ import { io } from "socket.io-client";
 // Sesuaikan URL Backend Anda jika berbeda
 const SOCKET_URL = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace("/api", "")
-  : "https://swiftorder.space";
+  : "https://api.swiftorder.space";
 
 export default function DashboardLayout() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);

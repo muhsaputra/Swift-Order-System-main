@@ -165,7 +165,7 @@ export default function ClientWaitingPage() {
 
     const backendUrl = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace("/api", "")
-      : "https://swiftorder.space";
+      : "https://api.swiftorder.space";
 
     const socket = io(backendUrl);
     socket.emit("join-order", id);

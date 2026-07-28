@@ -410,7 +410,10 @@ export default function ClientOrderPage() {
         setCart([]);
         removeCoupon();
         setIsCartOpen(false);
-        navigate(`/waiting/${newOrder._id}`, { state: { order: newOrder } });
+        navigate(`/waiting/${newOrder._id}`, {
+          state: { order: newOrder },
+          replace: true,
+        });
       } else {
         if (!window.snap) {
           alert(
@@ -430,7 +433,6 @@ export default function ClientOrderPage() {
         });
 
         const snapToken = paymentRes.data.token;
-        setIsCartOpen(false);
 
         window.snap.pay(snapToken, {
           onSuccess: async function (result) {
@@ -450,16 +452,22 @@ export default function ClientOrderPage() {
             }
             setCart([]);
             removeCoupon();
+            setIsCartOpen(false);
             navigate(`/waiting/${newOrder._id}`, {
-              state: { order: newOrder },
+              state: {
+                order: { ...newOrder, orderStatus: "processing", isPaid: true },
+              },
+              replace: true,
             });
           },
           onPending: function (result) {
             gooeyToast.warning("Menunggu penyelesaian pembayaran.");
             setCart([]);
             removeCoupon();
+            setIsCartOpen(false);
             navigate(`/waiting/${newOrder._id}`, {
               state: { order: newOrder },
+              replace: true,
             });
           },
           onError: function (result) {

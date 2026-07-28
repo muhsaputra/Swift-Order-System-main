@@ -61,10 +61,13 @@ router.post("/", async (req, res) => {
       "items.menu",
     );
 
-    // Kirim notifikasi realtime ke dashboard kasir
+    // Kirim notifikasi realtime ke dashboard kasir HANYA JIKA metode pembayaran CASH.
+    // Untuk QRIS, notifikasi baru dikirim setelah pembayaran sukses terverifikasi di endpoint /pay.
     const io = req.app.get("io");
     if (io) {
-      io.emit("new-order", populatedOrder);
+      if (paymentMethod === "cash") {
+        io.emit("new-order", populatedOrder);
+      }
     }
 
     res.status(201).json(populatedOrder);

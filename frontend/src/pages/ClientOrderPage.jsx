@@ -82,7 +82,7 @@ export default function ClientOrderPage() {
 
     const backendUrl = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace("/api", "")
-      : "https://swift-ordering-backend.onrender.com";
+      : "https://swiftorder.space";
     const socket = io(backendUrl);
 
     socket.on("menu-status-updated", (updatedMenu) => {

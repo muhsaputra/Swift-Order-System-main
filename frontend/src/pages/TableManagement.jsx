@@ -25,7 +25,9 @@ export default function TableManagement() {
     fetchTables();
 
     // Memastikan koneksi Socket.io selalu mengarah ke backend online Render
-    const backendUrl = "https://swift-ordering-backend.onrender.com";
+    const backendUrl = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace("/api", "")
+      : "https://swiftorder.space";
 
     const socket = io(backendUrl, {
       transports: ["websocket", "polling"],

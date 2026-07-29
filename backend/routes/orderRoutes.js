@@ -4,6 +4,26 @@ const Order = require("../models/Order");
 const Table = require("../models/Table"); // Tambahkan import model Table untuk update status meja
 const { verifyToken } = require("../middleware/auth");
 
+// Helper function untuk mengirim WhatsApp via Fonnte
+const sendWhatsAppMessage = async (target, message) => {
+  if (!target) return;
+  try {
+    const response = await fetch("https://api.fonnte.com/send", {
+      method: "POST",
+      headers: {
+        Authorization: process.env.FONNTE_API_TOKEN,
+      },
+      body: new URLSearchParams({
+        target: target,
+        message: message,
+      }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("WhatsApp Gateway Error:", error);
+  }
+};
+
 // 1. Buat Pesanan Baru (Client Checkout - Publik)
 router.post("/", async (req, res) => {
   try {
@@ -36,8 +56,8 @@ router.post("/", async (req, res) => {
       customerPhone,
       items,
       subtotal,
-      discountAmount: discountAmount || 0, // <-- Diperbarui agar tersimpan dengan benar
-      couponCode: couponCode || null, // <-- Diperbarui agar tersimpan dengan benar
+      discountAmount: discountAmount || 0,
+      couponCode: couponCode || null,
       serviceFee,
       totalAmount,
       paymentMethod: paymentMethod || "qris",
@@ -60,6 +80,17 @@ router.post("/", async (req, res) => {
     const populatedOrder = await Order.findById(savedOrder._id).populate(
       "items.menu",
     );
+
+    // Kirim notifikasi WhatsApp bahwa pesanan berhasil dibuat / diterima sistem
+    if (customerPhone) {
+      const welcomeMsg =
+        `Halo *${customerName}*,\n\nTerima kasih telah memesan di Swift Order!\n` +
+        `No Pesanan: *#${customOrderId}*\n` +
+        `Nomor Meja: *${tableNumber}*\n` +
+        `Status: *Menunggu Pembayaran / Diproses*\n\n` +
+        `Kami akan segera menyiapkan pesanan Anda.`;
+      await sendWhatsAppMessage(customerPhone, welcomeMsg);
+    }
 
     // Kirim notifikasi realtime ke dashboard kasir HANYA JIKA metode pembayaran CASH.
     // Untuk QRIS, notifikasi baru dikirim setelah pembayaran sukses terverifikasi di endpoint /pay.
@@ -211,20 +242,45 @@ router.patch("/:id/pay-cash", async (req, res) => {
 router.patch("/:id/status", verifyToken, async (req, res) => {
   try {
     const { status } = req.body; // Menerima status baru ("processing", "ready", "completed")
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate("items.menu");
     if (!order)
       return res.status(404).json({ error: "Pesanan tidak ditemukan" });
 
     // Gunakan 'orderStatus' sesuai skema Mongoose
     order.orderStatus = status;
 
-    // Jika pesanan selesai/completed, kita bisa bebaskan mejanya kembali (opsional tapi praktik restoran yang baik)
+    // Jika pesanan selesai/completed, kita bisa bebaskan mejanya kembali & kirim digital receipt
     if (status === "completed") {
       order.paymentStatus = "paid";
       await Table.findOneAndUpdate(
         { tableNumber: order.tableNumber },
         { isOccupied: false, currentOrder: null },
       );
+
+      // Buat format Struk Digital (Digital Receipt)
+      if (order.customerPhone) {
+        let itemsList = order.items
+          .map(
+            (i) =>
+              `- ${i.menu ? i.menu.name : "Menu"} (${i.quantity}x) @Rp${i.price.toLocaleString("id-ID")}`,
+          )
+          .join("\n");
+
+        const receiptMessage =
+          `*STRUK DIGITAL SWIFT ORDER* 🧾\n\n` +
+          `No Pesanan: #${order.orderId}\n` +
+          `Nama: ${order.customerName}\n` +
+          `Meja: ${order.tableNumber}\n` +
+          `Status: Selesai ✅\n\n` +
+          `*Rincian Pesanan:*\n${itemsList}\n\n` +
+          `Subtotal: Rp${order.subtotal.toLocaleString("id-ID")}\n` +
+          `Diskon: Rp${order.discountAmount.toLocaleString("id-ID")}\n` +
+          `Biaya Layanan: Rp${order.serviceFee.toLocaleString("id-ID")}\n` +
+          `*Total Pembayaran: Rp${order.totalAmount.toLocaleString("id-ID")}*\n\n` +
+          `Terima kasih telah berkunjung ke Swift Order! Silakan datang kembali. 🙏`;
+
+        await sendWhatsAppMessage(order.customerPhone, receiptMessage);
+      }
     }
 
     const updatedOrder = await order.save();

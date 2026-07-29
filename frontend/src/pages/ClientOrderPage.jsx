@@ -523,7 +523,6 @@ export default function ClientOrderPage() {
       {isGuideModalOpen && (
         <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-neutral-200/80 w-full max-w-lg rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-200 relative overflow-hidden">
-            {/* Header dengan efek gradien halus */}
             <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 bg-amber-500 text-white rounded-2xl flex items-center justify-center font-bold shadow-md shadow-amber-500/20">
@@ -546,9 +545,7 @@ export default function ClientOrderPage() {
               </button>
             </div>
 
-            {/* List Langkah Panduan Visual Interaktif */}
             <div className="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">
-              {/* Langkah 1 */}
               <div className="group relative flex items-start gap-4 bg-gradient-to-r from-neutral-50 to-amber-50/30 border border-neutral-200/70 p-4 rounded-2xl transition hover:border-amber-300">
                 <div className="w-9 h-9 rounded-xl bg-neutral-900 text-amber-300 flex items-center justify-center font-black text-xs shrink-0 shadow-md">
                   1
@@ -571,7 +568,6 @@ export default function ClientOrderPage() {
                 </div>
               </div>
 
-              {/* Langkah 2 */}
               <div className="group relative flex items-start gap-4 bg-gradient-to-r from-neutral-50 to-amber-50/30 border border-neutral-200/70 p-4 rounded-2xl transition hover:border-amber-300">
                 <div className="w-9 h-9 rounded-xl bg-neutral-900 text-amber-300 flex items-center justify-center font-black text-xs shrink-0 shadow-md">
                   2
@@ -587,7 +583,6 @@ export default function ClientOrderPage() {
                 </div>
               </div>
 
-              {/* Langkah 3 (Pembaruan Informasi Pembayaran: QRIS & Cash di Kasir) */}
               <div className="group relative flex items-start gap-4 bg-gradient-to-r from-neutral-50 to-amber-50/30 border border-neutral-200/70 p-4 rounded-2xl transition hover:border-amber-300">
                 <div className="w-9 h-9 rounded-xl bg-neutral-900 text-amber-300 flex items-center justify-center font-black text-xs shrink-0 shadow-md">
                   3
@@ -611,7 +606,6 @@ export default function ClientOrderPage() {
                 </div>
               </div>
 
-              {/* Langkah 4 (Pembaruan Info Waiting Page & Riwayat Pesanan) */}
               <div className="group relative flex items-start gap-4 bg-gradient-to-r from-neutral-50 to-amber-50/30 border border-neutral-200/70 p-4 rounded-2xl transition hover:border-amber-300">
                 <div className="w-9 h-9 rounded-xl bg-neutral-900 text-amber-300 flex items-center justify-center font-black text-xs shrink-0 shadow-md">
                   4
@@ -622,8 +616,8 @@ export default function ClientOrderPage() {
                   </h4>
                   <p className="text-[11px] text-neutral-600 leading-relaxed">
                     Pesanan otomatis dikirim ke dapur. Jika halaman tunggu
-                    (waiting page) tertutup atau tidak terbuka, Anda dapat
-                    dengan mudah melihat status pesanan melalui menu{" "}
+                    tertutup, Anda dapat dengan mudah melihat status pesanan
+                    melalui menu{" "}
                     <span className="font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-flex items-center gap-1 mt-0.5">
                       <History className="w-3 h-3" /> Riwayat Pesanan
                     </span>{" "}
@@ -633,7 +627,6 @@ export default function ClientOrderPage() {
               </div>
             </div>
 
-            {/* Tombol Tutup Panduan */}
             <button
               onClick={() => setIsGuideModalOpen(false)}
               className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3.5 rounded-2xl text-xs font-extrabold transition shadow-lg cursor-pointer flex items-center justify-center gap-2 group"
@@ -738,7 +731,7 @@ export default function ClientOrderPage() {
         </div>
       )}
 
-      {/* MODAL PILIHAN ADD-ON BERBAYAR (MULTI-SELECT & TOMBOL LEWATI) */}
+      {/* MODAL PILIHAN ADD-ON BERBAYAR */}
       {selectedBundleModal && (
         <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-neutral-200 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in duration-200">

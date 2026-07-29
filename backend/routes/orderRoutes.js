@@ -323,24 +323,29 @@ router.get("/", async (req, res) => {
 });
 
 // Endpoint untuk memanggil pelayan dari meja tertentu
-router.post("/call-waiter", async (req, res) => {
+// Endpoint untuk memanggil pelayan / bantuan dari meja
+router.post("/:id/call-waiter", async (req, res) => {
   try {
-    const { tableNumber } = req.body;
-    const io = req.app.get("io");
+    const order = await Order.findById(req.params.id);
+    if (!order)
+      return res.status(404).json({ error: "Pesanan tidak ditemukan" });
 
+    const io = req.app.get("io");
     if (io) {
-      // Broadcast event ke semua client/dashboard kasir
+      // Broadcast event ke seluruh dashboard kasir yang terhubung
       io.emit("call-waiter", {
-        tableNumber,
-        message: `Meja #${tableNumber} memanggil pelayan!`,
+        tableNumber: order.tableNumber,
+        customerName: order.customerName,
+        message: `Pelanggan ${order.customerName} memanggil bantuan di Meja #${order.tableNumber}!`,
         time: new Date(),
       });
     }
 
     res
       .status(200)
-      .json({ success: true, message: "Pelayan berhasil dipanggil." });
+      .json({ success: true, message: "Panggilan terkirim ke kasir." });
   } catch (err) {
+    console.error("Error POST /call-waiter:", err.message);
     res.status(500).json({ error: err.message });
   }
 });

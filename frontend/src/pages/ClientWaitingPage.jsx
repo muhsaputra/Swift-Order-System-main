@@ -211,15 +211,14 @@ export default function ClientWaitingPage() {
     });
   };
 
-  // Fungsi handler tombol panggil pelayan
+  // Fungsi handler tombol panggil pelayan terhubung ke backend
   const handleCallStaff = async () => {
     try {
       setIsCallingStaff(true);
-      setTimeout(() => {
-        setIsCallingStaff(false);
-        setCallSuccess(true);
-        setTimeout(() => setCallSuccess(false), 4000);
-      }, 1000);
+      await API.post(`/orders/${id}/call-waiter`);
+      setIsCallingStaff(false);
+      setCallSuccess(true);
+      setTimeout(() => setCallSuccess(false), 4000);
     } catch (err) {
       setIsCallingStaff(false);
       console.error("Gagal memanggil pelayan", err);
@@ -936,7 +935,7 @@ export default function ClientWaitingPage() {
             </button>
           )}
 
-          {/* Tombol Tambahan: Panggil Pelayan / Bantuan */}
+          {/* Tombol Panggil Pelayan yang terhubung ke Backend */}
           <button
             onClick={handleCallStaff}
             disabled={isCallingStaff}

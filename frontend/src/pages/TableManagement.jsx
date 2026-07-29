@@ -24,7 +24,7 @@ export default function TableManagement() {
   useEffect(() => {
     fetchTables();
 
-    // Memastikan koneksi Socket.io selalu mengarah ke backend online Render
+    // Memastikan koneksi Socket.io selalu mengarah ke backend online
     const socket = io("https://api.swiftorder.space", {
       transports: ["websocket", "polling"],
     });
@@ -78,9 +78,9 @@ export default function TableManagement() {
     }
   };
 
-  // FUNGSI SALIN URL MEJA KE CLIPBOARD
+  // FUNGSI SALIN URL MEJA KE CLIPBOARD (Menggunakan domain baru swiftorder.space)
   const handleCopyTableUrl = (tableNumber) => {
-    const tableUrl = `https://swiftorderingsystemfrontend.vercel.app/order/${tableNumber}`;
+    const tableUrl = `https://www.swiftorder.space/order/${tableNumber}`;
 
     navigator.clipboard
       .writeText(tableUrl)
@@ -180,8 +180,8 @@ export default function TableManagement() {
     const printWindow = window.open("", "_blank", "width=400,height=500");
     if (!printWindow) return;
 
-    // URL dinamis untuk cetak menggunakan domain Vercel yang benar
-    const targetUrl = `https://swiftorderingsystemfrontend.vercel.app/order/${table.tableNumber}`;
+    // URL dinamis untuk cetak menggunakan domain baru swiftorder.space
+    const targetUrl = `https://www.swiftorder.space/order/${table.tableNumber}`;
 
     printWindow.document.write(`
       <html>
@@ -347,11 +347,11 @@ export default function TableManagement() {
                     </h3>
                   </div>
 
-                  {/* QR Code diarahkan ke domain Vercel yang benar */}
+                  {/* QR Code diarahkan ke domain baru swiftorder.space */}
                   <div className="bg-neutral-50 p-4 rounded-3xl border border-neutral-100 shadow-2xs">
                     <QRCodeSVG
                       id={`qr-svg-${table._id}`}
-                      value={`https://swiftorderingsystemfrontend.vercel.app/order/${table.tableNumber}`}
+                      value={`https://www.swiftorder.space/order/${table.tableNumber}`}
                       size={110}
                     />
                   </div>

@@ -322,17 +322,28 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Endpoint untuk memanggil pelayan dari meja tertentu
-// Endpoint untuk memanggil pelayan / bantuan dari meja
+// 6. Endpoint untuk memanggil pelayan / bantuan dari meja (Mendukung pencarian fleksibel ID)
 router.post("/:id/call-waiter", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
-    if (!order)
+    const identifier = req.params.id;
+    let order = null;
+
+    if (identifier && identifier.match(/^[0-9a-fA-F]{24}$/)) {
+      order = await Order.findById(identifier);
+    }
+
+    if (!order) {
+      order = await Order.findOne({
+        $or: [{ orderId: identifier }, { _id: identifier }],
+      });
+    }
+
+    if (!order) {
       return res.status(404).json({ error: "Pesanan tidak ditemukan" });
+    }
 
     const io = req.app.get("io");
     if (io) {
-      // Broadcast event ke seluruh dashboard kasir yang terhubung
       io.emit("call-waiter", {
         tableNumber: order.tableNumber,
         customerName: order.customerName,

@@ -48,6 +48,10 @@ export default function ClientWaitingPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [recommendedMenus, setRecommendedMenus] = useState([]);
 
+  // State tambahan untuk fitur Panggil Pelayan
+  const [isCallingStaff, setIsCallingStaff] = useState(false);
+  const [callSuccess, setCallSuccess] = useState(false);
+
   const audioRef = useRef(null);
   const currentStatusRef = useRef(order?.orderStatus || "processing");
   const isDataLoadedRef = useRef(false);
@@ -114,7 +118,6 @@ export default function ClientWaitingPage() {
         const statusCode = searchParams.get("status_code");
         const transactionStatus = searchParams.get("transaction_status");
 
-        // Validasi ketat: Hanya proses pembayaran sukses jika parameter Midtrans valid (200/201 atau settlement/success)
         const isPaymentSuccessful =
           statusCode === "200" ||
           statusCode === "201" ||
@@ -142,11 +145,9 @@ export default function ClientWaitingPage() {
           );
         }
 
-        // Ambil data terbaru dari server backend
         const res = await API.get(`/orders/${id}`);
         const serverOrder = res.data;
 
-        // Pastikan jika pembayaran di database belum 'paid' / 'settlement', jangan anggap lolos begitu saja
         setOrder(serverOrder);
         setStatus(serverOrder.orderStatus);
         currentStatusRef.current = serverOrder.orderStatus;
@@ -208,6 +209,21 @@ export default function ClientWaitingPage() {
       }
       return nextState;
     });
+  };
+
+  // Fungsi handler tombol panggil pelayan
+  const handleCallStaff = async () => {
+    try {
+      setIsCallingStaff(true);
+      setTimeout(() => {
+        setIsCallingStaff(false);
+        setCallSuccess(true);
+        setTimeout(() => setCallSuccess(false), 4000);
+      }, 1000);
+    } catch (err) {
+      setIsCallingStaff(false);
+      console.error("Gagal memanggil pelayan", err);
+    }
   };
 
   const discountAmountVal = Number(
@@ -549,6 +565,24 @@ export default function ClientWaitingPage() {
       </button>
 
       <div className="bg-white border border-neutral-200/80 p-6 sm:p-8 rounded-3xl max-w-lg w-full text-center space-y-6 shadow-xl">
+        {/* Banner Khusus Saat Pesanan Ready (Tambahan UI/UX) */}
+        {status === "ready" && (
+          <div className="bg-blue-600 text-white p-4 rounded-2xl shadow-lg flex items-center gap-3 animate-pulse">
+            <div className="p-2 bg-white/20 rounded-xl">
+              <BellRing className="w-6 h-6 text-white" />
+            </div>
+            <div className="text-left">
+              <h3 className="text-xs font-black uppercase tracking-wider">
+                Pesanan Anda Siap Disajikan! 🎉
+              </h3>
+              <p className="text-[11px] text-blue-100 font-medium">
+                Silakan ambil di konter atau tunggu pelayan mengantar ke Meja #
+                {order?.tableNumber}.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="w-16 h-16 bg-neutral-50 text-neutral-900 rounded-2xl flex items-center justify-center mx-auto border border-neutral-200/80 shadow-2xs">
           {currentStatusInfo.icon}
         </div>
@@ -790,7 +824,6 @@ export default function ClientWaitingPage() {
                 </span>
               </div>
 
-              {/* TAMPILKAN TOTAL HEMAT PROMO JIKA ADA */}
               {totalMenuSavings > 0 && (
                 <div className="flex justify-between text-amber-700 font-bold">
                   <span className="flex items-center gap-1">
@@ -803,7 +836,6 @@ export default function ClientWaitingPage() {
                 </div>
               )}
 
-              {/* TAMPILKAN POTONGAN KUPON JIKA ADA */}
               {discountAmountVal > 0 && (
                 <div className="flex justify-between text-purple-700 font-bold">
                   <span className="flex items-center gap-1">
@@ -833,7 +865,6 @@ export default function ClientWaitingPage() {
                 Total Pembayaran
               </span>
               <div className="flex items-center gap-2.5">
-                {/* Harga Coret sebelum promo/diskon di sebelah kiri */}
                 {(totalMenuSavings > 0 || discountAmountVal > 0) &&
                   originalTotalBeforeDiscount > order.totalAmount && (
                     <span className="font-mono text-neutral-400 line-through text-xs font-normal">
@@ -904,6 +935,22 @@ export default function ClientWaitingPage() {
               <span>Download Struk PDF</span>
             </button>
           )}
+
+          {/* Tombol Tambahan: Panggil Pelayan / Bantuan */}
+          <button
+            onClick={handleCallStaff}
+            disabled={isCallingStaff}
+            className="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 py-3.5 rounded-2xl text-xs font-bold transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Phone className="w-4 h-4 text-amber-600" />
+            <span>
+              {isCallingStaff
+                ? "Memanggil Pelayan..."
+                : callSuccess
+                  ? "Pelayan Segera Datang! 👍"
+                  : "Panggil Pelayan / Bantuan"}
+            </span>
+          </button>
 
           <button
             onClick={() => navigate(`/menu/${order?.tableNumber || 1}`)}

@@ -18,7 +18,6 @@ import {
   Check,
   ChevronRight,
   Flame,
-  Zap,
 } from "lucide-react";
 
 export default function MenuManagement() {
@@ -47,7 +46,6 @@ export default function MenuManagement() {
   const [originalPrice, setOriginalPrice] = useState("");
   const [category, setCategory] = useState("Makanan");
   const [isAvailable, setIsAvailable] = useState(true);
-  const [isPromo, setIsPromo] = useState(false); // State untuk Toggle Menu Promo
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
 
@@ -122,7 +120,6 @@ export default function MenuManagement() {
     setOriginalPrice("");
     setCategory(categories[0] || "Makanan");
     setIsAvailable(true);
-    setIsPromo(false);
     setImageFile(null);
     setImagePreview("");
     setIsBundle(false);
@@ -141,7 +138,6 @@ export default function MenuManagement() {
     );
     setCategory(menu.category);
     setIsAvailable(menu.isAvailable);
-    setIsPromo(menu.isPromo || false);
     setImageFile(null);
     setImagePreview(menu.image || "");
     setIsBundle(menu.isBundle || false);
@@ -219,7 +215,6 @@ export default function MenuManagement() {
       formData.append("originalPrice", rawOriginalPrice);
       formData.append("category", category);
       formData.append("isAvailable", isAvailable);
-      formData.append("isPromo", isPromo);
       formData.append("isBundle", isBundle);
       formData.append("bundleItems", JSON.stringify(bundleItems));
       formData.append("bundleOptions", JSON.stringify(bundleOptions));
@@ -230,10 +225,10 @@ export default function MenuManagement() {
 
       if (editingId) {
         await API.put(`/menus/${editingId}`, formData);
-        gooeyToast.success("Menu & Promo berhasil diperbarui!");
+        gooeyToast.success("Menu & Add-On berhasil diperbarui!");
       } else {
         await API.post("/menus", formData);
-        gooeyToast.success("Menu & Promo baru berhasil ditambahkan!");
+        gooeyToast.success("Menu & Add-On baru berhasil ditambahkan!");
       }
 
       setShowModal(false);
@@ -255,7 +250,6 @@ export default function MenuManagement() {
       formData.append("originalPrice", menu.originalPrice || 0);
       formData.append("category", menu.category);
       formData.append("isAvailable", !menu.isAvailable);
-      formData.append("isPromo", menu.isPromo || false);
       formData.append("isBundle", menu.isBundle || false);
       formData.append("bundleItems", JSON.stringify(menu.bundleItems || []));
       formData.append(
@@ -364,11 +358,11 @@ export default function MenuManagement() {
               <span>Katalog & Manajemen Produk</span>
             </div>
             <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
-              Manajemen Menu & Promo
+              Manajemen Menu & Add-On
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Atur produk, status promo khusus, harga diskon, foto, serta
-              pilihan add-on dengan mudah dan terstruktur.
+              Atur produk, harga diskon, foto, serta pilihan add-on berharga
+              dengan mudah dan terstruktur.
             </p>
           </div>
 
@@ -398,7 +392,7 @@ export default function MenuManagement() {
               Daftar Katalog Produk
             </h2>
             <p className="text-xs text-neutral-500">
-              Kelola produk, status promo, harga, add-on, dan ketersediaan menu.
+              Kelola produk, harga, add-on, ketersediaan, dan kategori menu.
             </p>
           </div>
 
@@ -533,11 +527,7 @@ export default function MenuManagement() {
                     {catMenus.map((menu) => (
                       <div
                         key={menu._id}
-                        className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-md transition group relative ${
-                          menu.isPromo
-                            ? "border-amber-300 ring-1 ring-amber-200 bg-gradient-to-b from-amber-50/20 to-white"
-                            : "border-neutral-200/80"
-                        }`}
+                        className="bg-white border border-neutral-200/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-md transition group relative"
                       >
                         <div>
                           <div className="relative h-40 w-full bg-neutral-100 overflow-hidden">
@@ -574,13 +564,6 @@ export default function MenuManagement() {
                                 {menu.isAvailable ? "TERSEDIA" : "HABIS"}
                               </button>
 
-                              {/* BADGE PROMO PADA CARD */}
-                              {menu.isPromo && (
-                                <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-500 text-white shadow-xs flex items-center gap-1">
-                                  <Zap className="w-3 h-3 fill-current" /> PROMO
-                                </span>
-                              )}
-
                               {menu.isBundle && (
                                 <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
                                   <Package className="w-3 h-3" /> Add-On
@@ -590,7 +573,7 @@ export default function MenuManagement() {
                           </div>
 
                           <div className="p-4 space-y-1.5">
-                            <h3 className="text-sm font-bold text-neutral-900 line-clamp-1 flex items-center gap-1.5">
+                            <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
                               {menu.name}
                             </h3>
                             {menu.description ? (
@@ -610,13 +593,9 @@ export default function MenuManagement() {
                             <span className="text-xs font-mono font-black text-emerald-600">
                               Rp {menu.price.toLocaleString("id-ID")}
                             </span>
-                            {(menu.originalPrice > menu.price ||
-                              menu.isPromo) && (
+                            {menu.originalPrice > menu.price && (
                               <span className="text-[10px] font-mono text-neutral-400 line-through">
-                                Rp{" "}
-                                {(
-                                  menu.originalPrice || menu.price * 1.25
-                                ).toLocaleString("id-ID")}
+                                Rp {menu.originalPrice.toLocaleString("id-ID")}
                               </span>
                             )}
                           </div>
@@ -672,11 +651,7 @@ export default function MenuManagement() {
                     {otherMenus.map((menu) => (
                       <div
                         key={menu._id}
-                        className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-md transition group relative ${
-                          menu.isPromo
-                            ? "border-amber-300 ring-1 ring-amber-200 bg-gradient-to-b from-amber-50/20 to-white"
-                            : "border-neutral-200/80"
-                        }`}
+                        className="bg-white border border-neutral-200/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-md transition group relative"
                       >
                         <div>
                           <div className="relative h-40 w-full bg-neutral-100 overflow-hidden">
@@ -712,12 +687,6 @@ export default function MenuManagement() {
                                 ></span>
                                 {menu.isAvailable ? "TERSEDIA" : "HABIS"}
                               </button>
-
-                              {menu.isPromo && (
-                                <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-500 text-white shadow-xs flex items-center gap-1">
-                                  <Zap className="w-3 h-3 fill-current" /> PROMO
-                                </span>
-                              )}
 
                               {menu.isBundle && (
                                 <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
@@ -878,12 +847,11 @@ export default function MenuManagement() {
                 <div>
                   <h3 className="text-base font-bold text-neutral-900">
                     {editingId
-                      ? "Edit Menu & Promo"
-                      : "Tambah Menu & Promo Baru"}
+                      ? "Edit Menu & Add-On"
+                      : "Tambah Menu & Add-On Baru"}
                   </h3>
                   <p className="text-xs text-neutral-500 mt-0.5">
-                    Lengkapi informasi produk, status promo, dan atur daftar
-                    add-on.
+                    Lengkapi informasi produk dan atur daftar add-on.
                   </p>
                 </div>
                 <button
@@ -990,26 +958,6 @@ export default function MenuManagement() {
                       </option>
                     ))}
                   </select>
-                </div>
-
-                {/* TOGGLE STATUS MENU PROMO */}
-                <div className="flex items-center justify-between bg-amber-50/50 p-3.5 rounded-2xl border border-amber-200/80">
-                  <div>
-                    <p className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                      <Zap className="w-4 h-4 text-amber-500 fill-current" />
-                      Jadikan Sebagai Menu Promo
-                    </p>
-                    <p className="text-[10px] text-neutral-500">
-                      Menu akan disorot khusus dengan lencana promo di halaman
-                      pelanggan.
-                    </p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={isPromo}
-                    onChange={(e) => setIsPromo(e.target.checked)}
-                    className="w-4 h-4 rounded cursor-pointer accent-amber-500"
-                  />
                 </div>
 
                 {/* TOGGLE & BUILDER FITUR ADD-ON */}

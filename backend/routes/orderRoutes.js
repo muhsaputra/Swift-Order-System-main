@@ -322,4 +322,27 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Endpoint untuk memanggil pelayan dari meja tertentu
+router.post("/call-waiter", async (req, res) => {
+  try {
+    const { tableNumber } = req.body;
+    const io = req.app.get("io");
+
+    if (io) {
+      // Broadcast event ke semua client/dashboard kasir
+      io.emit("call-waiter", {
+        tableNumber,
+        message: `Meja #${tableNumber} memanggil pelayan!`,
+        time: new Date(),
+      });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Pelayan berhasil dipanggil." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

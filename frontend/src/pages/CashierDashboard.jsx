@@ -183,6 +183,26 @@ export default function CashierDashboard() {
       playNotificationSound();
     });
 
+    // Tangkap event Panggilan Waiter dari Pelanggan
+    socket.on("call-waiter", (data) => {
+      playNotificationSound();
+      gooeyToast.warning(`🚨 PANGGILAN PELAYAN: ${data.message}`, {
+        displayDuration: 8000,
+      });
+
+      const waiterNotif = {
+        id: Date.now(),
+        title: `Panggilan Meja #${data.tableNumber}`,
+        message: data.message,
+        time: new Date(data.time || Date.now()).toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+
+      setNotifications((prev) => [waiterNotif, ...prev]);
+    });
+
     // Perbarui status atau tambahkan pesanan jika belum ada di state
     socket.on("order-updated", (updatedOrder) => {
       setOrders((prev) => {
@@ -767,7 +787,7 @@ export default function CashierDashboard() {
                     <div className="flex items-center gap-2">
                       <Bell className="w-4 h-4 text-neutral-900" />
                       <h4 className="text-xs font-bold text-neutral-900">
-                        Notifikasi Pesanan
+                        Notifikasi Pesanan & Panggilan
                       </h4>
                     </div>
                     {notifications.length > 0 && (

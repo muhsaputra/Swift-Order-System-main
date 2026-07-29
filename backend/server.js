@@ -18,7 +18,7 @@ const server = http.createServer(app);
 const allowedOrigins = [
   "http://localhost:5173",
   "https://swiftorderingsystemfrontend.vercel.app",
-  "swiftorder.space",
+  "https://www.swiftorder.space",
 ];
 
 const io = new Server(server, {

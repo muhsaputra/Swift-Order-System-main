@@ -41,15 +41,13 @@ router.post("/", async (req, res) => {
       paymentMethod,
     } = req.body;
 
-    // Tentukan paymentStatus awal berdasarkan metode pembayaran yang dipilih
-    // Jika 'cash', statusnya 'cash_pending'. Jika 'qris', statusnya 'pending'.
     const initialPaymentStatus =
       paymentMethod === "cash" ? "cash_pending" : "pending";
 
     const customOrderId = `SWIFT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     const newOrder = new Order({
-      orderId: customOrderId, // Simpan orderId kustom agar cocok dengan Midtrans / pencarian fleksibel
+      orderId: customOrderId,
       tableNumber,
       customerName,
       customerEmail,
@@ -67,21 +65,18 @@ router.post("/", async (req, res) => {
 
     const savedOrder = await newOrder.save();
 
-    // Jika metode pembayaran QRIS, buat simulasi QRIS / data QR
     if (savedOrder.paymentMethod === "qris") {
       savedOrder.qrisData = {
         qrString: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=SWIFT-PAY-${savedOrder._id}`,
-        expiredAt: new Date(Date.now() + 15 * 60 * 1000), // 15 menit
+        expiredAt: new Date(Date.now() + 15 * 60 * 1000),
       };
       await savedOrder.save();
     }
 
-    // Populate data menu dengan aman
     const populatedOrder = await Order.findById(savedOrder._id).populate(
       "items.menu",
     );
 
-    // Kirim notifikasi WhatsApp bahwa pesanan berhasil dibuat / diterima sistem
     if (customerPhone) {
       const welcomeMsg =
         `Halo *${customerName}*,\n\nTerima kasih telah memesan di Swift Order!\n` +
@@ -92,8 +87,6 @@ router.post("/", async (req, res) => {
       await sendWhatsAppMessage(customerPhone, welcomeMsg);
     }
 
-    // Kirim notifikasi realtime ke dashboard kasir HANYA JIKA metode pembayaran CASH.
-    // Untuk QRIS, notifikasi baru dikirim setelah pembayaran sukses terverifikasi di endpoint /pay.
     const io = req.app.get("io");
     if (io) {
       if (paymentMethod === "cash") {
@@ -108,18 +101,16 @@ router.post("/", async (req, res) => {
   }
 });
 
-// 2. Ambil Detail Pesanan berdasarkan ID (Mendukung _id MongoDB & String ID kustom/Midtrans)
+// 2. Ambil Detail Pesanan berdasarkan ID
 router.get("/:id", async (req, res) => {
   try {
     const identifier = req.params.id;
     let order = null;
 
-    // Cek apakah parameter berupa ObjectId MongoDB yang valid
     if (identifier && identifier.match(/^[0-9a-fA-F]{24}$/)) {
       order = await Order.findById(identifier).populate("items.menu");
     }
 
-    // Jika tidak ditemukan atau bukan ObjectId, cari berdasarkan string custom atau _id alternatif
     if (!order) {
       order = await Order.findOne({
         $or: [{ orderId: identifier }, { _id: identifier }],
@@ -137,18 +128,16 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// 3. Update Pembayaran / Webhook (Mendukung pencarian fleksibel ID MongoDB & Kustom)
+// 3. Update Pembayaran / Webhook
 router.patch("/:id/pay", async (req, res) => {
   try {
     const identifier = req.params.id;
     let order = null;
 
-    // Coba cari berdasarkan _id MongoDB terlebih dahulu jika formatnya valid
     if (identifier && identifier.match(/^[0-9a-fA-F]{24}$/)) {
       order = await Order.findById(identifier);
     }
 
-    // Jika tidak ketemu, cari berdasarkan orderId kustom atau string _id alternatif
     if (!order) {
       order = await Order.findOne({
         $or: [{ orderId: identifier }, { _id: identifier }],
@@ -162,10 +151,9 @@ router.patch("/:id/pay", async (req, res) => {
     }
 
     order.paymentStatus = "paid";
-    order.orderStatus = "processing"; // Masuk ke antrean proses kasir
+    order.orderStatus = "processing";
     const updatedOrder = await order.save();
 
-    // Update status meja menjadi terisi secara otomatis saat lunas
     await Table.findOneAndUpdate(
       { tableNumber: updatedOrder.tableNumber },
       { isOccupied: true, currentOrder: updatedOrder._id },
@@ -177,7 +165,6 @@ router.patch("/:id/pay", async (req, res) => {
 
     const io = req.app.get("io");
     if (io) {
-      // Pastikan memancarkan event 'order-updated' agar Dashboard Kasir langsung menangkapnya
       io.emit("order-updated", populatedOrder);
       io.emit("new-paid-order", populatedOrder);
     }
@@ -210,10 +197,9 @@ router.patch("/:id/pay-cash", async (req, res) => {
     }
 
     order.paymentStatus = "paid";
-    order.orderStatus = "processing"; // Lanjut diproses ke dapur
+    order.orderStatus = "processing";
     const updatedOrder = await order.save();
 
-    // Ubah status meja menjadi terisi
     await Table.findOneAndUpdate(
       { tableNumber: updatedOrder.tableNumber },
       { isOccupied: true, currentOrder: updatedOrder._id },
@@ -238,14 +224,13 @@ router.patch("/:id/pay-cash", async (req, res) => {
   }
 });
 
-// 4. Update Status Pesanan oleh Kasir (Dibuat publik / tanpa verifyToken agar tidak error 500 token)
-router.patch("/:id/status", async (req, res) => {
+// 4. Update Status Pesanan oleh Kasir (Dilengkapi Safe Fallback untuk toLocaleString)
+router.patch("/:id/status", verifyToken, async (req, res) => {
   try {
     const identifier = req.params.id;
-    const { status } = req.body; // Menerima status baru ("processing", "ready", "completed")
+    const { status } = req.body;
     let order = null;
 
-    // Pencarian fleksibel tanpa error crash tipe data ID
     if (identifier && identifier.match(/^[0-9a-fA-F]{24}$/)) {
       order = await Order.findById(identifier);
     }
@@ -260,10 +245,8 @@ router.patch("/:id/status", async (req, res) => {
       return res.status(404).json({ error: "Pesanan tidak ditemukan" });
     }
 
-    // Gunakan 'orderStatus' sesuai skema Mongoose
     order.orderStatus = status;
 
-    // Jika pesanan selesai/completed, kita bisa bebaskan mejanya kembali & kirim digital receipt
     if (status === "completed") {
       order.paymentStatus = "paid";
       await Table.findOneAndUpdate(
@@ -271,26 +254,31 @@ router.patch("/:id/status", async (req, res) => {
         { isOccupied: false, currentOrder: null },
       );
 
-      // Buat format Struk Digital (Digital Receipt)
       if (order.customerPhone) {
         let itemsList = (order.items || [])
-          .map(
-            (i) =>
-              `- Menu (${i.quantity}x) @Rp${(i.price || 0).toLocaleString("id-ID")}`,
-          )
+          .map((i) => {
+            const itemName = i.menu?.name || i.name || "Menu";
+            const itemPrice = Number(i.price || 0);
+            return `- ${itemName} (${i.quantity || 1}x) @Rp${itemPrice.toLocaleString("id-ID")}`;
+          })
           .join("\n");
+
+        const subtotalVal = Number(order.subtotal || order.totalAmount || 0);
+        const discountVal = Number(order.discountAmount || 0);
+        const serviceFeeVal = Number(order.serviceFee || 0);
+        const totalVal = Number(order.totalAmount || 0);
 
         const receiptMessage =
           `*STRUK DIGITAL SWIFT ORDER* 🧾\n\n` +
           `No Pesanan: #${order.orderId || order._id}\n` +
-          `Nama: ${order.customerName}\n` +
-          `Meja: ${order.tableNumber}\n` +
+          `Nama: ${order.customerName || "Pelanggan"}\n` +
+          `Meja: ${order.tableNumber || "-"}\n` +
           `Status: Selesai ✅\n\n` +
           `*Rincian Pesanan:*\n${itemsList}\n\n` +
-          `Subtotal: Rp${(order.subtotal || order.totalAmount || 0).toLocaleString("id-ID")}\n` +
-          `Diskon: Rp${(order.discountAmount || 0).toLocaleString("id-ID")}\n` +
-          `Biaya Layanan: Rp${(order.serviceFee || 0).toLocaleString("id-ID")}\n` +
-          `*Total Pembayaran: Rp${(order.totalAmount || 0).toLocaleString("id-ID")}*\n\n` +
+          `Subtotal: Rp${subtotalVal.toLocaleString("id-ID")}\n` +
+          `Diskon: Rp${discountVal.toLocaleString("id-ID")}\n` +
+          `Biaya Layanan: Rp${serviceFeeVal.toLocaleString("id-ID")}\n` +
+          `*Total Pembayaran: Rp${totalVal.toLocaleString("id-ID")}*\n\n` +
           `Terima kasih telah berkunjung ke Swift Order! 🙏`;
 
         await sendWhatsAppMessage(order.customerPhone, receiptMessage);
@@ -299,7 +287,6 @@ router.patch("/:id/status", async (req, res) => {
 
     const updatedOrder = await order.save();
 
-    // Populate dengan aman
     let populatedOrder = updatedOrder;
     try {
       populatedOrder = await Order.findById(updatedOrder._id).populate(
@@ -309,7 +296,6 @@ router.patch("/:id/status", async (req, res) => {
       console.warn("Warning populate menu:", popErr.message);
     }
 
-    // Broadcast ke client (HP Pelanggan & Dashboard)
     const io = req.app.get("io");
     if (io) {
       io.emit("order-status-updated", populatedOrder);
@@ -323,7 +309,7 @@ router.patch("/:id/status", async (req, res) => {
   }
 });
 
-// 5. Ambil semua pesanan untuk Dashboard Kasir (Dilengkapi Safe Populate)
+// 5. Ambil semua pesanan untuk Dashboard Kasir
 router.get("/", async (req, res) => {
   try {
     const orders = await Order.find()
@@ -342,7 +328,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 6. Endpoint untuk memanggil pelayan / bantuan dari meja (Mendukung pencarian fleksibel ID)
+// 6. Endpoint untuk memanggil pelayan / bantuan dari meja
 router.post("/:id/call-waiter", async (req, res) => {
   try {
     const identifier = req.params.id;

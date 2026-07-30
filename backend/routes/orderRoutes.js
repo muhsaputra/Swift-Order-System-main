@@ -209,6 +209,7 @@ router.patch("/:id/pay-cash", async (req, res) => {
       return res.status(404).json({ error: "Pesanan tidak ditemukan" });
     }
 
+    // test
     order.paymentStatus = "paid";
     order.orderStatus = "processing"; // Lanjut diproses ke dapur
     const updatedOrder = await order.save();

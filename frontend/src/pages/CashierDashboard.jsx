@@ -36,6 +36,7 @@ import {
   Phone,
   Mail,
   User,
+  Megaphone,
 } from "lucide-react";
 
 // Komponen Kecil untuk Handle Live Aging Timer per Card Pesanan
@@ -84,6 +85,9 @@ export default function CashierDashboard() {
 
   // State untuk Search & Filter Pesanan Aktif
   const [searchQuery, setSearchQuery] = useState("");
+
+  // State untuk melacak daftar nomor meja yang sedang memanggil pelayan secara real-time
+  const [waiterCalledTables, setWaiterCalledTables] = useState([]);
 
   // State untuk Riwayat Komprehensif (Seminggu Terakhir / Filter Tanggal)
   const [historyFilterDate, setHistoryFilterDate] = useState("");
@@ -189,6 +193,16 @@ export default function CashierDashboard() {
       gooeyToast.warning(`🚨 PANGGILAN PELAYAN: ${data.message}`, {
         displayDuration: 8000,
       });
+
+      // Tambahkan nomor meja ke state panggilan aktif jika belum ada
+      if (data.tableNumber) {
+        setWaiterCalledTables((prev) => {
+          if (!prev.includes(Number(data.tableNumber))) {
+            return [...prev, Number(data.tableNumber)];
+          }
+          return prev;
+        });
+      }
 
       const waiterNotif = {
         id: Date.now(),
@@ -318,6 +332,12 @@ export default function CashierDashboard() {
     setShowNotificationDropdown(false);
   };
 
+  // FUNGSI RESPON / SELESAIKAN PANGGILAN PELAYAN PADA MEJA TERTENTU
+  const handleResolveWaiterCall = (tableNum) => {
+    setWaiterCalledTables((prev) => prev.filter((t) => t !== Number(tableNum)));
+    gooeyToast.success(`Panggilan dari Meja #${tableNum} telah diselesaikan.`);
+  };
+
   // FUNGSI KONFIRMASI PEMBAYARAN TUNAI (CASH) OLEH KASIR
   const handleConfirmCashPayment = async (orderId) => {
     try {
@@ -363,6 +383,10 @@ export default function CashierDashboard() {
       } else if (nextStatus === "completed") {
         gooeyToast.success(
           `Pesanan Meja #${order.tableNumber} telah selesai (COMPLETED)! 🎉`,
+        );
+        // Bersihkan status panggilan pelayan jika meja ini selesai
+        setWaiterCalledTables((prev) =>
+          prev.filter((t) => t !== Number(order.tableNumber)),
         );
       }
     } catch (err) {
@@ -1057,14 +1081,19 @@ export default function CashierDashboard() {
                       {filteredActiveOrders.map((order, index) => {
                         const isCashPending =
                           order.paymentStatus === "cash_pending";
+                        const isCallingWaiter = waiterCalledTables.includes(
+                          Number(order.tableNumber),
+                        );
 
                         return (
                           <div
                             key={order._id}
                             className={`bg-white border p-6 rounded-3xl flex flex-col justify-between space-y-6 shadow-2xs hover:shadow-md transition relative overflow-hidden ${
-                              isCashPending
-                                ? "border-amber-300 bg-amber-50/10"
-                                : "border-neutral-200/80"
+                              isCallingWaiter
+                                ? "border-red-400 ring-2 ring-red-400/30 bg-red-50/10"
+                                : isCashPending
+                                  ? "border-amber-300 bg-amber-50/10"
+                                  : "border-neutral-200/80"
                             }`}
                           >
                             <div className="absolute top-0 right-0 bg-neutral-900 text-white px-3 py-1 rounded-bl-2xl text-[10px] font-black font-mono">
@@ -1120,6 +1149,34 @@ export default function CashierDashboard() {
                                   </button>
                                 </div>
                               </div>
+
+                              {/* NOTIFIKASI PANGGILAN PELAYAN KHUSUS UNTUK MEJA INI */}
+                              {isCallingWaiter && (
+                                <div className="mb-4 bg-red-500 text-white p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md animate-pulse">
+                                  <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                                      <Megaphone className="w-4 h-4 text-white animate-bounce" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-black uppercase tracking-wide">
+                                        Panggilan Bantuan Pelanggan!
+                                      </p>
+                                      <p className="text-[11px] text-red-100 font-medium">
+                                        Pelanggan di Meja #{order.tableNumber}{" "}
+                                        memanggil pelayan.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      handleResolveWaiterCall(order.tableNumber)
+                                    }
+                                    className="bg-white text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl text-[11px] font-black transition shadow-xs cursor-pointer whitespace-nowrap"
+                                  >
+                                    Selesai / Respon
+                                  </button>
+                                </div>
+                              )}
 
                               <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
                                 <OrderTimer

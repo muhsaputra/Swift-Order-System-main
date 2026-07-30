@@ -111,10 +111,10 @@ export default function CashierDashboard() {
   const [showNotificationDropdown, setShowNotificationDropdown] =
     useState(false);
 
-  // State untuk Data Profil Kasir
+  // State untuk Data Profil Kasir (Dinamis dari localStorage)
   const [cashierProfile, setCashierProfile] = useState({
-    name: "Putra Cashier",
-    role: "Senior Cashier & Ops",
+    name: "Kasir",
+    role: "Cashier",
     avatar: "",
   });
 
@@ -122,6 +122,23 @@ export default function CashierDashboard() {
     fetchOrders();
     fetchMenus();
     fetchCoupons();
+
+    // Ambil data profil user/kasir yang sedang aktif login dari localStorage
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser) {
+          setCashierProfile({
+            name: parsedUser.name || parsedUser.username || "Kasir",
+            role: parsedUser.role || "Cashier",
+            avatar: parsedUser.avatar || "",
+          });
+        }
+      } catch (err) {
+        console.error("Gagal memparsing data user dari localStorage", err);
+      }
+    }
 
     const socket = io("https://api.swiftorder.space", {
       transports: ["websocket", "polling"],

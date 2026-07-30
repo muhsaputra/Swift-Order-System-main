@@ -67,7 +67,7 @@ app.use("/api/categories", categoryRoutes);
 io.on("connection", (socket) => {
   console.log("Client terhubung via Socket:", socket.id);
 
-  // Jika Anda ingin client join room berdasarkan order tertentu
+  // Client join room berdasarkan order tertentu
   socket.on("join-order", (orderId) => {
     socket.join(orderId);
   });

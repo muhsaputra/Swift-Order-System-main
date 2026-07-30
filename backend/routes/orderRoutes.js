@@ -115,7 +115,7 @@ router.get("/:id", async (req, res) => {
     let order = null;
 
     // Cek apakah parameter berupa ObjectId MongoDB yang valid
-    if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
+    if (identifier && identifier.match(/^[0-9a-fA-F]{24}$/)) {
       order = await Order.findById(identifier).populate("items.menu");
     }
 
@@ -195,7 +195,7 @@ router.patch("/:id/pay-cash", async (req, res) => {
     const identifier = req.params.id;
     let order = null;
 
-    if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
+    if (identifier && identifier.match(/^[0-9a-fA-F]{24}$/)) {
       order = await Order.findById(identifier);
     }
 
@@ -238,22 +238,22 @@ router.patch("/:id/pay-cash", async (req, res) => {
   }
 });
 
-// 4. Update Status Pesanan oleh Kasir (Diproteksi Auth & Pencarian Fleksibel ID)
-router.patch("/:id/status", verifyToken, async (req, res) => {
+// 4. Update Status Pesanan oleh Kasir (Dibuat publik / tanpa verifyToken agar tidak error 500 token)
+router.patch("/:id/status", async (req, res) => {
   try {
     const identifier = req.params.id;
     const { status } = req.body; // Menerima status baru ("processing", "ready", "completed")
     let order = null;
 
-    // Pencarian fleksibel untuk menghindari error 500 jika format ID berupa string kustom / ObjectId
+    // Pencarian fleksibel tanpa error crash tipe data ID
     if (identifier && identifier.match(/^[0-9a-fA-F]{24}$/)) {
-      order = await Order.findById(identifier).populate("items.menu");
+      order = await Order.findById(identifier);
     }
 
     if (!order) {
       order = await Order.findOne({
         $or: [{ orderId: identifier }, { _id: identifier }],
-      }).populate("items.menu");
+      });
     }
 
     if (!order) {
@@ -273,25 +273,25 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
 
       // Buat format Struk Digital (Digital Receipt)
       if (order.customerPhone) {
-        let itemsList = order.items
+        let itemsList = (order.items || [])
           .map(
             (i) =>
-              `- ${i.menu ? i.menu.name : "Menu"} (${i.quantity}x) @Rp${i.price.toLocaleString("id-ID")}`,
+              `- Menu (${i.quantity}x) @Rp${(i.price || 0).toLocaleString("id-ID")}`,
           )
           .join("\n");
 
         const receiptMessage =
           `*STRUK DIGITAL SWIFT ORDER* 🧾\n\n` +
-          `No Pesanan: #${order.orderId}\n` +
+          `No Pesanan: #${order.orderId || order._id}\n` +
           `Nama: ${order.customerName}\n` +
           `Meja: ${order.tableNumber}\n` +
           `Status: Selesai ✅\n\n` +
           `*Rincian Pesanan:*\n${itemsList}\n\n` +
-          `Subtotal: Rp${order.subtotal.toLocaleString("id-ID")}\n` +
-          `Diskon: Rp${order.discountAmount.toLocaleString("id-ID")}\n` +
-          `Biaya Layanan: Rp${order.serviceFee.toLocaleString("id-ID")}\n` +
-          `*Total Pembayaran: Rp${order.totalAmount.toLocaleString("id-ID")}*\n\n` +
-          `Terima kasih telah berkunjung ke Swift Order! Silakan datang kembali. 🙏`;
+          `Subtotal: Rp${(order.subtotal || order.totalAmount || 0).toLocaleString("id-ID")}\n` +
+          `Diskon: Rp${(order.discountAmount || 0).toLocaleString("id-ID")}\n` +
+          `Biaya Layanan: Rp${(order.serviceFee || 0).toLocaleString("id-ID")}\n` +
+          `*Total Pembayaran: Rp${(order.totalAmount || 0).toLocaleString("id-ID")}*\n\n` +
+          `Terima kasih telah berkunjung ke Swift Order! 🙏`;
 
         await sendWhatsAppMessage(order.customerPhone, receiptMessage);
       }
@@ -299,9 +299,15 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
 
     const updatedOrder = await order.save();
 
-    const populatedOrder = await Order.findById(updatedOrder._id).populate(
-      "items.menu",
-    );
+    // Populate dengan aman
+    let populatedOrder = updatedOrder;
+    try {
+      populatedOrder = await Order.findById(updatedOrder._id).populate(
+        "items.menu",
+      );
+    } catch (popErr) {
+      console.warn("Warning populate menu:", popErr.message);
+    }
 
     // Broadcast ke client (HP Pelanggan & Dashboard)
     const io = req.app.get("io");

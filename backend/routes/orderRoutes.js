@@ -209,7 +209,6 @@ router.patch("/:id/pay-cash", async (req, res) => {
       return res.status(404).json({ error: "Pesanan tidak ditemukan" });
     }
 
-    // test
     order.paymentStatus = "paid";
     order.orderStatus = "processing"; // Lanjut diproses ke dapur
     const updatedOrder = await order.save();
@@ -239,13 +238,27 @@ router.patch("/:id/pay-cash", async (req, res) => {
   }
 });
 
-// 4. Update Status Pesanan oleh Kasir (Diproteksi Auth)
+// 4. Update Status Pesanan oleh Kasir (Diproteksi Auth & Pencarian Fleksibel ID)
 router.patch("/:id/status", verifyToken, async (req, res) => {
   try {
+    const identifier = req.params.id;
     const { status } = req.body; // Menerima status baru ("processing", "ready", "completed")
-    const order = await Order.findById(req.params.id).populate("items.menu");
-    if (!order)
+    let order = null;
+
+    // Pencarian fleksibel untuk menghindari error 500 jika format ID berupa string kustom / ObjectId
+    if (identifier && identifier.match(/^[0-9a-fA-F]{24}$/)) {
+      order = await Order.findById(identifier).populate("items.menu");
+    }
+
+    if (!order) {
+      order = await Order.findOne({
+        $or: [{ orderId: identifier }, { _id: identifier }],
+      }).populate("items.menu");
+    }
+
+    if (!order) {
       return res.status(404).json({ error: "Pesanan tidak ditemukan" });
+    }
 
     // Gunakan 'orderStatus' sesuai skema Mongoose
     order.orderStatus = status;

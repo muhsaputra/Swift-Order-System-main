@@ -13,6 +13,7 @@ import CashierDashboard from "./pages/CashierDashboard";
 import MenuManagement from "./pages/MenuManagement";
 import TableManagement from "./pages/TableManagement";
 import TransactionHistory from "./pages/TransactionHistory";
+import AdminProfile from "./pages/AdminProfile"; // Komponen profil admin yang baru
 import ClientOrderPage from "./pages/ClientOrderPage";
 import ClientPaymentPage from "./pages/ClientPaymentPage";
 import ClientWaitingPage from "./pages/ClientWaitingPage";
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="menu" element={<MenuManagement />} />
           <Route path="tables" element={<TableManagement />} />
           <Route path="history" element={<TransactionHistory />} />
+          <Route path="profile" element={<AdminProfile />} />
         </Route>
 
         <Route path="/order-history" element={<ClientOrderHistory />} />

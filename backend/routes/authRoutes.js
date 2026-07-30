@@ -2,17 +2,23 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const { JWT_SECRET, verifyToken } = require("../middleware/auth");
 
 // 1. Register Kasir Pertama (Opsional/Helper untuk setup akun)
 router.post("/register", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, name } = req.body;
     const existingUser = await User.findOne({ username });
     if (existingUser)
       return res.status(400).json({ error: "Username sudah terdaftar" });
 
-    const newUser = new User({ username, password, role: "cashier" });
+    const newUser = new User({
+      username,
+      password,
+      name: name || username,
+      role: "cashier",
+    });
     await newUser.save();
     res.status(201).json({ message: "Akun kasir berhasil dibuat" });
   } catch (err) {
@@ -41,7 +47,7 @@ router.post("/login", async (req, res) => {
     res.json({
       message: "Login berhasil",
       token,
-      user: { username: user.username, role: user.role },
+      user: { username: user.username, role: user.role, name: user.name },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -54,6 +60,55 @@ router.get("/verify", verifyToken, (req, res) => {
     valid: true,
     user: req.user,
   });
+});
+
+// 4. Ambil Profil Admin/Kasir yang sedang login
+router.get("/profile", verifyToken, async (req, res) => {
+  try {
+    const userId = req.id || req.user?.id;
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.error("Error GET /profile:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 5. Update Profil Admin/Kasir (Nama, Username, atau Password opsional)
+router.put("/profile", verifyToken, async (req, res) => {
+  try {
+    const userId = req.id || req.user?.id;
+    const { username, name, password } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+    }
+
+    if (username) user.username = username;
+    if (name) user.name = name;
+
+    if (password && password.trim() !== "") {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    const updatedUser = await user.save();
+
+    const userResponse = updatedUser.toObject();
+    delete userResponse.password;
+
+    res.status(200).json({
+      message: "Profil berhasil diperbarui",
+      admin: userResponse,
+    });
+  } catch (err) {
+    console.error("Error PUT /profile:", err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

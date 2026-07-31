@@ -85,7 +85,6 @@ function OrderTimer({ createdAt }) {
 
 export default function CashierDashboard() {
   const [orders, setOrders] = useState([]);
-  const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState("active-orders");
@@ -102,23 +101,15 @@ export default function CashierDashboard() {
     const params = new URLSearchParams(location.search);
     const tab = params.get("tab");
 
-    if (tab === "walk-in") {
-      setActiveTab("pos-order");
-    } else if (tab === "coupons") {
+    if (tab === "coupons") {
       setActiveTab("coupons");
       fetchCoupons();
     } else if (tab === "history") {
       setActiveTab("history");
-    } else if (!tab) {
+    } else if (!tab || tab === "walk-in") {
       setActiveTab("active-orders");
     }
   }, [location.search]);
-
-  // POS Order Manual State
-  const [customerName, setCustomerName] = useState("");
-  const [tableNumber, setTableNumber] = useState("");
-  const [cart, setCart] = useState([]);
-  const [submittingOrder, setSubmittingOrder] = useState(false);
 
   // Kupon State
   const [coupons, setCoupons] = useState([]);
@@ -142,7 +133,6 @@ export default function CashierDashboard() {
 
   useEffect(() => {
     fetchOrders();
-    fetchMenus();
     fetchCoupons();
 
     const storedUser = localStorage.getItem("user");
@@ -161,7 +151,6 @@ export default function CashierDashboard() {
       }
     }
 
-    // PERBAIKAN: Otomatis memotong /api dari env agar terhubung ke root server socket dengan stabil
     const SOCKET_URL = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace(/\/api$/, "")
       : "http://localhost:5001";
@@ -309,16 +298,6 @@ export default function CashierDashboard() {
     }
   };
 
-  const fetchMenus = async () => {
-    try {
-      const res = await API.get("/menus");
-      const availableMenus = res.data.filter((m) => m.isAvailable);
-      setMenus(availableMenus);
-    } catch (err) {
-      console.error("Gagal memuat menu katalog", err);
-    }
-  };
-
   const fetchCoupons = async () => {
     try {
       const res = await API.get("/coupons");
@@ -428,109 +407,6 @@ export default function CashierDashboard() {
     } catch (err) {
       console.error("Gagal memperbarui status pesanan", err);
       gooeyToast.error("Gagal memperbarui status pesanan.");
-    }
-  };
-
-  const handleAddToCart = (menu) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.menuId === menu._id);
-      if (existing) {
-        return prev.map((item) =>
-          item.menuId === menu._id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
-      }
-      return [
-        ...prev,
-        {
-          menuId: menu._id,
-          name: menu.name,
-          price: menu.price,
-          quantity: 1,
-        },
-      ];
-    });
-    gooeyToast.info(`${menu.name} ditambahkan ke POS Cart`, {
-      displayDuration: 1500,
-    });
-  };
-
-  const handleUpdateCartQty = (menuId, delta) => {
-    setCart((prev) => {
-      return prev
-        .map((item) => {
-          if (item.menuId === menuId) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
-          }
-          return item;
-        })
-        .filter(Boolean);
-    });
-  };
-
-  const calculateCartSubtotal = () =>
-    cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const calculateCartTotal = () => {
-    const subtotal = calculateCartSubtotal();
-    const serviceFee = subtotal * 0.05;
-    return subtotal + serviceFee;
-  };
-
-  const handleSubmitManualOrder = async (e) => {
-    e.preventDefault();
-    if (submittingOrder) return;
-
-    if (cart.length === 0) {
-      gooeyToast.warning("Keranjang pesanan masih kosong.");
-      return;
-    }
-    if (!customerName || !tableNumber) {
-      gooeyToast.warning("Nama pelanggan dan nomor meja wajib diisi.");
-      return;
-    }
-
-    setSubmittingOrder(true);
-    try {
-      const subtotal = calculateCartSubtotal();
-      const serviceFee = subtotal * 0.05;
-      const totalAmount = subtotal + serviceFee;
-
-      const payload = {
-        customerName,
-        tableNumber: Number(tableNumber),
-        items: cart.map((item) => ({
-          menu: item.menuId,
-          quantity: item.quantity,
-          selectedBundleChoices: item.selectedBundleChoices || {},
-        })),
-        subtotal,
-        serviceFee,
-        totalAmount,
-        orderStatus: "processing",
-        paymentMethod: "cash",
-        paymentStatus: "paid",
-      };
-
-      const res = await API.post("/orders", payload);
-
-      setOrders((prev) => {
-        const exists = prev.some((ord) => ord._id === res.data._id);
-        if (exists) return prev;
-        return [res.data, ...prev];
-      });
-
-      setCustomerName("");
-      setTableNumber("");
-      setCart([]);
-      setActiveTab("active-orders");
-      gooeyToast.success("Pesanan manual POS berhasil dibuat!");
-    } catch (err) {
-      console.error("Gagal membuat pesanan manual", err);
-      gooeyToast.error("Gagal membuat pesanan.");
-    } finally {
-      setSubmittingOrder(false);
     }
   };
 
@@ -889,7 +765,7 @@ export default function CashierDashboard() {
           </div>
         </header>
 
-        {/* TAB NAVIGASI */}
+        {/* TAB NAVIGASI (Tab POS / Walk-in Dihapus) */}
         <div className="flex items-center gap-2 border-b border-neutral-200 pb-4 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab("active-orders")}
@@ -900,16 +776,6 @@ export default function CashierDashboard() {
             }`}
           >
             Antrean Pesanan Aktif ({activeOrders.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("pos-order")}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs ${
-              activeTab === "pos-order"
-                ? "bg-neutral-900 text-white"
-                : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
-            }`}
-          >
-            + Input Pesanan Walk-in / Telepon
           </button>
           <button
             onClick={() => {
@@ -1331,208 +1197,6 @@ export default function CashierDashboard() {
                     </div>
                   )}
                 </section>
-              </div>
-            )}
-
-            {/* TAB 2: POS MODE INPUT ORDER */}
-            {activeTab === "pos-order" && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
-                <div className="lg:col-span-2 space-y-6">
-                  <div>
-                    <h3 className="text-lg font-extrabold text-neutral-900">
-                      Katalog Menu Kasir (POS Mode)
-                    </h3>
-                    <p className="text-xs text-neutral-500">
-                      Klik produk untuk memasukkannya ke keranjang pesanan
-                      pelanggan.
-                    </p>
-                  </div>
-
-                  {menus.length === 0 ? (
-                    <div className="text-center py-16 bg-white border border-neutral-200 rounded-3xl p-8">
-                      <p className="text-sm font-bold text-neutral-700">
-                        Tidak ada menu yang tersedia saat ini.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {menus.map((menu) => (
-                        <div
-                          key={menu._id}
-                          onClick={() => handleAddToCart(menu)}
-                          className="bg-white border border-neutral-200/80 hover:border-neutral-900 p-4 rounded-3xl shadow-2xs hover:shadow-md transition cursor-pointer flex items-center gap-4 group"
-                        >
-                          <div className="w-16 h-16 rounded-2xl bg-neutral-100 overflow-hidden shrink-0">
-                            {menu.image ? (
-                              <img
-                                src={menu.image}
-                                alt={menu.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-[10px] text-neutral-400">
-                                No Image
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                              {menu.category}
-                            </span>
-                            <h4 className="text-xs font-bold text-neutral-900 truncate">
-                              {menu.name}
-                            </h4>
-                            <p className="text-xs font-mono font-black text-emerald-600 mt-1">
-                              Rp {menu.price.toLocaleString("id-ID")}
-                            </p>
-                          </div>
-                          <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-2xs group-hover:bg-emerald-600 transition">
-                            <Plus className="w-4 h-4" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-6 self-start">
-                  <div>
-                    <h3 className="text-base font-bold text-neutral-900">
-                      Keranjang Pesanan Kasir
-                    </h3>
-                    <p className="text-xs text-neutral-500">
-                      Rincian pesanan pelanggan langsung.
-                    </p>
-                  </div>
-
-                  <form
-                    onSubmit={handleSubmitManualOrder}
-                    className="space-y-4"
-                  >
-                    <div>
-                      <label className="block text-xs font-bold text-neutral-700 mb-1">
-                        Nama Pelanggan
-                      </label>
-                      <input
-                        type="text"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        required
-                        placeholder="Contoh: Budi Santoso"
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-medium"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-neutral-700 mb-1">
-                        Nomor Meja
-                      </label>
-                      <input
-                        type="number"
-                        value={tableNumber}
-                        onChange={(e) => setTableNumber(e.target.value)}
-                        required
-                        placeholder="Contoh: 5"
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-medium"
-                      />
-                    </div>
-
-                    <div className="space-y-2 pt-2">
-                      <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block">
-                        Item Terpilih ({cart.length})
-                      </span>
-                      {cart.length === 0 ? (
-                        <div className="text-center py-8 bg-neutral-50 rounded-2xl border border-dashed border-neutral-200 text-xs text-neutral-400">
-                          Belum ada menu dipilih.
-                        </div>
-                      ) : (
-                        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                          {cart.map((item) => (
-                            <div
-                              key={item.menuId}
-                              className="bg-neutral-50 p-3 rounded-2xl border border-neutral-100 flex items-center justify-between gap-2 text-xs"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <p className="font-bold text-neutral-900 truncate">
-                                  {item.name}
-                                </p>
-                                <p className="text-[10px] font-mono text-neutral-500">
-                                  Rp {item.price.toLocaleString("id-ID")}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleUpdateCartQty(item.menuId, -1)
-                                  }
-                                  className="w-6 h-6 rounded-lg bg-neutral-200 text-neutral-700 font-bold flex items-center justify-center cursor-pointer"
-                                >
-                                  -
-                                </button>
-                                <span className="font-mono font-bold text-xs w-4 text-center">
-                                  {item.quantity}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleUpdateCartQty(item.menuId, 1)
-                                  }
-                                  className="w-6 h-6 rounded-lg bg-neutral-900 text-white font-bold flex items-center justify-center cursor-pointer"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="pt-4 border-t border-neutral-100 space-y-2 text-xs">
-                      <div className="flex justify-between items-center text-neutral-500">
-                        <span>Subtotal</span>
-                        <span className="font-mono font-bold text-neutral-900">
-                          Rp {calculateCartSubtotal().toLocaleString("id-ID")}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-neutral-500">
-                        <span>Biaya Layanan (Service 5%)</span>
-                        <span className="font-mono font-bold text-neutral-900">
-                          Rp{" "}
-                          {(calculateCartSubtotal() * 0.05).toLocaleString(
-                            "id-ID",
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-base font-extrabold text-neutral-900 pt-2 border-t border-dashed border-neutral-200">
-                        <span>Total Tagihan</span>
-                        <span className="font-mono text-emerald-600 font-black">
-                          Rp {calculateCartTotal().toLocaleString("id-ID")}
-                        </span>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={submittingOrder || cart.length === 0}
-                        className={`w-full py-3 rounded-2xl text-xs font-bold transition shadow-2xs mt-3 flex items-center justify-center gap-2 ${
-                          submittingOrder || cart.length === 0
-                            ? "bg-neutral-300 text-neutral-500 cursor-not-allowed"
-                            : "bg-neutral-900 hover:bg-neutral-800 text-white cursor-pointer shadow-md"
-                        }`}
-                      >
-                        {submittingOrder && (
-                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        )}
-                        <span>
-                          {submittingOrder
-                            ? "Memproses Pesanan..."
-                            : "Buat Pesanan & Proses"}
-                        </span>
-                      </button>
-                    </div>
-                  </form>
-                </div>
               </div>
             )}
 

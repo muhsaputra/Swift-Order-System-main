@@ -239,15 +239,15 @@ export default function DashboardLayout() {
               </button>
 
               <button
-                onClick={() => navigate("/dashboard/transaction-history")}
+                onClick={() => navigate("/dashboard/history")}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/dashboard/transaction-history")
+                  isActive("/dashboard/history")
                     ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
                     : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
                 }`}
               >
                 <History
-                  className={`w-4 h-4 ${isActive("/dashboard/transaction-history") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                  className={`w-4 h-4 ${isActive("/dashboard/history") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
                 />
                 <span>Arsip Transaksi</span>
               </button>

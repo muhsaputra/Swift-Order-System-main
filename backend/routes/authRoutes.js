@@ -134,12 +134,12 @@ router.put("/profile", verifyToken, async (req, res) => {
     if (username) user.username = username;
     if (name) user.name = name;
 
-    // Enkripsi password baru secara aman jika diisi
+    // Cukup assign password baru secara langsung.
+    // Middleware pre-save di User.js model akan otomatis meng-hash-nya secara aman.
     if (password && password.trim() !== "") {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
+      user.password = password;
       console.log(
-        `[PROFILE UPDATE] Password berhasil di-hash baru: ${user.password}`,
+        `[PROFILE UPDATE] Password baru disetel untuk di-hash oleh model.`,
       );
     }
 

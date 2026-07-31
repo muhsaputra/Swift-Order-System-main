@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Middleware pre-save untuk otomatis meng-hash password saat disimpan atau diubah
+// Middleware pre-save untuk otomatis meng-hash password saat disimpan/diubah
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(10);

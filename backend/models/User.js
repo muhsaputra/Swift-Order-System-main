@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  name: { type: String, required: true }, // Ditambahkan agar data nama kasir ikut tersimpan
   role: {
     type: String,
     enum: ["cashier", "owner"],

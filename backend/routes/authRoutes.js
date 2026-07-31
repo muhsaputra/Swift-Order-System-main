@@ -14,6 +14,8 @@ const verifyToken = authMiddleware.verifyToken || authMiddleware;
 router.post("/register", async (req, res) => {
   try {
     const { username, password, name } = req.body;
+    console.log(`\n--- [DEBUG POST /register] ---`);
+    console.log(`Mencoba register - Username: "${username}"`);
 
     if (!username || !password) {
       return res
@@ -33,6 +35,7 @@ router.post("/register", async (req, res) => {
     });
 
     await newUser.save();
+    console.log(`[DEBUG REGISTER] Berhasil menyimpan user baru ke DB.`);
     return res.status(201).json({ message: "Akun kasir berhasil dibuat" });
   } catch (err) {
     console.error("DEBUG ERROR REGISTER:", err);
@@ -44,8 +47,9 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log(`\n--- [DEBUG POST /login] ---`);
     console.log(
-      `[LOGIN DEBUG] Mencoba masuk - Username: "${username}", Password input: "${password}"`,
+      `Mencoba masuk - Username: "${username}", Password input mentah: "${password}"`,
     );
 
     if (!username || !password) {
@@ -56,20 +60,17 @@ router.post("/login", async (req, res) => {
 
     const user = await User.findOne({ username });
     if (!user) {
-      console.log(
-        `[LOGIN DEBUG] User "${username}" tidak ditemukan di database.`,
-      );
+      console.log(`[DEBUG LOGIN] User "${username}" tidak ditemukan.`);
       return res.status(404).json({ error: "Akun tidak ditemukan" });
     }
 
     console.log(
-      `[LOGIN DEBUG] User ditemukan. Hash password di DB: ${user.password}`,
+      `[DEBUG LOGIN] User ditemukan. Hash password di DB: ${user.password}`,
     );
 
     const isMatch = await user.comparePassword(password);
     console.log(
-      `[LOGIN DEBUG] Hasil perbandingan password (isMatch):`,
-      isMatch,
+      `[DEBUG LOGIN] Hasil perbandingan password (isMatch): ${isMatch}`,
     );
 
     if (!isMatch) {
@@ -122,8 +123,11 @@ router.put("/profile", verifyToken, async (req, res) => {
   try {
     const userId = req.id || req.user?.id;
     const { username, name, password } = req.body;
+
+    console.log(`\n--- [DEBUG PUT /profile] ---`);
+    console.log(`User ID: ${userId}`);
     console.log(
-      `[PROFILE UPDATE] Menerima request update untuk ID: ${userId}, password baru terisi: ${Boolean(password)}`,
+      `Payload diterima - username: "${username}", name: "${name}", password field exists: ${Boolean(password)}, password length: ${password ? password.length : 0}`,
     );
 
     const user = await User.findById(userId);
@@ -134,16 +138,18 @@ router.put("/profile", verifyToken, async (req, res) => {
     if (username) user.username = username;
     if (name) user.name = name;
 
-    // Cukup assign password baru secara langsung.
-    // Middleware pre-save di User.js model akan otomatis meng-hash-nya secara aman.
+    // Set password mentah, biarkan pre("save") di model User.js yang meng-hash-nya
     if (password && password.trim() !== "") {
       user.password = password;
       console.log(
-        `[PROFILE UPDATE] Password baru disetel untuk di-hash oleh model.`,
+        `[DEBUG PUT /profile] Password baru di-set ke instance user, siap di-save.`,
       );
     }
 
     const updatedUser = await user.save();
+    console.log(
+      `[DEBUG PUT /profile] Berhasil save. Hash password baru di DB: ${updatedUser.password}`,
+    );
 
     const userResponse = updatedUser.toObject();
     delete userResponse.password;
@@ -153,7 +159,7 @@ router.put("/profile", verifyToken, async (req, res) => {
       admin: userResponse,
     });
   } catch (err) {
-    console.error("Error PUT /profile:", err.message);
+    console.error("Error PUT /profile:", err);
     return res.status(500).json({ error: err.message });
   }
 });

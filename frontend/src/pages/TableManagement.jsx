@@ -19,7 +19,6 @@ import {
   X,
   ZoomIn,
   ZoomOut,
-  RotateCcw,
 } from "lucide-react";
 import jsPDF from "jspdf";
 
@@ -747,7 +746,7 @@ export default function TableManagement() {
                 </button>
                 <button
                   type="button"
-                  onClick={(confirmDeleteText = confirmDeleteTable)}
+                  onClick={confirmDeleteTable}
                   className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
                 >
                   Ya, Hapus

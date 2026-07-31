@@ -3,12 +3,24 @@ const router = express.Router();
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const { JWT_SECRET, verifyToken } = require("../middleware/auth");
+
+// Pastikan file middleware/auth.js mengekspor objek yang sesuai
+const authMiddleware = require("../middleware/auth");
+const JWT_SECRET =
+  authMiddleware.JWT_SECRET || process.env.JWT_SECRET || "fallback_secret_key";
+const verifyToken = authMiddleware.verifyToken || authMiddleware;
 
 // 1. Register Kasir Pertama (Opsional/Helper untuk setup akun)
 router.post("/register", async (req, res) => {
   try {
     const { username, password, name } = req.body;
+
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username dan password wajib diisi" });
+    }
+
     const existingUser = await User.findOne({ username });
     if (existingUser)
       return res.status(400).json({ error: "Username sudah terdaftar" });
@@ -19,11 +31,12 @@ router.post("/register", async (req, res) => {
       name: name || username,
       role: "cashier",
     });
+
     await newUser.save();
-    res.status(201).json({ message: "Akun kasir berhasil dibuat" });
+    return res.status(201).json({ message: "Akun kasir berhasil dibuat" });
   } catch (err) {
     console.error("DEBUG ERROR REGISTER:", err);
-    res.status(500).json({ error: err.message, stack: err.stack });
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -31,11 +44,22 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username dan password wajib diisi" });
+    }
+
     const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ error: "Akun tidak ditemukan" });
+    if (!user) {
+      return res.status(404).json({ error: "Akun tidak ditemukan" });
+    }
 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(400).json({ error: "Password salah" });
+    if (!isMatch) {
+      return res.status(400).json({ error: "Password salah" });
+    }
 
     // Buat JWT Token berlaku selama 1 hari
     const token = jwt.sign(
@@ -44,19 +68,20 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1d" },
     );
 
-    res.json({
+    return res.status(200).json({
       message: "Login berhasil",
       token,
       user: { username: user.username, role: user.role, name: user.name },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("DEBUG ERROR LOGIN:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
 // 3. Verifikasi Token (Digunakan Frontend untuk Cek Sesi Login Kasir)
 router.get("/verify", verifyToken, (req, res) => {
-  res.json({
+  return res.status(200).json({
     valid: true,
     user: req.user,
   });
@@ -70,10 +95,10 @@ router.get("/profile", verifyToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "Pengguna tidak ditemukan" });
     }
-    res.status(200).json(user);
+    return res.status(200).json(user);
   } catch (err) {
     console.error("Error GET /profile:", err.message);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -101,13 +126,13 @@ router.put("/profile", verifyToken, async (req, res) => {
     const userResponse = updatedUser.toObject();
     delete userResponse.password;
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Profil berhasil diperbarui",
       admin: userResponse,
     });
   } catch (err) {
     console.error("Error PUT /profile:", err.message);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 

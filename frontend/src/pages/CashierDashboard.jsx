@@ -20,6 +20,7 @@ import {
   Megaphone,
   Phone,
   Mail,
+  Layers,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -562,7 +563,7 @@ export default function CashierDashboard() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 space-y-8">
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 space-y-10">
         {/* HEADER NOTIFIKASI & KONTROL */}
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-neutral-200/80 gap-4">
           <div>
@@ -570,7 +571,8 @@ export default function CashierDashboard() {
               Panel Manajemen Transaksi
             </h2>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Pantau antrean pesanan aktif dan status operasional dapur.
+              Pantau antrean pesanan aktif dan status operasional dapur secara
+              langsung.
             </p>
           </div>
 
@@ -663,112 +665,28 @@ export default function CashierDashboard() {
             </p>
           </div>
         ) : (
-          <div className="space-y-8 animate-fadeIn">
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
-                <div className="flex justify-between items-center text-neutral-400">
-                  <span className="text-xs font-bold uppercase tracking-wider">
-                    Total Pendapatan Hari Ini
-                  </span>
-                  <TrendingUp className="w-5 h-5 text-emerald-600" />
-                </div>
-                <h3 className="text-2xl font-black font-mono text-neutral-900">
-                  Rp {totalRevenue.toLocaleString("id-ID")}
-                </h3>
-                <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                  Akumulasi dari {completedOrdersToday.length} pesanan selesai
-                  hari ini
-                </p>
-              </div>
-
-              <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
-                <div className="flex justify-between items-center text-neutral-400">
-                  <span className="text-xs font-bold uppercase tracking-wider">
-                    Pesanan Aktif
-                  </span>
-                  <Clock className="w-5 h-5 text-amber-600" />
-                </div>
-                <h3 className="text-2xl font-black font-mono text-neutral-900">
-                  {activeOrders.length}{" "}
-                  <span className="text-sm font-normal text-neutral-500">
-                    Antrean
-                  </span>
-                </h3>
-                <p className="text-xs text-amber-600 font-semibold flex items-center gap-1">
-                  Memerlukan konfirmasi kasir / proses dapur
-                </p>
-              </div>
-
-              <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
-                <div className="flex justify-between items-center text-neutral-400">
-                  <span className="text-xs font-bold uppercase tracking-wider">
-                    Menu Terfavorit
-                  </span>
-                  <Award className="w-5 h-5 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-black text-neutral-900 truncate">
-                  {topMenus.length > 0 ? topMenus[0][0] : "Belum ada data"}
-                </h3>
-                <p className="text-xs text-blue-600 font-semibold flex items-center gap-1">
-                  {topMenus.length > 0
-                    ? `Terjual ${topMenus[0][1]} porsi`
-                    : "-"}
-                </p>
-              </div>
-            </section>
-
-            <section className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
-              <div>
-                <h3 className="text-base font-bold text-neutral-900">
-                  Grafik Tren Penjualan
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  Visualisasi data omset operasional restoran secara berkala.
-                </p>
-              </div>
-              <div className="h-64 w-full pt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="time" stroke="#737373" fontSize={12} />
-                    <YAxis
-                      stroke="#737373"
-                      fontSize={12}
-                      tickFormatter={(value) => `Rp ${value / 1000}k`}
-                    />
-                    <Tooltip
-                      formatter={(value) => [
-                        `Rp ${value.toLocaleString("id-ID")}`,
-                        "Pendapatan",
-                      ]}
-                      contentStyle={{
-                        backgroundColor: "#ffffff",
-                        borderColor: "#e5e5e5",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                      }}
-                    />
-                    <Bar dataKey="sales" fill="#171717" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="space-y-10 animate-fadeIn">
+            {/* ========================================================= */}
+            {/* 1. HIGHLIGHT UTAMA: PESANAN BERLANGSUNG & ANTREAN (DIPINDAH KE ATAS) */}
+            {/* ========================================================= */}
+            <section className="space-y-5 bg-neutral-50/60 border border-neutral-200/80 p-6 md:p-8 rounded-3xl shadow-2xs">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-neutral-200/60">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-neutral-900 tracking-tight">
-                      Pesanan Berlangsung & Antrean
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-xl font-black text-neutral-950 tracking-tight">
+                      Pesanan Berlangsung & Antrean Aktif
                     </h3>
-                    <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                      <Flame className="w-3 h-3 text-amber-600" /> Urutan
-                      Prioritas (FIFO)
+                    <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                      <Flame className="w-3 h-3 text-amber-600" /> Prioritas
+                      FIFO ({activeOrders.length})
                     </span>
                   </div>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-neutral-500 mt-1">
                     Kelola antrean aktif (QRIS lunas & Cash menunggu konfirmasi
-                    kasir).
+                    pembayaran kasir).
                   </p>
                 </div>
 
@@ -781,18 +699,19 @@ export default function CashierDashboard() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Cari nama pelanggan / meja..."
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-medium"
+                    className="w-full bg-white border border-neutral-200 rounded-2xl pl-10 pr-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 font-medium shadow-2xs transition"
                   />
                 </div>
               </div>
 
               {filteredActiveOrders.length === 0 ? (
-                <div className="text-center py-16 bg-white border border-neutral-200/80 rounded-3xl shadow-2xs space-y-2">
+                <div className="text-center py-16 bg-white border border-neutral-200/80 rounded-2xl shadow-2xs space-y-2">
                   <p className="text-sm font-bold text-neutral-700">
-                    Tidak ada antrean pesanan aktif saat ini
+                    Tidak ada antrean pesanan aktif saat ini 🎉
                   </p>
                   <p className="text-xs text-neutral-400">
-                    Pesanan baru akan muncul secara real-time di sini.
+                    Pesanan baru dari pelanggan akan muncul secara real-time di
+                    sini.
                   </p>
                 </div>
               ) : (
@@ -807,7 +726,7 @@ export default function CashierDashboard() {
                     return (
                       <div
                         key={order._id}
-                        className={`bg-white border p-6 rounded-3xl flex flex-col justify-between space-y-6 shadow-2xs hover:shadow-md transition relative overflow-hidden ${
+                        className={`bg-white border p-6 rounded-3xl flex flex-col justify-between space-y-6 shadow-sm hover:shadow-md transition relative overflow-hidden ${
                           isCallingWaiter
                             ? "border-red-400 ring-2 ring-red-400/30 bg-red-50/10"
                             : isCashPending
@@ -815,7 +734,7 @@ export default function CashierDashboard() {
                               : "border-neutral-200/80"
                         }`}
                       >
-                        <div className="absolute top-0 right-0 bg-neutral-900 text-white px-3 py-1 rounded-bl-2xl text-[10px] font-black font-mono">
+                        <div className="absolute top-0 right-0 bg-neutral-900 text-white px-3.5 py-1 rounded-bl-2xl text-[10px] font-black font-mono shadow-2xs">
                           #PRIORITY {index + 1}
                         </div>
 
@@ -1035,6 +954,102 @@ export default function CashierDashboard() {
                   })}
                 </div>
               )}
+            </section>
+
+            {/* ========================================================= */}
+            {/* 2. STATISTIK & METRIK PENDAPATAN HARI INI */}
+            {/* ========================================================= */}
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
+                <div className="flex justify-between items-center text-neutral-400">
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    Total Pendapatan Hari Ini
+                  </span>
+                  <TrendingUp className="w-5 h-5 text-emerald-600" />
+                </div>
+                <h3 className="text-2xl font-black font-mono text-neutral-900">
+                  Rp {totalRevenue.toLocaleString("id-ID")}
+                </h3>
+                <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                  Akumulasi dari {completedOrdersToday.length} pesanan selesai
+                  hari ini
+                </p>
+              </div>
+
+              <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
+                <div className="flex justify-between items-center text-neutral-400">
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    Pesanan Aktif
+                  </span>
+                  <Clock className="w-5 h-5 text-amber-600" />
+                </div>
+                <h3 className="text-2xl font-black font-mono text-neutral-900">
+                  {activeOrders.length}{" "}
+                  <span className="text-sm font-normal text-neutral-500">
+                    Antrean
+                  </span>
+                </h3>
+                <p className="text-xs text-amber-600 font-semibold flex items-center gap-1">
+                  Memerlukan konfirmasi kasir / proses dapur
+                </p>
+              </div>
+
+              <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
+                <div className="flex justify-between items-center text-neutral-400">
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    Menu Terfavorit
+                  </span>
+                  <Award className="w-5 h-5 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-black text-neutral-900 truncate">
+                  {topMenus.length > 0 ? topMenus[0][0] : "Belum ada data"}
+                </h3>
+                <p className="text-xs text-blue-600 font-semibold flex items-center gap-1">
+                  {topMenus.length > 0
+                    ? `Terjual ${topMenus[0][1]} porsi`
+                    : "-"}
+                </p>
+              </div>
+            </section>
+
+            {/* ========================================================= */}
+            {/* 3. GRAFIK TREN PENJUALAN */}
+            {/* ========================================================= */}
+            <section className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
+              <div>
+                <h3 className="text-base font-bold text-neutral-900">
+                  Grafik Tren Penjualan
+                </h3>
+                <p className="text-xs text-neutral-500">
+                  Visualisasi data omset operasional restoran secara berkala.
+                </p>
+              </div>
+              <div className="h-64 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="time" stroke="#737373" fontSize={12} />
+                    <YAxis
+                      stroke="#737373"
+                      fontSize={12}
+                      tickFormatter={(value) => `Rp ${value / 1000}k`}
+                    />
+                    <Tooltip
+                      formatter={(value) => [
+                        `Rp ${value.toLocaleString("id-ID")}`,
+                        "Pendapatan",
+                      ]}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        borderColor: "#e5e5e5",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                      }}
+                    />
+                    <Bar dataKey="sales" fill="#171717" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </section>
           </div>
         )}

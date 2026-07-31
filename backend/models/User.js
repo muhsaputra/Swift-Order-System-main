@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  name: { type: String, required: true }, // Ditambahkan agar data nama kasir ikut tersimpan
+  name: { type: String, required: true },
   role: {
     type: String,
     enum: ["cashier", "owner"],
@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Gunakan async/await murni tanpa parameter next() agar kompatibel dengan Mongoose modern
+// Middleware pre-save untuk otomatis meng-hash password saat disimpan atau diubah
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(10);

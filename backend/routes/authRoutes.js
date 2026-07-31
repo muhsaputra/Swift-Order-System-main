@@ -116,9 +116,10 @@ router.put("/profile", verifyToken, async (req, res) => {
     if (username) user.username = username;
     if (name) user.name = name;
 
-    // Cukup assign password baru secara langsung tanpa bcrypt.hash manual
+    // Enkripsi password secara aman langsung di rute update profil
     if (password && password.trim() !== "") {
-      user.password = password;
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
     }
 
     const updatedUser = await user.save();

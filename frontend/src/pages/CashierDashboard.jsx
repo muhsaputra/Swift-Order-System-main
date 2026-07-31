@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import API from "../services/api";
 import { io } from "socket.io-client";
 import { gooeyToast } from "goey-toast";
@@ -12,7 +12,6 @@ import {
   TrendingUp,
   Clock,
   Award,
-  ShoppingBag,
   Search,
   Flame,
   Wallet,
@@ -22,9 +21,7 @@ import {
   Megaphone,
   Phone,
   Mail,
-  Plus,
   Calendar,
-  Trash2,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -101,23 +98,12 @@ export default function CashierDashboard() {
     const params = new URLSearchParams(location.search);
     const tab = params.get("tab");
 
-    if (tab === "coupons") {
-      setActiveTab("coupons");
-      fetchCoupons();
-    } else if (tab === "history") {
+    if (tab === "history") {
       setActiveTab("history");
-    } else if (!tab || tab === "walk-in") {
+    } else {
       setActiveTab("active-orders");
     }
   }, [location.search]);
-
-  // Kupon State
-  const [coupons, setCoupons] = useState([]);
-  const [newCouponCode, setNewCouponCode] = useState("");
-  const [discountType, setDiscountType] = useState("percentage");
-  const [discountValue, setDiscountValue] = useState("");
-  const [minPurchase, setMinPurchase] = useState("");
-  const [expiredAt, setExpiredAt] = useState("");
 
   // Notifikasi State
   const [notifications, setNotifications] = useState([]);
@@ -133,7 +119,6 @@ export default function CashierDashboard() {
 
   useEffect(() => {
     fetchOrders();
-    fetchCoupons();
 
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -298,48 +283,6 @@ export default function CashierDashboard() {
     }
   };
 
-  const fetchCoupons = async () => {
-    try {
-      const res = await API.get("/coupons");
-      setCoupons(res.data);
-    } catch (err) {
-      console.error("Gagal memuat data kupon", err);
-    }
-  };
-
-  const handleCreateCoupon = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        code: newCouponCode,
-        discountType,
-        discountValue: Number(discountValue),
-        minPurchase: Number(minPurchase) || 0,
-        expiredAt,
-      };
-      await API.post("/coupons", payload);
-      gooeyToast.success("Kupon diskon berhasil dibuat!");
-      setNewCouponCode("");
-      setDiscountValue("");
-      setMinPurchase("");
-      setExpiredAt("");
-      fetchCoupons();
-    } catch (err) {
-      gooeyToast.error(err.response?.data?.error || "Gagal membuat kupon.");
-    }
-  };
-
-  const handleDeleteCoupon = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus kupon ini?")) return;
-    try {
-      await API.delete(`/coupons/${id}`);
-      gooeyToast.success("Kupon berhasil dihapus.");
-      fetchCoupons();
-    } catch (err) {
-      gooeyToast.error("Gagal menghapus kupon.");
-    }
-  };
-
   const removeNotification = (id, e) => {
     if (e) e.stopPropagation();
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -440,7 +383,6 @@ export default function CashierDashboard() {
             table { width: 100%; border-collapse: collapse; }
             th, td { text-align: left; padding: 3px 0; }
             .right { text-align: right; }
-            .choices { font-size: 10px; color: #333; padding-left: 10px; margin: 2px 0; }
           </style>
         </head>
         <body>
@@ -649,7 +591,7 @@ export default function CashierDashboard() {
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
               Kelola seluruh transaksi masuk, pantau status dapur secara
-              real-time, dan kelola kupon diskon dengan mudah.
+              real-time dengan mudah.
             </p>
           </div>
 
@@ -677,10 +619,14 @@ export default function CashierDashboard() {
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-neutral-200/80 gap-4">
           <div>
             <h2 className="text-xl font-extrabold tracking-tight text-neutral-900">
-              Panel Manajemen Transaksi
+              {activeTab === "history"
+                ? "Arsip & Riwayat Komprehensif"
+                : "Panel Manajemen Transaksi"}
             </h2>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Pantau antrean, input pesanan manual walk-in, dan kupon promo.
+              {activeTab === "history"
+                ? "Pemeriksaan ulang transaksi lama dan audit harian restoran."
+                : "Pantau antrean pesanan aktif dan status operasional dapur."}
             </p>
           </div>
 
@@ -765,7 +711,7 @@ export default function CashierDashboard() {
           </div>
         </header>
 
-        {/* TAB NAVIGASI (Tab POS / Walk-in Dihapus) */}
+        {/* TAB NAVIGASI UTAMA (Tanpa Kupon) */}
         <div className="flex items-center gap-2 border-b border-neutral-200 pb-4 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab("active-orders")}
@@ -776,19 +722,6 @@ export default function CashierDashboard() {
             }`}
           >
             Antrean Pesanan Aktif ({activeOrders.length})
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("coupons");
-              fetchCoupons();
-            }}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs ${
-              activeTab === "coupons"
-                ? "bg-neutral-900 text-white"
-                : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
-            }`}
-          >
-            Manajemen Kupon Diskon ({coupons.length})
           </button>
           <button
             onClick={() => setActiveTab("history")}
@@ -1200,145 +1133,7 @@ export default function CashierDashboard() {
               </div>
             )}
 
-            {/* TAB 3: MANAJEMEN KUPON DISKON */}
-            {activeTab === "coupons" && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
-                <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4 self-start">
-                  <h3 className="text-base font-bold text-neutral-900">
-                    Buat Kupon Diskon Baru
-                  </h3>
-                  <form
-                    onSubmit={handleCreateCoupon}
-                    className="space-y-4 text-xs"
-                  >
-                    <div>
-                      <label className="block font-bold text-neutral-700 mb-1">
-                        Kode Kupon
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Contoh: HEMAT50"
-                        value={newCouponCode}
-                        onChange={(e) =>
-                          setNewCouponCode(e.target.value.toUpperCase())
-                        }
-                        required
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 font-medium uppercase"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-neutral-700 mb-1">
-                        Tipe Diskon
-                      </label>
-                      <select
-                        value={discountType}
-                        onChange={(e) => setDiscountType(e.target.value)}
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 font-medium"
-                      >
-                        <option value="percentage">Persentase (%)</option>
-                        <option value="fixed">Nominal Tetap (Rp)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block font-bold text-neutral-700 mb-1">
-                        {discountType === "percentage"
-                          ? "Besaran Persen (1-100)"
-                          : "Nominal Potongan (Rp)"}
-                      </label>
-                      <input
-                        type="number"
-                        placeholder={
-                          discountType === "percentage" ? "15" : "10000"
-                        }
-                        value={discountValue}
-                        onChange={(e) => setDiscountValue(e.target.value)}
-                        required
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 font-medium"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-neutral-700 mb-1">
-                        Minimal Belanja (Opsional)
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="Contoh: 50000"
-                        value={minPurchase}
-                        onChange={(e) => setMinPurchase(e.target.value)}
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 font-medium"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-neutral-700 mb-1">
-                        Berlaku Sampai (Kedaluwarsa)
-                      </label>
-                      <input
-                        type="date"
-                        value={expiredAt}
-                        onChange={(e) => setExpiredAt(e.target.value)}
-                        required
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 font-medium cursor-pointer"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-xl font-bold transition cursor-pointer shadow-sm"
-                    >
-                      Simpan & Terbitkan Kupon
-                    </button>
-                  </form>
-                </div>
-
-                <div className="lg:col-span-2 bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
-                  <h3 className="text-base font-bold text-neutral-900">
-                    Daftar Kupon Tersedia
-                  </h3>
-                  {coupons.length === 0 ? (
-                    <p className="text-xs text-neutral-400 text-center py-12">
-                      Belum ada kupon diskon aktif.
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {coupons.map((coupon) => (
-                        <div
-                          key={coupon._id}
-                          className="bg-neutral-50 border border-neutral-200/80 p-4 rounded-2xl flex justify-between items-center text-xs"
-                        >
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="bg-neutral-900 text-white px-3 py-1 rounded-lg font-mono font-black tracking-wider">
-                                {coupon.code}
-                              </span>
-                              <span className="text-emerald-600 font-extrabold">
-                                {coupon.discountType === "percentage"
-                                  ? `${coupon.discountValue}% OFF`
-                                  : `Rp ${coupon.discountValue.toLocaleString("id-ID")} OFF`}
-                              </span>
-                            </div>
-                            <p className="text-neutral-500 font-medium">
-                              Min. Belanja: Rp{" "}
-                              {coupon.minPurchase.toLocaleString("id-ID")} |
-                              Exp:{" "}
-                              {new Date(coupon.expiredAt).toLocaleDateString(
-                                "id-ID",
-                              )}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => handleDeleteCoupon(coupon._id)}
-                            className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-xl font-bold transition cursor-pointer border border-red-200 flex items-center gap-1"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" /> Hapus
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 4: RIWAYAT PESANAN KOMPREHENSIF */}
+            {/* TAB 2: RIWAYAT PESANAN KOMPREHENSIF */}
             {activeTab === "history" && (
               <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-6 animate-fadeIn">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-neutral-100">

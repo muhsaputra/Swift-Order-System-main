@@ -13,10 +13,7 @@ import {
   Sparkles,
   Layers,
   Package,
-  Percent,
   Search,
-  Check,
-  ChevronRight,
   Flame,
 } from "lucide-react";
 
@@ -41,6 +38,7 @@ export default function MenuManagement() {
 
   // Form Menu State
   const [name, setName] = useState("");
+  const [sku, setSku] = useState(""); // State SKU baru
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
@@ -115,6 +113,7 @@ export default function MenuManagement() {
   const handleOpenAddModal = () => {
     setEditingId(null);
     setName("");
+    setSku(""); // Reset SKU
     setDescription("");
     setPrice("");
     setOriginalPrice("");
@@ -131,6 +130,7 @@ export default function MenuManagement() {
   const handleOpenEditModal = (menu) => {
     setEditingId(menu._id);
     setName(menu.name);
+    setSku(menu.sku || ""); // Set SKU dari data menu
     setDescription(menu.description || "");
     setPrice(formatRupiah(menu.price));
     setOriginalPrice(
@@ -210,6 +210,7 @@ export default function MenuManagement() {
 
       const formData = new FormData();
       formData.append("name", name);
+      formData.append("sku", sku); // Kirim SKU ke backend
       formData.append("description", description);
       formData.append("price", rawPrice);
       formData.append("originalPrice", rawOriginalPrice);
@@ -245,6 +246,7 @@ export default function MenuManagement() {
     try {
       const formData = new FormData();
       formData.append("name", menu.name);
+      formData.append("sku", menu.sku || "");
       formData.append("description", menu.description || "");
       formData.append("price", menu.price);
       formData.append("originalPrice", menu.originalPrice || 0);
@@ -309,10 +311,12 @@ export default function MenuManagement() {
     }
   };
 
-  // Filter menu berdasarkan pencarian dan kategori yang dipilih
+  // Filter menu berdasarkan pencarian dan kategori yang dipilih (mendukung pencarian SKU)
   const filteredMenus = menus.filter((menu) => {
     const matchesSearch =
       menu.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (menu.sku &&
+        menu.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (menu.description &&
         menu.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -361,8 +365,8 @@ export default function MenuManagement() {
               Manajemen Menu & Add-On
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Atur produk, harga diskon, foto, serta pilihan add-on berharga
-              dengan mudah dan terstruktur.
+              Atur produk, SKU, harga diskon, foto, serta pilihan add-on
+              berharga dengan mudah dan terstruktur.
             </p>
           </div>
 
@@ -392,7 +396,8 @@ export default function MenuManagement() {
               Daftar Katalog Produk
             </h2>
             <p className="text-xs text-neutral-500">
-              Kelola produk, harga, add-on, ketersediaan, dan kategori menu.
+              Kelola produk, SKU, harga, add-on, ketersediaan, dan kategori
+              menu.
             </p>
           </div>
 
@@ -405,7 +410,7 @@ export default function MenuManagement() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari menu..."
+                placeholder="Cari menu atau SKU..."
                 className="w-full bg-white border border-neutral-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 shadow-2xs font-medium"
               />
               {searchQuery && (
@@ -573,9 +578,18 @@ export default function MenuManagement() {
                           </div>
 
                           <div className="p-4 space-y-1.5">
-                            <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
-                              {menu.name}
-                            </h3>
+                            {/* Tampilkan SKU jika ada */}
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
+                                {menu.name}
+                              </h3>
+                              {menu.sku && (
+                                <span className="text-[10px] font-mono font-bold bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-lg border border-neutral-200 shrink-0">
+                                  SKU: {menu.sku}
+                                </span>
+                              )}
+                            </div>
+
                             {menu.description ? (
                               <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
                                 {menu.description}
@@ -697,9 +711,16 @@ export default function MenuManagement() {
                           </div>
 
                           <div className="p-4 space-y-1.5">
-                            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                              {menu.category}
-                            </span>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
+                                {menu.category}
+                              </span>
+                              {menu.sku && (
+                                <span className="text-[10px] font-mono font-bold bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-lg border border-neutral-200">
+                                  SKU: {menu.sku}
+                                </span>
+                              )}
+                            </div>
                             <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
                               {menu.name}
                             </h3>
@@ -888,18 +909,32 @@ export default function MenuManagement() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-neutral-700 mb-1">
-                    Nama Menu
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium"
-                    placeholder="Contoh: Spaghetti"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                      Nama Menu *
+                    </label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium"
+                      placeholder="Contoh: Spaghetti"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                      SKU (Stock Keeping Unit)
+                    </label>
+                    <input
+                      type="text"
+                      value={sku}
+                      onChange={(e) => setSku(e.target.value)}
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium uppercase"
+                      placeholder="Contoh: SPAG-001"
+                    />
+                  </div>
                 </div>
 
                 <div>

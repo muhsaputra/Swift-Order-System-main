@@ -40,9 +40,12 @@ export default function AdminProfile() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
 
-    if (newPassword && newPassword !== confirmPassword) {
-      gooeyToast.error("Konfirmasi kata sandi baru tidak cocok.");
-      return;
+    // Validasi jika password baru diisi, pastikan konfirmasinya cocok
+    if (newPassword || confirmPassword) {
+      if (newPassword !== confirmPassword) {
+        gooeyToast.error("Konfirmasi kata sandi baru tidak cocok.");
+        return;
+      }
     }
 
     setUpdating(true);
@@ -51,12 +54,16 @@ export default function AdminProfile() {
         name: profile.name,
         username: profile.username,
       };
-      if (newPassword) {
+
+      // Hanya masukkan key password jika user benar-benar mengisinya
+      if (newPassword && newPassword.trim() !== "") {
         payload.password = newPassword;
       }
 
       const res = await API.put("/auth/profile", payload);
       gooeyToast.success(res.data.message || "Profil berhasil diperbarui!");
+
+      // Kosongkan input password setelah sukses
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {

@@ -6,7 +6,6 @@ import {
   Link,
 } from "react-router-dom";
 import API from "../services/api";
-import axios from "axios";
 import { io } from "socket.io-client";
 import { gooeyToast } from "goey-toast";
 import {
@@ -20,7 +19,6 @@ import {
   QrCode,
   Tag,
   X,
-  Check,
   Clock,
   Package,
   Star,
@@ -33,12 +31,7 @@ import {
   Rocket,
   BookOpen,
   HelpCircle,
-  CheckCircle2,
-  CreditCard,
-  ChefHat,
   ArrowRight,
-  Smartphone,
-  ShieldCheck,
   History,
 } from "lucide-react";
 
@@ -80,14 +73,11 @@ export default function ClientOrderPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
-    // Cek apakah ada data pelanggan di localStorage (untuk membedakan REFRESH vs SCAN QR BARU)
     const savedCustomer = localStorage.getItem("swift_customer_info");
 
     if (!savedCustomer) {
-      // Jika belum ada sama sekali (Scan QR baru / sesi bersih), wajibkan isi form
       setIsCustomerModalOpen(true);
     } else {
-      // Jika sudah ada (artinya hanya REFRESH halaman), muat datanya kembali & jangan buka modal
       const parsed = JSON.parse(savedCustomer);
       setCustomerInfo(parsed);
       setIsCustomerModalOpen(false);
@@ -321,54 +311,34 @@ export default function ClientOrderPage() {
     return groups;
   }, [filteredMenus, selectedCategory]);
 
-  const subtotalPrice = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
+  const subtotalPrice = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [cart]);
 
-  const subtotalOriginalPrice = cart.reduce((sum, item) => {
-    const itemPrice = item.price || 0;
-    const origItemPrice = item.originalPrice || item.basePrice || itemPrice;
-
-    let itemAddonSubtotal = 0;
-    if (
-      item.selectedBundleChoices &&
-      typeof item.selectedBundleChoices === "object"
-    ) {
-      Object.entries(item.selectedBundleChoices).forEach(([title, addons]) => {
-        if (Array.isArray(addons)) {
-          addons.forEach((addon) => {
-            itemAddonSubtotal += Number(addon.price || 0);
-          });
-        }
-      });
-    }
-
-    const origTotalItemPriceWithAddon =
-      (origItemPrice + itemAddonSubtotal) * item.quantity;
-    return sum + origTotalItemPriceWithAddon;
-  }, 0);
-
-  const totalMenuSavings = cart.reduce((sum, item) => {
-    const orig = item.originalPrice || 0;
-    const base = item.basePrice !== undefined ? item.basePrice : item.price;
-    if (orig > base) {
-      return sum + (orig - base) * item.quantity;
-    }
-    return sum;
-  }, 0);
+  const totalMenuSavings = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      const orig = item.originalPrice || 0;
+      const base = item.basePrice !== undefined ? item.basePrice : item.price;
+      if (orig > base) {
+        return sum + (orig - base) * item.quantity;
+      }
+      return sum;
+    }, 0);
+  }, [cart]);
 
   const priceAfterDiscount = Math.max(0, subtotalPrice - discountAmount);
   const serviceFee = priceAfterDiscount * 0.05;
   const finalTotalPrice = priceAfterDiscount + serviceFee;
 
   const originalServiceFee = Math.round(
-    (subtotalOriginalPrice - totalMenuSavings - discountAmount) * 0.05,
+    (subtotalPrice - discountAmount) * 0.05,
   );
   const originalTotalBeforeDiscount =
-    subtotalOriginalPrice + originalServiceFee;
+    subtotalPrice + totalMenuSavings + originalServiceFee;
 
-  const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItemsCount = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.quantity, 0);
+  }, [cart]);
 
   const handleApplyCoupon = async (e) => {
     e.preventDefault();
@@ -519,10 +489,10 @@ export default function ClientOrderPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 pb-28">
-      {/* MODAL PANDUAN CARA PESAN (INTERACTIVE & ENHANCED UI/UX) */}
+      {/* MODAL PANDUAN CARA PESAN */}
       {isGuideModalOpen && (
-        <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-200/80 w-full max-w-lg rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-200 relative overflow-hidden">
+        <div className="fixed inset-0 bg-neutral-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-neutral-200/80 w-full max-w-lg rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
             <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 bg-amber-500 text-white rounded-2xl flex items-center justify-center font-bold shadow-md shadow-amber-500/20">
@@ -638,10 +608,10 @@ export default function ClientOrderPage() {
         </div>
       )}
 
-      {/* MODAL CUSTOMER INFO (INTERACTIVE QUEST STYLE) */}
+      {/* MODAL CUSTOMER INFO */}
       {isCustomerModalOpen && (
-        <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-200/80 w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-200 relative overflow-hidden">
+        <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-neutral-200/80 w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
             <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-100 rounded-full blur-xl pointer-events-none" />
             <div className="absolute -left-6 -bottom-6 w-24 h-24 bg-purple-100 rounded-full blur-xl pointer-events-none" />
 
@@ -733,8 +703,8 @@ export default function ClientOrderPage() {
 
       {/* MODAL PILIHAN ADD-ON BERBAYAR */}
       {selectedBundleModal && (
-        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-200 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-neutral-200 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl">
             <div>
               <h3 className="text-lg font-extrabold text-neutral-900">
                 Pilih Add-On: {selectedBundleModal.name}
@@ -1007,6 +977,7 @@ export default function ClientOrderPage() {
                                 <img
                                   src={menu.image}
                                   alt={menu.name}
+                                  loading="lazy"
                                   className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                                 />
                               ) : (
@@ -1113,6 +1084,7 @@ export default function ClientOrderPage() {
                           <img
                             src={menu.image}
                             alt={menu.name}
+                            loading="lazy"
                             className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                           />
                         ) : (
@@ -1217,8 +1189,8 @@ export default function ClientOrderPage() {
 
       {/* CART DRAWER / MODAL */}
       {isCartOpen && (
-        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex justify-center items-end sm:items-center p-0 sm:p-4">
-          <div className="bg-white border border-neutral-200 w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 space-y-6 max-h-[85vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-50 flex justify-center items-end sm:items-center p-0 sm:p-4">
+          <div className="bg-white border border-neutral-200 w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 space-y-6 max-h-[85vh] overflow-y-auto shadow-2xl">
             <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
               <div>
                 <h3 className="text-base font-extrabold text-neutral-900">
@@ -1432,6 +1404,7 @@ export default function ClientOrderPage() {
                           <img
                             src={item.image}
                             alt={itemName}
+                            loading="lazy"
                             className="w-full h-full object-cover"
                           />
                         ) : (

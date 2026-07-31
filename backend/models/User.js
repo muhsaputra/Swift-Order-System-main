@@ -13,17 +13,12 @@ const userSchema = new mongoose.Schema({
 });
 
 // Middleware pre-save untuk otomatis meng-hash password
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   // Jika password tidak diubah, lewati proses hashing
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) return;
 
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    return next(err);
-  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Method untuk verifikasi password saat login

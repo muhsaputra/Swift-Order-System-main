@@ -22,6 +22,7 @@ import ClientWaitingPage from "./pages/ClientWaitingPage";
 import ClientHistoryPage from "./pages/ClientHistoryPage";
 import DashboardLayout from "./components/DashboardLayout";
 import ClientOrderHistory from "./pages/ClientOrderHistory";
+import ComprehensiveHistoryPage from "./pages/ComprehensiveHistoryPage";
 
 export default function App() {
   return (
@@ -51,6 +52,10 @@ export default function App() {
           <Route path="tables" element={<TableManagement />} />
           <Route path="coupons" element={<CouponManagementPage />} />{" "}
           {/* <-- Tambahkan rute kupon di sini */}
+          <Route
+            path="comprehensive-history"
+            element={<ComprehensiveHistoryPage />}
+          />
           <Route path="history" element={<TransactionHistory />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>

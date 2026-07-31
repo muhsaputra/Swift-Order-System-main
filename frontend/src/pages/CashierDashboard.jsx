@@ -1,7 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import API from "../services/api";
 import { io } from "socket.io-client";
 import { gooeyToast } from "goey-toast";
+import {
+  Bell,
+  X,
+  Radio,
+  Sparkles,
+  Zap,
+  TrendingUp,
+  Clock,
+  Award,
+  ShoppingBag,
+  Search,
+  Flame,
+  Wallet,
+  QrCode,
+  Tag,
+  Printer,
+  Megaphone,
+  Phone,
+  Mail,
+  Plus,
+  Calendar,
+  Trash2,
+} from "lucide-react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -11,35 +34,11 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import {
-  TrendingUp,
-  Clock,
-  Award,
-  Printer,
-  Radio,
-  CheckCircle2,
-  AlertCircle,
-  ShoppingBag,
-  Bell,
-  X,
-  Search,
-  Plus,
-  Calendar,
-  Sparkles,
-  Zap,
-  Volume2,
-  Flame,
-  Wallet,
-  QrCode,
-  Tag,
-  Trash2,
-  Phone,
-  Mail,
-  User,
-  Megaphone,
-} from "lucide-react";
 
-// Komponen Kecil untuk Handle Live Aging Timer per Card Pesanan
+// ==========================================
+// SUB-KOMPONEN MODULAR (OPTIMASI PERFORMA)
+// ==========================================
+
 function OrderTimer({ createdAt }) {
   const [elapsedMinutes, setElapsedMinutes] = useState(0);
 
@@ -53,7 +52,7 @@ function OrderTimer({ createdAt }) {
     };
 
     calculateTime();
-    const interval = setInterval(calculateTime, 10000); // Update tiap 10 detik
+    const interval = setInterval(calculateTime, 10000);
     return () => clearInterval(interval);
   }, [createdAt]);
 
@@ -75,30 +74,27 @@ function OrderTimer({ createdAt }) {
   );
 }
 
+// ==========================================
+// KOMPONEN UTAMA KASIR DASHBOARD
+// ==========================================
+
 export default function CashierDashboard() {
   const [orders, setOrders] = useState([]);
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Tab Navigasi Dashboard ("active-orders", "pos-order", "history", "coupons")
   const [activeTab, setActiveTab] = useState("active-orders");
-
-  // State untuk Search & Filter Pesanan Aktif
   const [searchQuery, setSearchQuery] = useState("");
-
-  // State untuk melacak daftar nomor meja yang sedang memanggil pelayan secara real-time
   const [waiterCalledTables, setWaiterCalledTables] = useState([]);
-
-  // State untuk Riwayat Komprehensif (Seminggu Terakhir / Filter Tanggal)
   const [historyFilterDate, setHistoryFilterDate] = useState("");
 
-  // State untuk POS Input Order Manual (Walk-in / Telepon)
+  // POS Order Manual State
   const [customerName, setCustomerName] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [cart, setCart] = useState([]);
   const [submittingOrder, setSubmittingOrder] = useState(false);
 
-  // State untuk Manajemen Kupon Diskon
+  // Kupon State
   const [coupons, setCoupons] = useState([]);
   const [newCouponCode, setNewCouponCode] = useState("");
   const [discountType, setDiscountType] = useState("percentage");
@@ -106,12 +102,12 @@ export default function CashierDashboard() {
   const [minPurchase, setMinPurchase] = useState("");
   const [expiredAt, setExpiredAt] = useState("");
 
-  // State untuk Notifikasi Popup (Toast) & Riwayat Notifikasi
+  // Notifikasi State
   const [notifications, setNotifications] = useState([]);
   const [showNotificationDropdown, setShowNotificationDropdown] =
     useState(false);
 
-  // State untuk Data Profil Kasir (Dinamis dari localStorage)
+  // Profil Kasir State
   const [cashierProfile, setCashierProfile] = useState({
     name: "Kasir",
     role: "Cashier",
@@ -123,7 +119,6 @@ export default function CashierDashboard() {
     fetchMenus();
     fetchCoupons();
 
-    // Ambil data profil user/kasir yang sedang aktif login dari localStorage
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
@@ -144,7 +139,6 @@ export default function CashierDashboard() {
       transports: ["websocket", "polling"],
     });
 
-    // Tangkap pesanan baru (Cash pending)
     socket.on("new-order", (newOrder) => {
       setOrders((prev) => {
         const exists = prev.some((ord) => ord._id === newOrder._id);
@@ -173,7 +167,6 @@ export default function CashierDashboard() {
       playNotificationSound();
     });
 
-    // Tangkap pembayaran sukses / pesanan lunas (QRIS / Cash Lunas)
     socket.on("new-paid-order", (paidOrder) => {
       setOrders((prev) => {
         const exists = prev.some((ord) => ord._id === paidOrder._id);
@@ -187,7 +180,9 @@ export default function CashierDashboard() {
 
       gooeyToast.info(
         `🔔 Pembayaran Sukses! Pelanggan ${paidOrder.customerName} (Meja #${paidOrder.tableNumber})`,
-        { displayDuration: 5000 },
+        {
+          displayDuration: 5000,
+        },
       );
 
       const newNotif = {
@@ -204,14 +199,12 @@ export default function CashierDashboard() {
       playNotificationSound();
     });
 
-    // Tangkap event Panggilan Waiter dari Pelanggan
     socket.on("call-waiter", (data) => {
       playNotificationSound();
       gooeyToast.warning(`🚨 PANGGILAN PELAYAN: ${data.message}`, {
         displayDuration: 8000,
       });
 
-      // Tambahkan nomor meja ke state panggilan aktif jika belum ada
       if (data.tableNumber) {
         setWaiterCalledTables((prev) => {
           if (!prev.includes(Number(data.tableNumber))) {
@@ -234,7 +227,6 @@ export default function CashierDashboard() {
       setNotifications((prev) => [waiterNotif, ...prev]);
     });
 
-    // Perbarui status atau tambahkan pesanan jika belum ada di state
     socket.on("order-updated", (updatedOrder) => {
       setOrders((prev) => {
         const exists = prev.some((ord) => ord._id === updatedOrder._id);
@@ -245,7 +237,6 @@ export default function CashierDashboard() {
       });
     });
 
-    // Sinkronisasi pembaruan status pesanan realtime
     socket.on("order-status-updated", (updatedOrder) => {
       setOrders((prev) =>
         prev.map((ord) => (ord._id === updatedOrder._id ? updatedOrder : ord)),
@@ -263,7 +254,7 @@ export default function CashierDashboard() {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sine";
-      osc.frequency.value = 587.33; // Nada D5
+      osc.frequency.value = 587.33;
       gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
       osc.connect(gain);
@@ -349,13 +340,11 @@ export default function CashierDashboard() {
     setShowNotificationDropdown(false);
   };
 
-  // FUNGSI RESPON / SELESAIKAN PANGGILAN PELAYAN PADA MEJA TERTENTU
   const handleResolveWaiterCall = (tableNum) => {
     setWaiterCalledTables((prev) => prev.filter((t) => t !== Number(tableNum)));
     gooeyToast.success(`Panggilan dari Meja #${tableNum} telah diselesaikan.`);
   };
 
-  // FUNGSI KONFIRMASI PEMBAYARAN TUNAI (CASH) OLEH KASIR
   const handleConfirmCashPayment = async (orderId) => {
     try {
       const res = await API.patch(`/orders/${orderId}/pay-cash`);
@@ -401,7 +390,6 @@ export default function CashierDashboard() {
         gooeyToast.success(
           `Pesanan Meja #${order.tableNumber} telah selesai (COMPLETED)! 🎉`,
         );
-        // Bersihkan status panggilan pelayan jika meja ini selesai
         setWaiterCalledTables((prev) =>
           prev.filter((t) => t !== Number(order.tableNumber)),
         );
@@ -451,10 +439,8 @@ export default function CashierDashboard() {
     });
   };
 
-  const calculateCartSubtotal = () => {
-    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  };
-
+  const calculateCartSubtotal = () =>
+    cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const calculateCartTotal = () => {
     const subtotal = calculateCartSubtotal();
     const serviceFee = subtotal * 0.05;
@@ -463,7 +449,6 @@ export default function CashierDashboard() {
 
   const handleSubmitManualOrder = async (e) => {
     e.preventDefault();
-
     if (submittingOrder) return;
 
     if (cart.length === 0) {
@@ -489,9 +474,9 @@ export default function CashierDashboard() {
           quantity: item.quantity,
           selectedBundleChoices: item.selectedBundleChoices || {},
         })),
-        subtotal: subtotal,
-        serviceFee: serviceFee,
-        totalAmount: totalAmount,
+        subtotal,
+        serviceFee,
+        totalAmount,
         orderStatus: "processing",
         paymentMethod: "cash",
         paymentStatus: "paid",
@@ -572,35 +557,10 @@ export default function CashierDashboard() {
               .map((item) => {
                 const name = item.menu?.name || item.name || "Menu Item";
                 const price = item.price || item.menu?.price || 0;
-
-                const choices = item.selectedBundleChoices
-                  ? item.selectedBundleChoices instanceof Map
-                    ? Object.fromEntries(item.selectedBundleChoices)
-                    : item.selectedBundleChoices
-                  : {};
-
-                let choicesHtml = "";
-                if (Object.keys(choices).length > 0) {
-                  choicesHtml = Object.entries(choices)
-                    .map(([k, v]) => {
-                      if (Array.isArray(v)) {
-                        return v
-                          .map(
-                            (addon) =>
-                              `<div class="choices">• + ${addon.name} ${addon.price > 0 ? `(Rp ${addon.price.toLocaleString("id-ID")})` : ""}</div>`,
-                          )
-                          .join("");
-                      }
-                      return `<div class="choices">• ${k}: ${v}</div>`;
-                    })
-                    .join("");
-                }
-
                 return `
                 <tr>
                   <td colspan="2"><strong>${name}</strong></td>
                 </tr>
-                ${choicesHtml}
                 <tr>
                   <td>${item.quantity}x @ ${price.toLocaleString("id-ID")}</td>
                   <td class="right">${(item.quantity * price).toLocaleString("id-ID")}</td>
@@ -615,24 +575,8 @@ export default function CashierDashboard() {
               <td>Subtotal</td>
               <td class="right">Rp ${subtotalVal.toLocaleString("id-ID")}</td>
             </tr>
-            ${
-              order.discountAmount > 0
-                ? `
-            <tr>
-              <td>Diskon (${order.couponCode || "Promo"})</td>
-              <td class="right">- Rp ${order.discountAmount.toLocaleString("id-ID")}</td>
-            </tr>`
-                : ""
-            }
-            ${
-              serviceFeeVal > 0
-                ? `
-            <tr>
-              <td>Biaya Layanan (5%)</td>
-              <td class="right">Rp ${serviceFeeVal.toLocaleString("id-ID")}</td>
-            </tr>`
-                : ""
-            }
+            ${order.discountAmount > 0 ? `<tr><td>Diskon</td><td class="right">- Rp ${order.discountAmount.toLocaleString("id-ID")}</td></tr>` : ""}
+            ${serviceFeeVal > 0 ? `<tr><td>Biaya Layanan (5%)</td><td class="right">Rp ${serviceFeeVal.toLocaleString("id-ID")}</td></tr>` : ""}
           </table>
           <div class="line"></div>
           <table>
@@ -659,21 +603,21 @@ export default function CashierDashboard() {
     switch (order.orderStatus) {
       case "processing":
         return (
-          <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
             PROCESSING (DI DAPUR)
           </span>
         );
       case "ready":
         return (
-          <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide shadow-2xs animate-pulse">
-            <Volume2 className="w-3.5 h-3.5 text-blue-600 animate-bounce" />
+          <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide animate-pulse">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
             DALAM PEMANGGILAN (READY)
           </span>
         );
       case "completed":
         return (
-          <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             COMPLETED
           </span>
@@ -687,56 +631,67 @@ export default function CashierDashboard() {
     }
   };
 
-  const activeOrders = orders
-    .filter((o) => {
-      const isNotCompleted = o.orderStatus !== "completed";
-      const isValidPayment =
-        o.paymentStatus === "paid" ||
-        o.paymentStatus === "success" ||
-        o.paymentStatus === "settlement" ||
-        o.isPaid === true ||
-        o.paymentStatus === "cash_pending";
+  const activeOrders = useMemo(() => {
+    return orders
+      .filter((o) => {
+        const isNotCompleted = o.orderStatus !== "completed";
+        const isValidPayment =
+          o.paymentStatus === "paid" ||
+          o.paymentStatus === "success" ||
+          o.paymentStatus === "settlement" ||
+          o.isPaid === true ||
+          o.paymentStatus === "cash_pending";
+        return isNotCompleted && isValidPayment;
+      })
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  }, [orders]);
 
-      return isNotCompleted && isValidPayment;
-    })
-    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-
-  const filteredActiveOrders = activeOrders.filter((order) => {
+  const filteredActiveOrders = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    const nameMatch = order.customerName?.toLowerCase().includes(query);
-    const tableMatch = order.tableNumber?.toString().includes(query);
-    return nameMatch || tableMatch;
-  });
-
-  const completedOrdersToday = orders.filter((o) => {
-    if (o.orderStatus !== "completed") return false;
-    const orderDate = new Date(o.createdAt).toISOString().split("T")[0];
-    const today = new Date().toISOString().split("T")[0];
-    return orderDate === today;
-  });
-
-  const totalRevenue = completedOrdersToday.reduce(
-    (sum, o) => sum + (o.totalAmount || 0),
-    0,
-  );
-
-  const comprehensiveHistory = orders.filter((o) => {
-    if (o.orderStatus !== "completed") return false;
-    if (!historyFilterDate) return true;
-    const orderDateStr = new Date(o.createdAt).toISOString().split("T")[0];
-    return orderDateStr === historyFilterDate;
-  });
-
-  const itemCounts = {};
-  orders.forEach((o) => {
-    o.items?.forEach((item) => {
-      const name = item.menu?.name || item.name || "Menu";
-      itemCounts[name] = (itemCounts[name] || 0) + item.quantity;
+    return activeOrders.filter((order) => {
+      const nameMatch = order.customerName?.toLowerCase().includes(query);
+      const tableMatch = order.tableNumber?.toString().includes(query);
+      return nameMatch || tableMatch;
     });
-  });
-  const topMenus = Object.entries(itemCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
+  }, [activeOrders, searchQuery]);
+
+  const completedOrdersToday = useMemo(() => {
+    return orders.filter((o) => {
+      if (o.orderStatus !== "completed") return false;
+      const orderDate = new Date(o.createdAt).toISOString().split("T")[0];
+      const today = new Date().toISOString().split("T")[0];
+      return orderDate === today;
+    });
+  }, [orders]);
+
+  const totalRevenue = useMemo(() => {
+    return completedOrdersToday.reduce(
+      (sum, o) => sum + (o.totalAmount || 0),
+      0,
+    );
+  }, [completedOrdersToday]);
+
+  const comprehensiveHistory = useMemo(() => {
+    return orders.filter((o) => {
+      if (o.orderStatus !== "completed") return false;
+      if (!historyFilterDate) return true;
+      const orderDateStr = new Date(o.createdAt).toISOString().split("T")[0];
+      return orderDateStr === historyFilterDate;
+    });
+  }, [orders, historyFilterDate]);
+
+  const topMenus = useMemo(() => {
+    const itemCounts = {};
+    orders.forEach((o) => {
+      o.items?.forEach((item) => {
+        const name = item.menu?.name || item.name || "Menu";
+        itemCounts[name] = (itemCounts[name] || 0) + item.quantity;
+      });
+    });
+    return Object.entries(itemCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+  }, [orders]);
 
   const chartData = [
     { time: "10:00", sales: 150000 },
@@ -749,7 +704,7 @@ export default function CashierDashboard() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 pb-20">
-      {/* HERO BANNER ATTRACTION */}
+      {/* HERO BANNER */}
       <div className="relative bg-neutral-900 text-white py-10 px-6 md:px-12 overflow-hidden mb-8 shadow-md">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50 scale-105 pointer-events-none"
@@ -794,7 +749,7 @@ export default function CashierDashboard() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 sm:px-8 space-y-8">
-        {/* Header Kontrol & Notifikasi */}
+        {/* HEADER NOTIFIKASI & KONTROL */}
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-neutral-200/80 gap-4">
           <div>
             <h2 className="text-xl font-extrabold tracking-tight text-neutral-900">
@@ -840,7 +795,6 @@ export default function CashierDashboard() {
                       </button>
                     )}
                   </div>
-
                   <div className="max-h-72 overflow-y-auto divide-y divide-neutral-100">
                     {notifications.length === 0 ? (
                       <div className="py-10 text-center text-xs text-neutral-400">
@@ -887,7 +841,7 @@ export default function CashierDashboard() {
           </div>
         </header>
 
-        {/* Tab Navigasi Menu Dashboard */}
+        {/* TAB NAVIGASI */}
         <div className="flex items-center gap-2 border-b border-neutral-200 pb-4 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab("active-orders")}
@@ -943,11 +897,11 @@ export default function CashierDashboard() {
           </div>
         ) : (
           <>
-            {/* KONTEN TAB 1: ANTREAN PESANAN AKTIF */}
+            {/* TAB 1: ANTREAN PESANAN AKTIF */}
             {activeTab === "active-orders" && (
               <div className="space-y-8 animate-fadeIn">
                 <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs hover:shadow-md transition space-y-2">
+                  <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
                     <div className="flex justify-between items-center text-neutral-400">
                       <span className="text-xs font-bold uppercase tracking-wider">
                         Total Pendapatan Hari Ini
@@ -958,13 +912,12 @@ export default function CashierDashboard() {
                       Rp {totalRevenue.toLocaleString("id-ID")}
                     </h3>
                     <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
                       Akumulasi dari {completedOrdersToday.length} pesanan
                       selesai hari ini
                     </p>
                   </div>
 
-                  <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs hover:shadow-md transition space-y-2">
+                  <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
                     <div className="flex justify-between items-center text-neutral-400">
                       <span className="text-xs font-bold uppercase tracking-wider">
                         Pesanan Aktif
@@ -978,12 +931,11 @@ export default function CashierDashboard() {
                       </span>
                     </h3>
                     <p className="text-xs text-amber-600 font-semibold flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
                       Memerlukan konfirmasi kasir / proses dapur
                     </p>
                   </div>
 
-                  <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs hover:shadow-md transition space-y-2">
+                  <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
                     <div className="flex justify-between items-center text-neutral-400">
                       <span className="text-xs font-bold uppercase tracking-wider">
                         Menu Terfavorit
@@ -994,7 +946,6 @@ export default function CashierDashboard() {
                       {topMenus.length > 0 ? topMenus[0][0] : "Belum ada data"}
                     </h3>
                     <p className="text-xs text-blue-600 font-semibold flex items-center gap-1">
-                      <ShoppingBag className="w-3.5 h-3.5" />
                       {topMenus.length > 0
                         ? `Terjual ${topMenus[0][1]} porsi`
                         : "-"}
@@ -1052,8 +1003,8 @@ export default function CashierDashboard() {
                           Pesanan Berlangsung & Antrean
                         </h3>
                         <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                          <Flame className="w-3 h-3 text-amber-600" />
-                          Urutan Prioritas (FIFO)
+                          <Flame className="w-3 h-3 text-amber-600" /> Urutan
+                          Prioritas (FIFO)
                         </span>
                       </div>
                       <p className="text-xs text-neutral-500">
@@ -1071,16 +1022,8 @@ export default function CashierDashboard() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Cari nama pelanggan / meja..."
-                        className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium"
+                        className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-medium"
                       />
-                      {searchQuery && (
-                        <button
-                          onClick={() => setSearchQuery("")}
-                          className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-neutral-400 hover:text-neutral-700 text-xs font-bold cursor-pointer"
-                        >
-                          ✕
-                        </button>
-                      )}
                     </div>
                   </div>
 
@@ -1124,7 +1067,6 @@ export default function CashierDashboard() {
                                     <span className="inline-block bg-neutral-900 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-xl tracking-wider shadow-2xs">
                                       Meja #{order.tableNumber}
                                     </span>
-                                    {/* BADGE METODE PEMBAYARAN */}
                                     <span
                                       className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1 border ${
                                         order.paymentMethod === "cash"
@@ -1133,17 +1075,14 @@ export default function CashierDashboard() {
                                       }`}
                                     >
                                       {order.paymentMethod === "cash" ? (
-                                        <>
-                                          <Wallet className="w-3 h-3" /> CASH
-                                        </>
+                                        <Wallet className="w-3 h-3" />
                                       ) : (
-                                        <>
-                                          <QrCode className="w-3 h-3" /> QRIS
-                                        </>
+                                        <QrCode className="w-3 h-3" />
                                       )}
+                                      {order.paymentMethod === "cash"
+                                        ? "CASH"
+                                        : "QRIS"}
                                     </span>
-
-                                    {/* BADGE KUPON JIKA ADA */}
                                     {order.couponCode && (
                                       <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-xl text-[10px] font-extrabold flex items-center gap-1">
                                         <Tag className="w-3 h-3" />{" "}
@@ -1155,19 +1094,15 @@ export default function CashierDashboard() {
                                     {order.customerName}
                                   </h4>
                                 </div>
-                                <div className="flex items-center gap-2 mt-4 sm:mt-0">
-                                  <button
-                                    onClick={() => handlePrintReceipt(order)}
-                                    className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer flex items-center gap-1.5"
-                                    title="Cetak Struk"
-                                  >
-                                    <Printer className="w-3.5 h-3.5" />
-                                    Cetak Struk
-                                  </button>
-                                </div>
+                                <button
+                                  onClick={() => handlePrintReceipt(order)}
+                                  className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer flex items-center gap-1.5 mt-4 sm:mt-0"
+                                >
+                                  <Printer className="w-3.5 h-3.5" /> Cetak
+                                  Struk
+                                </button>
                               </div>
 
-                              {/* NOTIFIKASI PANGGILAN PELAYAN KHUSUS UNTUK MEJA INI */}
                               {isCallingWaiter && (
                                 <div className="mb-4 bg-red-500 text-white p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md animate-pulse">
                                   <div className="flex items-center gap-2.5">
@@ -1188,7 +1123,7 @@ export default function CashierDashboard() {
                                     onClick={() =>
                                       handleResolveWaiterCall(order.tableNumber)
                                     }
-                                    className="bg-white text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl text-[11px] font-black transition shadow-xs cursor-pointer whitespace-nowrap"
+                                    className="bg-white text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl text-[11px] font-black transition cursor-pointer whitespace-nowrap"
                                   >
                                     Selesai / Respon
                                   </button>
@@ -1202,10 +1137,9 @@ export default function CashierDashboard() {
                                 <div>{getStatusBadge(order)}</div>
                               </div>
 
-                              {/* INFORMASI KONTAK PELANGGAN (EMAIL & NO HP) */}
                               <div className="bg-neutral-100/70 border border-neutral-200/60 p-3.5 rounded-2xl space-y-1.5 mb-4 text-xs">
                                 <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-1">
-                                  Informasi Kontak Pelanggan:
+                                  Informasi Kontak:
                                 </span>
                                 <div className="flex items-center gap-2 text-neutral-700 font-medium">
                                   <Phone className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
@@ -1221,10 +1155,9 @@ export default function CashierDashboard() {
                                 </div>
                               </div>
 
-                              {/* Rincian Menu Pesanan */}
                               <div className="space-y-2.5 bg-neutral-50/80 p-4 rounded-2xl border border-neutral-100">
                                 <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-1">
-                                  Rincian Menu Pesanan:
+                                  Rincian Menu:
                                 </span>
                                 {order.items.map((item, idx) => {
                                   const itemName =
@@ -1233,14 +1166,6 @@ export default function CashierDashboard() {
                                     item.price || item.menu?.price || 0;
                                   const itemImage =
                                     item.menu?.image || item.image || "";
-
-                                  const choices = item.selectedBundleChoices
-                                    ? item.selectedBundleChoices instanceof Map
-                                      ? Object.fromEntries(
-                                          item.selectedBundleChoices,
-                                        )
-                                      : item.selectedBundleChoices
-                                    : {};
 
                                   return (
                                     <div
@@ -1269,40 +1194,6 @@ export default function CashierDashboard() {
                                             {item.quantity}x @ Rp{" "}
                                             {itemPrice.toLocaleString("id-ID")}
                                           </p>
-
-                                          {/* Tampilkan pilihan kustomisasi / add-on dengan aman */}
-                                          {Object.keys(choices).length > 0 && (
-                                            <div className="text-[10px] text-neutral-500 space-y-0.5 pt-1">
-                                              {Object.entries(choices).map(
-                                                ([title, val], cIdx) => {
-                                                  if (Array.isArray(val)) {
-                                                    return val.map(
-                                                      (addon, aIdx) => (
-                                                        <p
-                                                          key={`${cIdx}-${aIdx}`}
-                                                        >
-                                                          • +{" "}
-                                                          <span className="font-bold text-neutral-700">
-                                                            {addon.name}
-                                                          </span>
-                                                          {addon.price > 0 &&
-                                                            ` (+Rp ${addon.price.toLocaleString("id-ID")})`}
-                                                        </p>
-                                                      ),
-                                                    );
-                                                  }
-                                                  return (
-                                                    <p key={cIdx}>
-                                                      • {title}:{" "}
-                                                      <span className="font-bold text-neutral-700">
-                                                        {val}
-                                                      </span>
-                                                    </p>
-                                                  );
-                                                },
-                                              )}
-                                            </div>
-                                          )}
                                         </div>
                                       </div>
                                       <span className="font-mono text-xs font-extrabold text-neutral-900 shrink-0">
@@ -1359,7 +1250,6 @@ export default function CashierDashboard() {
                                 </span>
                               </div>
 
-                              {/* KONDISI TOMBOL AKSI BERDASARKAN STATUS PEMBAYARAN */}
                               {isCashPending ? (
                                 <button
                                   onClick={() =>
@@ -1375,8 +1265,8 @@ export default function CashierDashboard() {
                                   onClick={() => handleNextStatus(order)}
                                   className={`w-full py-3 rounded-2xl text-xs font-bold transition shadow-sm cursor-pointer flex items-center justify-center gap-2 mt-3 ${
                                     order.orderStatus === "processing"
-                                      ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20"
-                                      : "bg-neutral-900 hover:bg-neutral-800 text-white shadow-neutral-900/20"
+                                      ? "bg-blue-600 hover:bg-blue-500 text-white"
+                                      : "bg-neutral-900 hover:bg-neutral-800 text-white"
                                   }`}
                                 >
                                   {order.orderStatus === "processing"
@@ -1394,7 +1284,7 @@ export default function CashierDashboard() {
               </div>
             )}
 
-            {/* KONTEN TAB 2: POS MODE INPUT ORDER */}
+            {/* TAB 2: POS MODE INPUT ORDER */}
             {activeTab === "pos-order" && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
                 <div className="lg:col-span-2 space-y-6">
@@ -1404,7 +1294,7 @@ export default function CashierDashboard() {
                     </h3>
                     <p className="text-xs text-neutral-500">
                       Klik produk untuk memasukkannya ke keranjang pesanan
-                      pelanggan walk-in / telepon.
+                      pelanggan.
                     </p>
                   </div>
 
@@ -1501,7 +1391,6 @@ export default function CashierDashboard() {
                       <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block">
                         Item Terpilih ({cart.length})
                       </span>
-
                       {cart.length === 0 ? (
                         <div className="text-center py-8 bg-neutral-50 rounded-2xl border border-dashed border-neutral-200 text-xs text-neutral-400">
                           Belum ada menu dipilih.
@@ -1597,7 +1486,7 @@ export default function CashierDashboard() {
               </div>
             )}
 
-            {/* KONTEN TAB 3: MANAJEMEN KUPON DISKON */}
+            {/* TAB 3: MANAJEMEN KUPON DISKON */}
             {activeTab === "coupons" && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
                 <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4 self-start">
@@ -1639,7 +1528,7 @@ export default function CashierDashboard() {
                     <div>
                       <label className="block font-bold text-neutral-700 mb-1">
                         {discountType === "percentage"
-                          ? "Besaran Persen (Contoh: 15 untuk 15%)"
+                          ? "Besaran Persen (1-100)"
                           : "Nominal Potongan (Rp)"}
                       </label>
                       <input
@@ -1735,7 +1624,7 @@ export default function CashierDashboard() {
               </div>
             )}
 
-            {/* KONTEN TAB 4: RIWAYAT PESANAN KOMPREHENSIF */}
+            {/* TAB 4: RIWAYAT PESANAN KOMPREHENSIF */}
             {activeTab === "history" && (
               <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-6 animate-fadeIn">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-neutral-100">
@@ -1791,9 +1680,7 @@ export default function CashierDashboard() {
                           <th className="py-3 px-4">Kupon</th>
                           <th className="py-3 px-4">Total</th>
                           <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-center">
-                            Aksi (Cetak/Cek)
-                          </th>
+                          <th className="py-3 px-4 text-center">Aksi</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-neutral-100 text-xs text-neutral-700 font-medium">
@@ -1843,8 +1730,8 @@ export default function CashierDashboard() {
                                 onClick={() => handlePrintReceipt(order)}
                                 className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer inline-flex items-center gap-1"
                               >
-                                <Printer className="w-3.5 h-3.5" />
-                                Cetak Ulang Struk
+                                <Printer className="w-3.5 h-3.5" /> Cetak Ulang
+                                Struk
                               </button>
                             </td>
                           </tr>

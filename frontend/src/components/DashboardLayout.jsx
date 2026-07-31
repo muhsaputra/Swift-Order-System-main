@@ -13,7 +13,6 @@ import {
   UserCheck,
   PlusCircle,
   Tag,
-  FileText,
   Maximize2,
   Minimize2,
 } from "lucide-react";
@@ -149,7 +148,7 @@ export default function DashboardLayout() {
               )}
             </button>
 
-            {/* Menu Operasional & Transaksi (Diperbarui mengarah ke Halaman Mandiri / POS) */}
+            {/* Menu Operasional & Transaksi */}
             <div className="space-y-1 pt-1">
               <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-neutral-500">
                 Operasional & Transaksi
@@ -195,6 +194,19 @@ export default function DashboardLayout() {
               >
                 <TableProperties className="w-4 h-4" />
                 <span>Manajemen Meja</span>
+              </button>
+
+              {/* Menu Baru: Manajemen Kupon Diskon */}
+              <button
+                onClick={() => navigate("/dashboard/coupons")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+                  isActive("/dashboard/coupons")
+                    ? "bg-white text-neutral-950 shadow-md"
+                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                }`}
+              >
+                <Tag className="w-4 h-4 text-amber-400" />
+                <span>Manajemen Kupon</span>
               </button>
 
               <button

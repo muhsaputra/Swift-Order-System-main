@@ -15,6 +15,7 @@ import TableManagement from "./pages/TableManagement";
 import CashierPOS from "./pages/CashierPOS";
 import TransactionHistory from "./pages/TransactionHistory";
 import AdminProfile from "./pages/AdminProfile";
+import CouponManagementPage from "./pages/CouponManagementPage"; // <-- Import halaman kupon baru
 import ClientOrderPage from "./pages/ClientOrderPage";
 import ClientPaymentPage from "./pages/ClientPaymentPage";
 import ClientWaitingPage from "./pages/ClientWaitingPage";
@@ -48,6 +49,8 @@ export default function App() {
           <Route path="pos" element={<CashierPOS />} />
           <Route path="menu" element={<MenuManagement />} />
           <Route path="tables" element={<TableManagement />} />
+          <Route path="coupons" element={<CouponManagementPage />} />{" "}
+          {/* <-- Tambahkan rute kupon di sini */}
           <Route path="history" element={<TransactionHistory />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>

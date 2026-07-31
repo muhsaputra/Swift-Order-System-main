@@ -11,18 +11,48 @@ import {
   Store,
   AlertTriangle,
   UserCheck,
+  PlusCircle,
+  Tag,
+  FileText,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { io } from "socket.io-client";
 
 // Sesuaikan URL Backend Anda jika berbeda
-// URL Backend untuk Socket.io langsung ke domain utama
 const SOCKET_URL = "https://api.swiftorder.space";
 
 export default function DashboardLayout() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Pantau perubahan status fullscreen browser
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  // Fungsi toggle fullscreen untuk 1 website secara global
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error("Gagal mengaktifkan fullscreen:", err);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
 
   // Inisialisasi Socket.io dan Audio secara Global di Layout Dashboard
   useEffect(() => {
@@ -78,7 +108,7 @@ export default function DashboardLayout() {
   return (
     <div className="min-h-screen bg-neutral-100 flex overflow-hidden font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Sidebar Tetap / Sticky di Kiri */}
-      <aside className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col justify-between p-6 shrink-0 h-screen sticky top-0 shadow-xl">
+      <aside className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col justify-between p-6 shrink-0 h-screen sticky top-0 shadow-xl overflow-y-auto">
         <div className="space-y-6">
           <div className="px-2 space-y-2">
             <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-amber-300 border border-white/10">
@@ -112,7 +142,6 @@ export default function DashboardLayout() {
                 <LayoutDashboard className="w-4 h-4" />
                 <span>Dashboard Utama</span>
               </div>
-              {/* Badge Angka Jumlah Pesanan Baru di Samping Tulisan Dashboard Utama */}
               {newOrdersCount > 0 && (
                 <span className="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse shadow-sm">
                   {newOrdersCount}
@@ -120,57 +149,100 @@ export default function DashboardLayout() {
               )}
             </button>
 
-            <button
-              onClick={() => navigate("/dashboard/menu")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
-                isActive("/dashboard/menu")
-                  ? "bg-white text-neutral-950 shadow-md"
-                  : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-              }`}
-            >
-              <UtensilsCrossed className="w-4 h-4" />
-              <span>Manajemen Menu</span>
-            </button>
+            {/* Menu Operasional & Transaksi (Diperbarui mengarah ke Halaman Mandiri / POS) */}
+            <div className="space-y-1 pt-1">
+              <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-neutral-500">
+                Operasional & Transaksi
+              </div>
 
-            <button
-              onClick={() => navigate("/dashboard/tables")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
-                isActive("/dashboard/tables")
-                  ? "bg-white text-neutral-950 shadow-md"
-                  : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-              }`}
-            >
-              <TableProperties className="w-4 h-4" />
-              <span>Manajemen Meja</span>
-            </button>
+              <button
+                onClick={() => navigate("/dashboard/pos")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+                  isActive("/dashboard/pos")
+                    ? "bg-white text-neutral-950 shadow-md"
+                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                }`}
+              >
+                <PlusCircle className="w-4 h-4 text-emerald-400" />
+                <span>Input Pesanan (POS)</span>
+              </button>
+            </div>
 
-            <button
-              onClick={() => navigate("/dashboard/history")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
-                isActive("/dashboard/history")
-                  ? "bg-white text-neutral-950 shadow-md"
-                  : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-              }`}
-            >
-              <History className="w-4 h-4" />
-              <span>Riwayat Transaksi</span>
-            </button>
+            <div className="pt-2">
+              <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-neutral-500">
+                Manajemen Sistem
+              </div>
 
-            <button
-              onClick={() => navigate("/dashboard/profile")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
-                isActive("/dashboard/profile")
-                  ? "bg-white text-neutral-950 shadow-md"
-                  : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-              }`}
-            >
-              <UserCheck className="w-4 h-4" />
-              <span>Profil Akun</span>
-            </button>
+              <button
+                onClick={() => navigate("/dashboard/menu")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+                  isActive("/dashboard/menu")
+                    ? "bg-white text-neutral-950 shadow-md"
+                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                }`}
+              >
+                <UtensilsCrossed className="w-4 h-4" />
+                <span>Manajemen Menu</span>
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard/tables")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+                  isActive("/dashboard/tables")
+                    ? "bg-white text-neutral-950 shadow-md"
+                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                }`}
+              >
+                <TableProperties className="w-4 h-4" />
+                <span>Manajemen Meja</span>
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard/history")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+                  isActive("/dashboard/history")
+                    ? "bg-white text-neutral-950 shadow-md"
+                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                }`}
+              >
+                <History className="w-4 h-4" />
+                <span>Arsip Transaksi</span>
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard/profile")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+                  isActive("/dashboard/profile")
+                    ? "bg-white text-neutral-950 shadow-md"
+                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                }`}
+              >
+                <UserCheck className="w-4 h-4" />
+                <span>Profil Akun</span>
+              </button>
+            </div>
           </nav>
         </div>
 
-        <div className="pt-6 border-t border-neutral-800/80">
+        {/* Bagian Bawah Sidebar: Tombol Fullscreen & Logout */}
+        <div className="pt-6 border-t border-neutral-800/80 space-y-2">
+          <button
+            onClick={toggleFullscreen}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-neutral-300 hover:bg-neutral-800 hover:text-white transition cursor-pointer"
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize2 className="w-4 h-4 text-amber-400" />
+                <span>Keluar Fullscreen</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-4 h-4 text-amber-400" />
+                <span>Layar Penuh</span>
+              </>
+            )}
+          </button>
+
           <button
             onClick={() => setShowLogoutModal(true)}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition cursor-pointer"

@@ -94,7 +94,12 @@ export default function ClientOrderPage() {
     scriptTag.async = true;
     document.body.appendChild(scriptTag);
 
-    const socket = io("https://api.swiftorder.space", {
+    // Perbaikan URL Socket agar otomatis memotong /api jika ada di env
+    const SOCKET_URL = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace(/\/api$/, "")
+      : "http://localhost:5001";
+
+    const socket = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
     });
 

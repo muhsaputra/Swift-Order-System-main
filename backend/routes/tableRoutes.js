@@ -12,11 +12,16 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST: Tambah meja baru
+// POST: Tambah meja baru (Mendukung area, kapasitas, dan posisi)
 router.post("/", async (req, res) => {
   try {
-    const { tableNumber, capacity, position } = req.body;
-    const newTable = new Table({ tableNumber, capacity, position });
+    const { tableNumber, capacity, area, position } = req.body;
+    const newTable = new Table({
+      tableNumber,
+      capacity: capacity || 4,
+      area: area || "Indoor",
+      position: position || { x: 0, y: 0 },
+    });
     const savedTable = await newTable.save();
     res.status(201).json(savedTable);
   } catch (err) {
@@ -24,7 +29,25 @@ router.post("/", async (req, res) => {
   }
 });
 
-// PATCH: Update posisi atau status meja
+// PATCH: Khusus untuk update posisi meja (Visual Layout Editor)
+router.patch("/:id/position", async (req, res) => {
+  try {
+    const { position } = req.body;
+    const updatedTable = await Table.findByIdAndUpdate(
+      req.params.id,
+      { position },
+      { new: true },
+    );
+    if (!updatedTable) {
+      return res.status(404).json({ error: "Meja tidak ditemukan" });
+    }
+    res.status(200).json(updatedTable);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// PATCH: Update umum data meja (status, area, dll)
 router.patch("/:id", async (req, res) => {
   try {
     const updatedTable = await Table.findByIdAndUpdate(
@@ -32,19 +55,19 @@ router.patch("/:id", async (req, res) => {
       req.body,
       { new: true },
     );
+    if (!updatedTable) {
+      return res.status(404).json({ error: "Meja tidak ditemukan" });
+    }
     res.status(200).json(updatedTable);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// Tambahkan rute DELETE ini di file backend Anda (misal: tableRoutes.js)
-
+// DELETE: Hapus meja berdasarkan ID
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Hapus meja berdasarkan ID menggunakan Mongoose
     const deletedTable = await Table.findByIdAndDelete(id);
 
     if (!deletedTable) {

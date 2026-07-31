@@ -12,8 +12,9 @@ import Login from "./pages/Login";
 import CashierDashboard from "./pages/CashierDashboard";
 import MenuManagement from "./pages/MenuManagement";
 import TableManagement from "./pages/TableManagement";
+import CashierPOS from "./pages/CashierPOS";
 import TransactionHistory from "./pages/TransactionHistory";
-import AdminProfile from "./pages/AdminProfile"; // Komponen profil admin yang baru
+import AdminProfile from "./pages/AdminProfile";
 import ClientOrderPage from "./pages/ClientOrderPage";
 import ClientPaymentPage from "./pages/ClientPaymentPage";
 import ClientWaitingPage from "./pages/ClientWaitingPage";
@@ -44,6 +45,7 @@ export default function App() {
         {/* Rute Bersarang Dashboard */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<CashierDashboard />} />
+          <Route path="pos" element={<CashierPOS />} />
           <Route path="menu" element={<MenuManagement />} />
           <Route path="tables" element={<TableManagement />} />
           <Route path="history" element={<TransactionHistory />} />

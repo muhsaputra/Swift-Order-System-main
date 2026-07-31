@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import API from "../services/api";
 import { io } from "socket.io-client";
 import { gooeyToast } from "goey-toast";
+import { useLocation } from "react-router-dom";
 import {
   Bell,
   X,
@@ -24,6 +25,8 @@ import {
   Plus,
   Calendar,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -43,9 +46,11 @@ function OrderTimer({ createdAt }) {
   const [elapsedMinutes, setElapsedMinutes] = useState(0);
 
   useEffect(() => {
+    if (!createdAt) return;
     const calculateTime = () => {
       const now = new Date();
       const created = new Date(createdAt);
+      if (isNaN(created.getTime())) return;
       const diffMs = now - created;
       const diffMins = Math.floor(diffMs / 60000);
       setElapsedMinutes(diffMins >= 0 ? diffMins : 0);
@@ -87,6 +92,27 @@ export default function CashierDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [waiterCalledTables, setWaiterCalledTables] = useState([]);
   const [historyFilterDate, setHistoryFilterDate] = useState("");
+  const [historyPage, setHistoryPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const location = useLocation();
+
+  // Sinkronisasi Tab dengan Query Parameter dari URL Sidebar
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+
+    if (tab === "walk-in") {
+      setActiveTab("pos-order");
+    } else if (tab === "coupons") {
+      setActiveTab("coupons");
+      fetchCoupons();
+    } else if (tab === "history") {
+      setActiveTab("history");
+    } else if (!tab) {
+      setActiveTab("active-orders");
+    }
+  }, [location.search]);
 
   // POS Order Manual State
   const [customerName, setCustomerName] = useState("");
@@ -135,7 +161,12 @@ export default function CashierDashboard() {
       }
     }
 
-    const socket = io("https://api.swiftorder.space", {
+    // PERBAIKAN: Otomatis memotong /api dari env agar terhubung ke root server socket dengan stabil
+    const SOCKET_URL = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace(/\/api$/, "")
+      : "http://localhost:5001";
+
+    const socket = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
     });
 
@@ -155,7 +186,7 @@ export default function CashierDashboard() {
 
       const newNotif = {
         id: Date.now(),
-        title: "Pesanan Tunai Baru!",
+        title: "Pesanan Baru!",
         message: `Pelanggan ${newOrder.customerName} di Meja #${newOrder.tableNumber} membuat pesanan baru.`,
         time: new Date().toLocaleTimeString("id-ID", {
           hour: "2-digit",
@@ -366,7 +397,7 @@ export default function CashierDashboard() {
 
   const handleNextStatus = async (order) => {
     let nextStatus = "";
-    if (order.orderStatus === "processing") {
+    if (order.orderStatus === "processing" || order.orderStatus === "pending") {
       nextStatus = "ready";
     } else if (order.orderStatus === "ready") {
       nextStatus = "completed";
@@ -601,6 +632,13 @@ export default function CashierDashboard() {
 
   const getStatusBadge = (order) => {
     switch (order.orderStatus) {
+      case "pending":
+        return (
+          <span className="inline-flex items-center gap-1.5 bg-neutral-100 text-neutral-700 border border-neutral-200 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide">
+            <span className="w-1.5 h-1.5 rounded-full bg-neutral-400"></span>
+            PENDING (MENUNGGU PEMBAYARAN)
+          </span>
+        );
       case "processing":
         return (
           <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide">
@@ -639,6 +677,7 @@ export default function CashierDashboard() {
           o.paymentStatus === "paid" ||
           o.paymentStatus === "success" ||
           o.paymentStatus === "settlement" ||
+          o.paymentStatus === "pending" ||
           o.isPaid === true ||
           o.paymentStatus === "cash_pending";
         return isNotCompleted && isValidPayment;
@@ -679,6 +718,15 @@ export default function CashierDashboard() {
       return orderDateStr === historyFilterDate;
     });
   }, [orders, historyFilterDate]);
+
+  const paginatedHistory = useMemo(() => {
+    const startIndex = (historyPage - 1) * itemsPerPage;
+    return comprehensiveHistory.slice(startIndex, startIndex + itemsPerPage);
+  }, [comprehensiveHistory, historyPage]);
+
+  const totalHistoryPages = Math.ceil(
+    comprehensiveHistory.length / itemsPerPage,
+  );
 
   const topMenus = useMemo(() => {
     const itemCounts = {};
@@ -1264,12 +1312,14 @@ export default function CashierDashboard() {
                                 <button
                                   onClick={() => handleNextStatus(order)}
                                   className={`w-full py-3 rounded-2xl text-xs font-bold transition shadow-sm cursor-pointer flex items-center justify-center gap-2 mt-3 ${
-                                    order.orderStatus === "processing"
+                                    order.orderStatus === "processing" ||
+                                    order.orderStatus === "pending"
                                       ? "bg-blue-600 hover:bg-blue-500 text-white"
                                       : "bg-neutral-900 hover:bg-neutral-800 text-white"
                                   }`}
                                 >
-                                  {order.orderStatus === "processing"
+                                  {order.orderStatus === "processing" ||
+                                  order.orderStatus === "pending"
                                     ? "Panggil Pesanan (Ready)"
                                     : "Selesaikan Pesanan (Done)"}
                                 </button>
@@ -1630,7 +1680,7 @@ export default function CashierDashboard() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-neutral-100">
                   <div>
                     <h3 className="text-base font-bold text-neutral-900">
-                      Riwayat Pesanan Komprehensif (Seminggu Terakhir / Arsip)
+                      Riwayat Pesanan Komprehensif (Arsip Transaksi)
                     </h3>
                     <p className="text-xs text-neutral-500">
                       Gunakan tab ini untuk pengecekan ulang transaksi lama,
@@ -1647,12 +1697,18 @@ export default function CashierDashboard() {
                       <input
                         type="date"
                         value={historyFilterDate}
-                        onChange={(e) => setHistoryFilterDate(e.target.value)}
+                        onChange={(e) => {
+                          setHistoryFilterDate(e.target.value);
+                          setHistoryPage(1);
+                        }}
                         className="bg-transparent text-xs text-neutral-900 font-medium focus:outline-none cursor-pointer"
                       />
                       {historyFilterDate && (
                         <button
-                          onClick={() => setHistoryFilterDate("")}
+                          onClick={() => {
+                            setHistoryFilterDate("");
+                            setHistoryPage(1);
+                          }}
                           className="text-neutral-400 hover:text-neutral-700 text-xs font-bold ml-1 cursor-pointer"
                         >
                           ✕
@@ -1668,76 +1724,134 @@ export default function CashierDashboard() {
                     kriteria tersebut.
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-neutral-100 text-[11px] font-bold text-neutral-400 uppercase tracking-wider bg-neutral-50/50">
-                          <th className="py-3 px-4">ID Pesanan</th>
-                          <th className="py-3 px-4">Waktu Transaksi</th>
-                          <th className="py-3 px-4">Meja</th>
-                          <th className="py-3 px-4">Pelanggan</th>
-                          <th className="py-3 px-4">Metode</th>
-                          <th className="py-3 px-4">Kupon</th>
-                          <th className="py-3 px-4">Total</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-center">Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-neutral-100 text-xs text-neutral-700 font-medium">
-                        {comprehensiveHistory.map((order) => (
-                          <tr
-                            key={order._id}
-                            className="hover:bg-neutral-50/60 transition"
-                          >
-                            <td className="py-3.5 px-4 font-mono text-neutral-400 font-semibold">
-                              #{order._id.slice(-6).toUpperCase()}
-                            </td>
-                            <td className="py-3.5 px-4 font-mono text-neutral-500 text-[11px]">
-                              {formatDateTime(order.createdAt)}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="bg-neutral-100 text-neutral-900 font-extrabold px-2.5 py-1 rounded-lg">
-                                Meja #{order.tableNumber}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 font-bold text-neutral-900">
-                              {order.customerName}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="uppercase text-[10px] font-extrabold px-2 py-0.5 rounded bg-neutral-100 text-neutral-700">
-                                {order.paymentMethod || "qris"}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              {order.couponCode ? (
-                                <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                                  {order.couponCode}
-                                </span>
-                              ) : (
-                                <span className="text-neutral-400">-</span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 font-mono font-black text-emerald-600">
-                              Rp {order.totalAmount.toLocaleString("id-ID")}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold">
-                                SELESAI
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-center">
-                              <button
-                                onClick={() => handlePrintReceipt(order)}
-                                className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer inline-flex items-center gap-1"
-                              >
-                                <Printer className="w-3.5 h-3.5" /> Cetak Ulang
-                                Struk
-                              </button>
-                            </td>
+                  <div className="space-y-4">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-neutral-100 text-[11px] font-bold text-neutral-400 uppercase tracking-wider bg-neutral-50/50">
+                            <th className="py-3 px-4">ID Pesanan</th>
+                            <th className="py-3 px-4">Waktu Transaksi</th>
+                            <th className="py-3 px-4">Meja</th>
+                            <th className="py-3 px-4">Pelanggan</th>
+                            <th className="py-3 px-4">Metode</th>
+                            <th className="py-3 px-4">Kupon</th>
+                            <th className="py-3 px-4">Total</th>
+                            <th className="py-3 px-4">Status</th>
+                            <th className="py-3 px-4 text-center">Aksi</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-neutral-100 text-xs text-neutral-700 font-medium">
+                          {paginatedHistory.map((order) => (
+                            <tr
+                              key={order._id}
+                              className="hover:bg-neutral-50/60 transition"
+                            >
+                              <td className="py-3.5 px-4 font-mono text-neutral-400 font-semibold">
+                                #{order._id.slice(-6).toUpperCase()}
+                              </td>
+                              <td className="py-3.5 px-4 font-mono text-neutral-500 text-[11px]">
+                                {formatDateTime(order.createdAt)}
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className="bg-neutral-100 text-neutral-900 font-extrabold px-2.5 py-1 rounded-lg">
+                                  Meja #{order.tableNumber}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 font-bold text-neutral-900">
+                                {order.customerName}
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className="uppercase text-[10px] font-extrabold px-2 py-0.5 rounded bg-neutral-100 text-neutral-700">
+                                  {order.paymentMethod || "qris"}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                {order.couponCode ? (
+                                  <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded text-[10px] font-bold">
+                                    {order.couponCode}
+                                  </span>
+                                ) : (
+                                  <span className="text-neutral-400">-</span>
+                                )}
+                              </td>
+                              <td className="py-3.5 px-4 font-mono font-black text-emerald-600">
+                                Rp {order.totalAmount.toLocaleString("id-ID")}
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold">
+                                  SELESAI
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 text-center">
+                                <button
+                                  onClick={() => handlePrintReceipt(order)}
+                                  className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                >
+                                  <Printer className="w-3.5 h-3.5" /> Cetak
+                                  Ulang Struk
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* PAGINASI KONTROL */}
+                    <div className="flex justify-between items-center pt-4 border-t border-neutral-100 text-xs">
+                      <p className="text-neutral-500 font-medium">
+                        Menampilkan{" "}
+                        <span className="font-bold text-neutral-900">
+                          {(historyPage - 1) * itemsPerPage + 1}
+                        </span>{" "}
+                        sampai{" "}
+                        <span className="font-bold text-neutral-900">
+                          {Math.min(
+                            historyPage * itemsPerPage,
+                            comprehensiveHistory.length,
+                          )}
+                        </span>{" "}
+                        dari{" "}
+                        <span className="font-bold text-neutral-900">
+                          {comprehensiveHistory.length}
+                        </span>{" "}
+                        total riwayat
+                      </p>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            setHistoryPage((prev) => Math.max(prev - 1, 1))
+                          }
+                          disabled={historyPage === 1}
+                          className={`px-4 py-2 rounded-xl font-bold transition flex items-center gap-1 border ${
+                            historyPage === 1
+                              ? "bg-neutral-100 text-neutral-400 border-neutral-200 cursor-not-allowed"
+                              : "bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200 cursor-pointer shadow-2xs"
+                          }`}
+                        >
+                          <ChevronLeft className="w-4 h-4" /> Sebelumnya
+                        </button>
+                        <span className="px-3 py-2 bg-neutral-900 text-white font-mono font-bold rounded-xl">
+                          {historyPage} / {totalHistoryPages || 1}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setHistoryPage((prev) =>
+                              Math.min(prev + 1, totalHistoryPages),
+                            )
+                          }
+                          disabled={historyPage >= totalHistoryPages}
+                          className={`px-4 py-2 rounded-xl font-bold transition flex items-center gap-1 border ${
+                            historyPage >= totalHistoryPages
+                              ? "bg-neutral-100 text-neutral-400 border-neutral-200 cursor-not-allowed"
+                              : "bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200 cursor-pointer shadow-2xs"
+                          }`}
+                        >
+                          Berikutnya <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

@@ -15,7 +15,14 @@ const tableSchema = new mongoose.Schema(
       default: null,
     },
 
-    // Posisi untuk layout mapping visual di frontend (opsional/tetap dipertahankan)
+    // Zona atau area penempatan meja di kafe (cth: Indoor, Outdoor, VIP)
+    area: {
+      type: String,
+      enum: ["Indoor", "Outdoor", "VIP", "Lantai 2"],
+      default: "Indoor",
+    },
+
+    // Posisi untuk layout mapping visual drag-and-drop di frontend
     position: {
       x: { type: Number, default: 0 },
       y: { type: Number, default: 0 },

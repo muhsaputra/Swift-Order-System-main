@@ -174,28 +174,49 @@ export default function ClientWaitingPage() {
     }
     fetchRecommendations();
 
-    const socket = io("https://api.swiftorder.space", {
+    // Perbaikan URL Socket agar otomatis memotong /api jika ada di env
+    const SOCKET_URL = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace(/\/api$/, "")
+      : "http://localhost:5001";
+
+    const socket = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
     });
+
     socket.emit("join-order", id);
 
-    socket.on("order-updated", (updatedOrder) => {
-      if (updatedOrder._id === id || updatedOrder.orderId === id) {
+    // Fungsi universal untuk memproses pembaruan pesanan dari socket secara real-time
+    const handleOrderSync = (updatedOrder) => {
+      if (!updatedOrder) return;
+
+      const incomingId = String(
+        updatedOrder._id || updatedOrder.id || updatedOrder.orderId,
+      );
+      const currentId = String(id);
+
+      if (incomingId === currentId) {
         if (!isDataLoadedRef.current) return;
 
-        const newStatus = updatedOrder.orderStatus;
+        const newStatus = updatedOrder.orderStatus || updatedOrder.status;
         const oldStatus = currentStatusRef.current;
 
         if (oldStatus !== "ready" && newStatus === "ready") {
           playNotificationSound();
         }
 
-        currentStatusRef.current = newStatus;
+        if (newStatus) {
+          currentStatusRef.current = newStatus;
+          setStatus(newStatus);
+        }
+
         setOrder(updatedOrder);
-        setStatus(newStatus);
         localStorage.setItem(`order_${id}`, JSON.stringify(updatedOrder));
       }
-    });
+    };
+
+    socket.on("order-updated", handleOrderSync);
+    socket.on("order-status-updated", handleOrderSync);
+    socket.on("new-paid-order", handleOrderSync);
 
     return () => socket.disconnect();
   }, [id, searchParams]);

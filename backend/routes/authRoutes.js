@@ -44,6 +44,9 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log(
+      `[LOGIN DEBUG] Mencoba masuk - Username: "${username}", Password input: "${password}"`,
+    );
 
     if (!username || !password) {
       return res
@@ -53,10 +56,22 @@ router.post("/login", async (req, res) => {
 
     const user = await User.findOne({ username });
     if (!user) {
+      console.log(
+        `[LOGIN DEBUG] User "${username}" tidak ditemukan di database.`,
+      );
       return res.status(404).json({ error: "Akun tidak ditemukan" });
     }
 
+    console.log(
+      `[LOGIN DEBUG] User ditemukan. Hash password di DB: ${user.password}`,
+    );
+
     const isMatch = await user.comparePassword(password);
+    console.log(
+      `[LOGIN DEBUG] Hasil perbandingan password (isMatch):`,
+      isMatch,
+    );
+
     if (!isMatch) {
       return res.status(400).json({ error: "Password salah" });
     }
@@ -107,6 +122,9 @@ router.put("/profile", verifyToken, async (req, res) => {
   try {
     const userId = req.id || req.user?.id;
     const { username, name, password } = req.body;
+    console.log(
+      `[PROFILE UPDATE] Menerima request update untuk ID: ${userId}, password baru terisi: ${Boolean(password)}`,
+    );
 
     const user = await User.findById(userId);
     if (!user) {
@@ -116,10 +134,13 @@ router.put("/profile", verifyToken, async (req, res) => {
     if (username) user.username = username;
     if (name) user.name = name;
 
-    // Enkripsi password secara aman langsung di rute update profil
+    // Enkripsi password baru secara aman jika diisi
     if (password && password.trim() !== "") {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
+      console.log(
+        `[PROFILE UPDATE] Password berhasil di-hash baru: ${user.password}`,
+      );
     }
 
     const updatedUser = await user.save();

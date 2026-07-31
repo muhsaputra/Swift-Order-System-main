@@ -72,7 +72,7 @@ export default function CouponManagementPage() {
             <span>Manajemen Sistem Promo</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
-            Kelola Kupon Diskon 🎟️
+            Kelola Kupon Diskon
           </h1>
           <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
             Terbitkan, atur, dan pantau kode promo diskon aktif untuk pelanggan

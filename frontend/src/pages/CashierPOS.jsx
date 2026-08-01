@@ -52,6 +52,9 @@ export default function CashierPOS() {
   const [couponCodeInput, setCouponCodeInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
 
+  // State untuk Persentase Biaya Layanan Dinamis
+  const [serviceFeePercentage, setServiceFeePercentage] = useState(5);
+
   // State untuk Modal Varian / Add-On saat Menu Diklik
   const [selectedMenuForOptions, setSelectedMenuForOptions] = useState(null);
   const [selectedOptionsState, setSelectedOptionsState] = useState({});
@@ -70,6 +73,7 @@ export default function CashierPOS() {
   useEffect(() => {
     fetchMenus();
     fetchCoupons();
+    fetchServiceFeeSettings();
 
     const socket = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
@@ -99,6 +103,17 @@ export default function CashierPOS() {
       setCoupons(res.data || []);
     } catch (err) {
       console.log("Gagal memuat data kupon, menggunakan kupon kosong.");
+    }
+  };
+
+  const fetchServiceFeeSettings = async () => {
+    try {
+      const res = await API.get("/settings/service-fee");
+      if (res.data && res.data.serviceFeePercentage !== undefined) {
+        setServiceFeePercentage(Number(res.data.serviceFeePercentage));
+      }
+    } catch (err) {
+      console.log("Menggunakan fee layanan default 5%");
     }
   };
 
@@ -196,7 +211,7 @@ export default function CashierPOS() {
   };
 
   const calculateServiceFee = (subtotalAfterDiscount) => {
-    return Math.round(subtotalAfterDiscount * 0.05);
+    return Math.round(subtotalAfterDiscount * (serviceFeePercentage / 100));
   };
 
   const handleApplyCoupon = (e) => {
@@ -400,7 +415,7 @@ export default function CashierPOS() {
               <td class="right">Rp ${subtotalVal.toLocaleString("id-ID")}</td>
             </tr>
             ${discountVal > 0 ? `<tr><td>Diskon (${order.couponCode || "PROMO"})</td><td class="right">-Rp ${discountVal.toLocaleString("id-ID")}</td></tr>` : ""}
-            ${serviceFeeVal > 0 ? `<tr><td>Biaya Layanan (5%)</td><td class="right">Rp ${serviceFeeVal.toLocaleString("id-ID")}</td></tr>` : ""}
+            ${serviceFeeVal > 0 ? `<tr><td>Biaya Layanan (${serviceFeePercentage}%)</td><td class="right">Rp ${serviceFeeVal.toLocaleString("id-ID")}</td></tr>` : ""}
           </table>
           <div class="line"></div>
           <table>
@@ -759,7 +774,7 @@ export default function CashierPOS() {
                 </div>
               )}
               <div className="flex justify-between text-neutral-500">
-                <span>Biaya Layanan (5%)</span>
+                <span>Biaya Layanan ({serviceFeePercentage}%)</span>
                 <span className="font-semibold">
                   Rp {serviceFee.toLocaleString("id-ID")}
                 </span>

@@ -191,7 +191,7 @@ export default function DashboardLayout() {
             </div>
 
             {/* Kategori: Manajemen Restoran & Sistem */}
-            <div className="space-y-1.5">
+            {/* <div className="space-y-1.5">
               <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
                 Manajemen Restoran
               </div>
@@ -251,7 +251,7 @@ export default function DashboardLayout() {
                 />
                 <span>Arsip Transaksi</span>
               </button>
-            </div>
+            </div> */}
 
             {/* Kategori: Akun & Konfigurasi */}
             <div className="space-y-1.5">

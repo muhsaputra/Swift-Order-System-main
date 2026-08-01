@@ -38,11 +38,12 @@ export default function MenuManagement() {
 
   // Form Menu State
   const [name, setName] = useState("");
-  const [sku, setSku] = useState(""); // State SKU baru
+  const [sku, setSku] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
   const [category, setCategory] = useState("Makanan");
+  const [spicinessLevel, setSpicinessLevel] = useState("Tidak Pedas"); // State Level Kepedasan Baru
   const [isAvailable, setIsAvailable] = useState(true);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -113,11 +114,12 @@ export default function MenuManagement() {
   const handleOpenAddModal = () => {
     setEditingId(null);
     setName("");
-    setSku(""); // Reset SKU
+    setSku("");
     setDescription("");
     setPrice("");
     setOriginalPrice("");
     setCategory(categories[0] || "Makanan");
+    setSpicinessLevel("Tidak Pedas"); // Reset Level Pedas
     setIsAvailable(true);
     setImageFile(null);
     setImagePreview("");
@@ -130,13 +132,14 @@ export default function MenuManagement() {
   const handleOpenEditModal = (menu) => {
     setEditingId(menu._id);
     setName(menu.name);
-    setSku(menu.sku || ""); // Set SKU dari data menu
+    setSku(menu.sku || "");
     setDescription(menu.description || "");
     setPrice(formatRupiah(menu.price));
     setOriginalPrice(
       menu.originalPrice ? formatRupiah(menu.originalPrice) : "",
     );
     setCategory(menu.category);
+    setSpicinessLevel(menu.spicinessLevel || "Tidak Pedas"); // Set Level Pedas dari data menu
     setIsAvailable(menu.isAvailable);
     setImageFile(null);
     setImagePreview(menu.image || "");
@@ -210,11 +213,12 @@ export default function MenuManagement() {
 
       const formData = new FormData();
       formData.append("name", name);
-      formData.append("sku", sku); // Kirim SKU ke backend
+      formData.append("sku", sku);
       formData.append("description", description);
       formData.append("price", rawPrice);
       formData.append("originalPrice", rawOriginalPrice);
       formData.append("category", category);
+      formData.append("spicinessLevel", spicinessLevel); // Kirim Level Kepedasan ke backend
       formData.append("isAvailable", isAvailable);
       formData.append("isBundle", isBundle);
       formData.append("bundleItems", JSON.stringify(bundleItems));
@@ -251,6 +255,7 @@ export default function MenuManagement() {
       formData.append("price", menu.price);
       formData.append("originalPrice", menu.originalPrice || 0);
       formData.append("category", menu.category);
+      formData.append("spicinessLevel", menu.spicinessLevel || "Tidak Pedas");
       formData.append("isAvailable", !menu.isAvailable);
       formData.append("isBundle", menu.isBundle || false);
       formData.append("bundleItems", JSON.stringify(menu.bundleItems || []));
@@ -311,7 +316,7 @@ export default function MenuManagement() {
     }
   };
 
-  // Filter menu berdasarkan pencarian dan kategori yang dipilih (mendukung pencarian SKU)
+  // Filter menu berdasarkan pencarian dan kategori yang dipilih
   const filteredMenus = menus.filter((menu) => {
     const matchesSearch =
       menu.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -365,8 +370,8 @@ export default function MenuManagement() {
               Manajemen Menu & Add-On
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Atur produk, SKU, harga diskon, foto, serta pilihan add-on
-              berharga dengan mudah dan terstruktur.
+              Atur produk, SKU, level kepedasan, harga diskon, foto, serta
+              pilihan add-on berharga dengan mudah dan terstruktur.
             </p>
           </div>
 
@@ -396,8 +401,8 @@ export default function MenuManagement() {
               Daftar Katalog Produk
             </h2>
             <p className="text-xs text-neutral-500">
-              Kelola produk, SKU, harga, add-on, ketersediaan, dan kategori
-              menu.
+              Kelola produk, SKU, level pedas, harga, add-on, ketersediaan, dan
+              kategori.
             </p>
           </div>
 
@@ -577,8 +582,7 @@ export default function MenuManagement() {
                             </div>
                           </div>
 
-                          <div className="p-4 space-y-1.5">
-                            {/* Tampilkan SKU jika ada */}
+                          <div className="p-4 space-y-2">
                             <div className="flex items-center justify-between">
                               <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
                                 {menu.name}
@@ -589,6 +593,15 @@ export default function MenuManagement() {
                                 </span>
                               )}
                             </div>
+
+                            {/* Tampilkan Badge Level Kepedasan */}
+                            {menu.spicinessLevel &&
+                              menu.spicinessLevel !== "Tidak Pedas" && (
+                                <div className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold">
+                                  <Flame className="w-3 h-3 text-red-500 fill-red-500" />
+                                  <span>{menu.spicinessLevel}</span>
+                                </div>
+                              )}
 
                             {menu.description ? (
                               <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
@@ -710,7 +723,7 @@ export default function MenuManagement() {
                             </div>
                           </div>
 
-                          <div className="p-4 space-y-1.5">
+                          <div className="p-4 space-y-2">
                             <div className="flex items-center justify-between">
                               <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
                                 {menu.category}
@@ -721,6 +734,15 @@ export default function MenuManagement() {
                                 </span>
                               )}
                             </div>
+
+                            {menu.spicinessLevel &&
+                              menu.spicinessLevel !== "Tidak Pedas" && (
+                                <div className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold">
+                                  <Flame className="w-3 h-3 text-red-500 fill-red-500" />
+                                  <span>{menu.spicinessLevel}</span>
+                                </div>
+                              )}
+
                             <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
                               {menu.name}
                             </h3>
@@ -978,21 +1000,40 @@ export default function MenuManagement() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-neutral-700 mb-1">
-                    Kategori
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer"
-                  >
-                    {categories.map((cat, idx) => (
-                      <option key={idx} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                      Kategori
+                    </label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer"
+                    >
+                      {categories.map((cat, idx) => (
+                        <option key={idx} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                      Level Kepedasan
+                    </label>
+                    <select
+                      value={spicinessLevel}
+                      onChange={(e) => setSpicinessLevel(e.target.value)}
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer"
+                    >
+                      <option value="Tidak Pedas">Tidak Pedas</option>
+                      <option value="Level 1">Level 1 (Sedang)</option>
+                      <option value="Level 2">Level 2 (Pedas)</option>
+                      <option value="Level 3">Level 3 (Sangat Pedas)</option>
+                      <option value="Level 4">Level 4 (Extra Pedas)</option>
+                      <option value="Level 5">Level 5 (Super Pedas)</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* TOGGLE & BUILDER FITUR ADD-ON */}

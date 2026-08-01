@@ -429,7 +429,7 @@ export default function CashierPOS() {
                 <div
                   key={menu._id}
                   onClick={() => addToCart(menu)}
-                  className="bg-white border border-neutral-200/80 p-4 rounded-3xl shadow-2xs hover:shadow-md transition cursor-pointer flex gap-4 items-center group"
+                  className="bg-white border border-neutral-200/80 p-4 rounded-3xl shadow-2xs hover:shadow-md transition cursor-pointer flex gap-4 items-center group relative overflow-hidden"
                 >
                   <img
                     src={
@@ -440,15 +440,31 @@ export default function CashierPOS() {
                     className="w-20 h-20 rounded-2xl object-cover shrink-0 group-hover:scale-105 transition"
                   />
                   <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
-                      {menu.category || "Makanan"}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+                        {menu.category || "Makanan"}
+                      </span>
+                      {menu.sku && (
+                        <span className="text-[9px] font-mono font-bold bg-neutral-100 text-neutral-500 px-1.5 py-0.2 rounded border border-neutral-200">
+                          {menu.sku}
+                        </span>
+                      )}
+                    </div>
                     <h3 className="text-sm font-extrabold text-neutral-900 truncate">
                       {menu.name}
                     </h3>
-                    <p className="text-xs font-bold text-emerald-600 mt-1">
-                      Rp {menu.price.toLocaleString("id-ID")}
-                    </p>
+
+                    {/* Harga Jual dan Harga Coret (Konsisten dengan MenuManagement) */}
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs font-mono font-black text-emerald-600">
+                        Rp {menu.price.toLocaleString("id-ID")}
+                      </span>
+                      {menu.originalPrice > menu.price && (
+                        <span className="text-[10px] font-mono text-neutral-400 line-through">
+                          Rp {menu.originalPrice.toLocaleString("id-ID")}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="w-9 h-9 rounded-2xl bg-neutral-900 text-white flex items-center justify-center shrink-0 group-hover:bg-amber-400 group-hover:text-neutral-950 transition">
                     <Plus className="w-4 h-4" />

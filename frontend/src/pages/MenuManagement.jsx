@@ -43,12 +43,11 @@ export default function MenuManagement() {
   const [price, setPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
   const [category, setCategory] = useState("Makanan");
-  const [spicinessLevel, setSpicinessLevel] = useState("Tidak Pedas"); // State Level Kepedasan Baru
   const [isAvailable, setIsAvailable] = useState(true);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
 
-  // State untuk Fitur Bundle / Add-On Berharga
+  // State untuk Fitur Bundle / Add-On Berharga & Level Kepedasan Dinamis
   const [isBundle, setIsBundle] = useState(false);
   const [bundleItems, setBundleItems] = useState([]);
   const [bundleOptions, setBundleOptions] = useState([]);
@@ -119,13 +118,23 @@ export default function MenuManagement() {
     setPrice("");
     setOriginalPrice("");
     setCategory(categories[0] || "Makanan");
-    setSpicinessLevel("Tidak Pedas"); // Reset Level Pedas
     setIsAvailable(true);
     setImageFile(null);
     setImagePreview("");
     setIsBundle(false);
     setBundleItems([]);
-    setBundleOptions([]);
+    // Default template add-on dengan opsi Level Kepedasan
+    setBundleOptions([
+      {
+        title: "LEVEL KEPEDASAN",
+        choices: [
+          { name: "Tidak Pedas", price: 0 },
+          { name: "Level 1", price: 0 },
+          { name: "Level 2", price: 0 },
+          { name: "Level 3", price: 0 },
+        ],
+      },
+    ]);
     setShowModal(true);
   };
 
@@ -139,7 +148,6 @@ export default function MenuManagement() {
       menu.originalPrice ? formatRupiah(menu.originalPrice) : "",
     );
     setCategory(menu.category);
-    setSpicinessLevel(menu.spicinessLevel || "Tidak Pedas"); // Set Level Pedas dari data menu
     setIsAvailable(menu.isAvailable);
     setImageFile(null);
     setImagePreview(menu.image || "");
@@ -167,7 +175,7 @@ export default function MenuManagement() {
   const handleAddBundleOption = () => {
     setBundleOptions([
       ...bundleOptions,
-      { title: "ADD ON", choices: [{ name: "", price: 0 }] },
+      { title: "ADD ON / PILIHAN", choices: [{ name: "", price: 0 }] },
     ]);
   };
 
@@ -218,7 +226,6 @@ export default function MenuManagement() {
       formData.append("price", rawPrice);
       formData.append("originalPrice", rawOriginalPrice);
       formData.append("category", category);
-      formData.append("spicinessLevel", spicinessLevel); // Kirim Level Kepedasan ke backend
       formData.append("isAvailable", isAvailable);
       formData.append("isBundle", isBundle);
       formData.append("bundleItems", JSON.stringify(bundleItems));
@@ -230,10 +237,10 @@ export default function MenuManagement() {
 
       if (editingId) {
         await API.put(`/menus/${editingId}`, formData);
-        gooeyToast.success("Menu & Add-On berhasil diperbarui!");
+        gooeyToast.success("Menu & Pilihan Varian berhasil diperbarui!");
       } else {
         await API.post("/menus", formData);
-        gooeyToast.success("Menu & Add-On baru berhasil ditambahkan!");
+        gooeyToast.success("Menu & Pilihan Varian baru berhasil ditambahkan!");
       }
 
       setShowModal(false);
@@ -255,7 +262,6 @@ export default function MenuManagement() {
       formData.append("price", menu.price);
       formData.append("originalPrice", menu.originalPrice || 0);
       formData.append("category", menu.category);
-      formData.append("spicinessLevel", menu.spicinessLevel || "Tidak Pedas");
       formData.append("isAvailable", !menu.isAvailable);
       formData.append("isBundle", menu.isBundle || false);
       formData.append("bundleItems", JSON.stringify(menu.bundleItems || []));
@@ -367,11 +373,11 @@ export default function MenuManagement() {
               <span>Katalog & Manajemen Produk</span>
             </div>
             <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
-              Manajemen Menu & Add-On
+              Manajemen Menu & Varian Add-On
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Atur produk, SKU, level kepedasan, harga diskon, foto, serta
-              pilihan add-on berharga dengan mudah dan terstruktur.
+              Atur produk, SKU, harga diskon, foto, serta pilihan varian modular
+              seperti level kepedasan dan add-on berharga.
             </p>
           </div>
 
@@ -401,7 +407,7 @@ export default function MenuManagement() {
               Daftar Katalog Produk
             </h2>
             <p className="text-xs text-neutral-500">
-              Kelola produk, SKU, level pedas, harga, add-on, ketersediaan, dan
+              Kelola produk, SKU, harga, varian level pedas, add-on, dan
               kategori.
             </p>
           </div>
@@ -574,11 +580,13 @@ export default function MenuManagement() {
                                 {menu.isAvailable ? "TERSEDIA" : "HABIS"}
                               </button>
 
-                              {menu.isBundle && (
-                                <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                                  <Package className="w-3 h-3" /> Add-On
-                                </span>
-                              )}
+                              {menu.bundleOptions &&
+                                menu.bundleOptions.length > 0 && (
+                                  <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
+                                    <Package className="w-3 h-3" /> Varian /
+                                    Add-On
+                                  </span>
+                                )}
                             </div>
                           </div>
 
@@ -594,15 +602,6 @@ export default function MenuManagement() {
                               )}
                             </div>
 
-                            {/* Tampilkan Badge Level Kepedasan */}
-                            {menu.spicinessLevel &&
-                              menu.spicinessLevel !== "Tidak Pedas" && (
-                                <div className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold">
-                                  <Flame className="w-3 h-3 text-red-500 fill-red-500" />
-                                  <span>{menu.spicinessLevel}</span>
-                                </div>
-                              )}
-
                             {menu.description ? (
                               <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
                                 {menu.description}
@@ -612,6 +611,22 @@ export default function MenuManagement() {
                                 Tanpa deskripsi
                               </p>
                             )}
+
+                            {/* Pratinjau Opsi Varian / Kepedasan / Add-On */}
+                            {menu.bundleOptions &&
+                              menu.bundleOptions.length > 0 && (
+                                <div className="pt-1 flex flex-wrap gap-1">
+                                  {menu.bundleOptions.map((opt, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="text-[9px] bg-neutral-100 text-neutral-600 border border-neutral-200 px-2 py-0.5 rounded-md font-semibold"
+                                    >
+                                      {opt.title}: {opt.choices?.length || 0}{" "}
+                                      opsi
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                           </div>
                         </div>
 
@@ -715,11 +730,13 @@ export default function MenuManagement() {
                                 {menu.isAvailable ? "TERSEDIA" : "HABIS"}
                               </button>
 
-                              {menu.isBundle && (
-                                <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                                  <Package className="w-3 h-3" /> Add-On
-                                </span>
-                              )}
+                              {menu.bundleOptions &&
+                                menu.bundleOptions.length > 0 && (
+                                  <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
+                                    <Package className="w-3 h-3" /> Varian /
+                                    Add-On
+                                  </span>
+                                )}
                             </div>
                           </div>
 
@@ -734,15 +751,6 @@ export default function MenuManagement() {
                                 </span>
                               )}
                             </div>
-
-                            {menu.spicinessLevel &&
-                              menu.spicinessLevel !== "Tidak Pedas" && (
-                                <div className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold">
-                                  <Flame className="w-3 h-3 text-red-500 fill-red-500" />
-                                  <span>{menu.spicinessLevel}</span>
-                                </div>
-                              )}
-
                             <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
                               {menu.name}
                             </h3>
@@ -890,11 +898,12 @@ export default function MenuManagement() {
                 <div>
                   <h3 className="text-base font-bold text-neutral-900">
                     {editingId
-                      ? "Edit Menu & Add-On"
-                      : "Tambah Menu & Add-On Baru"}
+                      ? "Edit Menu & Varian"
+                      : "Tambah Menu & Varian Baru"}
                   </h3>
                   <p className="text-xs text-neutral-500 mt-0.5">
-                    Lengkapi informasi produk dan atur daftar add-on.
+                    Lengkapi informasi produk dan atur pilihan varian seperti
+                    level pedas atau add-on.
                   </p>
                 </div>
                 <button
@@ -942,7 +951,7 @@ export default function MenuManagement() {
                       onChange={(e) => setName(e.target.value)}
                       required
                       className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium"
-                      placeholder="Contoh: Spaghetti"
+                      placeholder="Contoh: Nasi Goreng Spesial"
                     />
                   </div>
                   <div>
@@ -954,7 +963,7 @@ export default function MenuManagement() {
                       value={sku}
                       onChange={(e) => setSku(e.target.value)}
                       className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium uppercase"
-                      placeholder="Contoh: SPAG-001"
+                      placeholder="Contoh: MKN-NSG-SPC"
                     />
                   </div>
                 </div>
@@ -1000,51 +1009,33 @@ export default function MenuManagement() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1">
-                      Kategori
-                    </label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer"
-                    >
-                      {categories.map((cat, idx) => (
-                        <option key={idx} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1">
-                      Level Kepedasan
-                    </label>
-                    <select
-                      value={spicinessLevel}
-                      onChange={(e) => setSpicinessLevel(e.target.value)}
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer"
-                    >
-                      <option value="Tidak Pedas">Tidak Pedas</option>
-                      <option value="Level 1">Level 1 (Sedang)</option>
-                      <option value="Level 2">Level 2 (Pedas)</option>
-                      <option value="Level 3">Level 3 (Sangat Pedas)</option>
-                      <option value="Level 4">Level 4 (Extra Pedas)</option>
-                      <option value="Level 5">Level 5 (Super Pedas)</option>
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 mb-1">
+                    Kategori
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer"
+                  >
+                    {categories.map((cat, idx) => (
+                      <option key={idx} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* TOGGLE & BUILDER FITUR ADD-ON */}
+                {/* TOGGLE & BUILDER VARIAN / LEVEL KEPEDASAN & ADD-ON */}
                 <div className="space-y-4 pt-2 border-t border-neutral-100">
                   <div className="flex items-center justify-between bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80">
                     <div>
                       <p className="text-xs font-bold text-neutral-900">
-                        Aktifkan Fitur Pilihan Add-On
+                        Aktifkan Varian / Level Kepedasan & Add-On
                       </p>
                       <p className="text-[10px] text-neutral-500">
-                        Memungkinkan pelanggan memilih tambahan item berharga.
+                        Memungkinkan pelanggan memilih level pedas atau tambahan
+                        item.
                       </p>
                     </div>
                     <input
@@ -1059,14 +1050,14 @@ export default function MenuManagement() {
                     <div className="space-y-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80">
                       <div className="flex justify-between items-center mb-2">
                         <label className="text-[11px] font-extrabold uppercase tracking-wider text-neutral-700">
-                          Daftar Kategori Add-On
+                          Pengaturan Pilihan Varian & Add-On
                         </label>
                         <button
                           type="button"
                           onClick={handleAddBundleOption}
                           className="bg-neutral-900 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer"
                         >
-                          + Tambah Kategori Add-On
+                          + Tambah Kategori Pilihan Baru
                         </button>
                       </div>
 
@@ -1085,7 +1076,7 @@ export default function MenuManagement() {
                                   e.target.value,
                                 )
                               }
-                              placeholder="Judul Add-On (Misal: ADD ON)"
+                              placeholder="Judul Pilihan (Misal: LEVEL KEPEDASAN)"
                               className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs font-semibold"
                             />
                             <button
@@ -1099,7 +1090,7 @@ export default function MenuManagement() {
 
                           <div className="space-y-2 pl-2">
                             <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-                              Pilihan Add-On & Harga Tambahan:
+                              Pilihan & Harga Tambahan:
                             </span>
                             {opt.choices.map((choice, cIdx) => (
                               <div
@@ -1117,7 +1108,7 @@ export default function MenuManagement() {
                                       e.target.value,
                                     )
                                   }
-                                  placeholder="Nama Add-On (Misal: Extra Keju)"
+                                  placeholder="Nama Pilihan (Misal: Level 1 / Extra Keju)"
                                   className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs font-medium"
                                 />
                                 <input
@@ -1150,7 +1141,7 @@ export default function MenuManagement() {
                               onClick={() => handleAddChoice(optIdx)}
                               className="text-[10px] font-bold text-neutral-700 hover:underline pt-1 block cursor-pointer"
                             >
-                              + Tambah Pilihan Add-On Lain
+                              + Tambah Pilihan Lain
                             </button>
                           </div>
                         </div>

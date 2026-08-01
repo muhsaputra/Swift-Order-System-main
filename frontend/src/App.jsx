@@ -15,12 +15,13 @@ import TableManagement from "./pages/TableManagement";
 import CashierPOS from "./pages/CashierPOS";
 import TransactionHistory from "./pages/TransactionHistory";
 import AdminProfile from "./pages/AdminProfile";
-import CouponManagementPage from "./pages/CouponManagementPage"; // <-- Import halaman kupon baru
+import CouponManagementPage from "./pages/CouponManagementPage";
 import ClientOrderPage from "./pages/ClientOrderPage";
 import ClientPaymentPage from "./pages/ClientPaymentPage";
 import ClientWaitingPage from "./pages/ClientWaitingPage";
 import ClientHistoryPage from "./pages/ClientHistoryPage";
 import DashboardLayout from "./components/DashboardLayout";
+import OwnerLayout from "./layouts/OwnerLayout"; // <-- Import Layout Khusus Owner
 import ClientOrderHistory from "./pages/ClientOrderHistory";
 import ComprehensiveHistoryPage from "./pages/ComprehensiveHistoryPage";
 
@@ -44,18 +45,29 @@ export default function App() {
         {/* Rute Halaman Menunggu */}
         <Route path="/waiting/:id" element={<ClientWaitingPage />} />
 
-        {/* Rute Bersarang Dashboard */}
+        {/* Rute Bersarang Dashboard Kasir */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<CashierDashboard />} />
           <Route path="pos" element={<CashierPOS />} />
           <Route path="menu" element={<MenuManagement />} />
           <Route path="tables" element={<TableManagement />} />
-          <Route path="coupons" element={<CouponManagementPage />} />{" "}
-          {/* <-- Tambahkan rute kupon di sini */}
+          <Route path="coupons" element={<CouponManagementPage />} />
           <Route
             path="comprehensive-history"
             element={<ComprehensiveHistoryPage />}
           />
+          <Route path="history" element={<TransactionHistory />} />
+          <Route path="profile" element={<AdminProfile />} />
+        </Route>
+
+        {/* Rute Bersarang Dashboard Owner / Pemilik Restoran */}
+        <Route path="/owner" element={<OwnerLayout />}>
+          <Route index element={<CashierDashboard />} />{" "}
+          {/* Atau ganti ke ExecutiveDashboard */}
+          <Route path="dashboard" element={<CashierDashboard />} />
+          <Route path="menu" element={<MenuManagement />} />
+          <Route path="tables" element={<TableManagement />} />
+          <Route path="coupons" element={<CouponManagementPage />} />
           <Route path="history" element={<TransactionHistory />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>

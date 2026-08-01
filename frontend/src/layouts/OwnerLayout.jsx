@@ -16,7 +16,6 @@ import {
   Minimize2,
   ShieldCheck,
   Percent,
-  BarChart3,
 } from "lucide-react";
 
 export default function OwnerLayout() {
@@ -72,7 +71,7 @@ export default function OwnerLayout() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex overflow-hidden font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="min-h-screen bg-neutral-100 flex overflow-hidden font-sans">
       {/* Sidebar Khusus Owner (Desain Identik & Konsisten) */}
       <aside className="w-68 bg-neutral-950 border-r border-neutral-800/80 flex flex-col justify-between p-5 shrink-0 h-screen sticky top-0 shadow-2xl overflow-y-auto scrollbar-none">
         <div className="space-y-6">
@@ -272,7 +271,7 @@ export default function OwnerLayout() {
       {/* MODAL KONFIRMASI LOGOUT */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center animate-fadeIn">
+          <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl mx-auto flex items-center justify-center">
               <AlertTriangle className="w-6 h-6" />
             </div>

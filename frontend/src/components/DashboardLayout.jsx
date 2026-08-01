@@ -191,7 +191,7 @@ export default function DashboardLayout() {
             </div>
 
             {/* Kategori: Manajemen Restoran & Sistem */}
-            {/* <div className="space-y-1.5">
+            <div className="space-y-1.5">
               <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
                 Manajemen Restoran
               </div>
@@ -224,7 +224,7 @@ export default function DashboardLayout() {
                 <span>Manajemen Meja</span>
               </button>
 
-              <button
+              {/* <button
                 onClick={() => navigate("/dashboard/coupons")}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
                   isActive("/dashboard/coupons")
@@ -236,9 +236,9 @@ export default function DashboardLayout() {
                   className={`w-4 h-4 ${isActive("/dashboard/coupons") ? "text-amber-600" : "text-amber-400"}`}
                 />
                 <span>Manajemen Kupon</span>
-              </button>
+              </button> */}
 
-              <button
+              {/* <button
                 onClick={() => navigate("/dashboard/history")}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
                   isActive("/dashboard/history")
@@ -250,8 +250,8 @@ export default function DashboardLayout() {
                   className={`w-4 h-4 ${isActive("/dashboard/history") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
                 />
                 <span>Arsip Transaksi</span>
-              </button>
-            </div> */}
+              </button> */}
+            </div>
 
             {/* Kategori: Akun & Konfigurasi */}
             <div className="space-y-1.5">

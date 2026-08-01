@@ -32,7 +32,14 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
       gooeyToast.success("Berhasil masuk ke Dashboard! Selamat bekerja 👋");
-      navigate("/dashboard");
+
+      // Redirect dinamis berdasarkan role akun pengguna
+      const userRole = response.data.user?.role;
+      if (userRole === "owner") {
+        navigate("/owner/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       const errorMsg =
         err.response?.data?.error ||
@@ -65,8 +72,8 @@ export default function Login() {
             Swift Ordering
           </h1>
           <p className="text-xs font-medium text-neutral-500 mt-1.5 max-w-xs leading-relaxed">
-            Masuk ke dasbor kasir untuk mengelola pesanan & operasional restoran
-            secara real-time.
+            Masuk ke dasbor sistem untuk mengelola pesanan & operasional
+            restoran secara real-time.
           </p>
         </div>
 
@@ -81,7 +88,7 @@ export default function Login() {
           <div>
             <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-2 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-neutral-500" />
-              Username Kasir
+              Username Pengguna
             </label>
             <div className="relative">
               <input

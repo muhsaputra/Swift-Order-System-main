@@ -15,7 +15,8 @@ import {
   X,
   ArrowRight,
   Tag,
-  Percent,
+  Package,
+  Flame,
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { fromString } from "qris-dynamicify";
@@ -48,6 +49,10 @@ export default function CashierPOS() {
   const [coupons, setCoupons] = useState([]);
   const [couponCodeInput, setCouponCodeInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+
+  // State untuk Modal Varian / Add-On saat Menu Diklik
+  const [selectedMenuForOptions, setSelectedMenuForOptions] = useState(null);
+  const [selectedOptionsState, setSelectedOptionsState] = useState({});
 
   // State untuk Modal QRIS Dinamis & URL Gambar QR
   const [isQrisModalOpen, setIsQrisModalOpen] = useState(false);
@@ -90,26 +95,74 @@ export default function CashierPOS() {
     }
   };
 
-  const addToCart = (menu) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item._id === menu._id);
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item._id === menu._id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
-      }
-      return [...prevCart, { ...menu, quantity: 1 }];
-    });
-    gooeyToast.success(`${menu.name} ditambahkan ke keranjang.`);
+  // Handler saat menu diklik di katalog
+  const handleMenuClick = (menu) => {
+    if (menu.bundleOptions && menu.bundleOptions.length > 0) {
+      // Jika memiliki opsi varian / add-on / level pedas, buka modal pilihan
+      setSelectedMenuForOptions(menu);
+      const initialSelections = {};
+      menu.bundleOptions.forEach((opt, idx) => {
+        if (opt.choices && opt.choices.length > 0) {
+          initialSelections[idx] = opt.choices[0]; // Set default pilihan pertama
+        }
+      });
+      setSelectedOptionsState(initialSelections);
+    } else {
+      // Jika tidak punya opsi, langsung masukkan ke keranjang
+      addToCartDirectly(menu, []);
+    }
   };
 
-  const updateQuantity = (id, delta) => {
+  const addToCartDirectly = (menu, chosenOptions) => {
+    // Hitung total tambahan harga dari varian/add-on yang dipilih
+    const optionsExtraPrice = chosenOptions.reduce(
+      (acc, curr) => acc + (curr.price || 0),
+      0,
+    );
+    const finalItemPrice = menu.price + optionsExtraPrice;
+
+    // Buat unique cart item key berdasarkan menu dan varian pilihan
+    const optionString = JSON.stringify(chosenOptions);
+
+    setCart((prevCart) => {
+      const existingIndex = prevCart.findIndex(
+        (item) => item._id === menu._id && item.optionString === optionString,
+      );
+
+      if (existingIndex > -1) {
+        const updated = [...prevCart];
+        updated[existingIndex].quantity += 1;
+        return updated;
+      }
+
+      return [
+        ...prevCart,
+        {
+          ...menu,
+          price: finalItemPrice,
+          basePrice: menu.price,
+          chosenOptions,
+          optionString,
+          quantity: 1,
+        },
+      ];
+    });
+
+    gooeyToast.success(`${menu.name} ditambahkan ke keranjang.`);
+    setSelectedMenuForOptions(null);
+  };
+
+  const handleConfirmWithOptions = () => {
+    if (!selectedMenuForOptions) return;
+    const chosenOptionsList = Object.values(selectedOptionsState);
+    addToCartDirectly(selectedMenuForOptions, chosenOptionsList);
+  };
+
+  const updateQuantity = (index, delta) => {
     setCart((prevCart) =>
       prevCart
-        .map((item) => {
-          if (item._id === id) {
+        .map((item, idx) => {
+          if (idx === index) {
             const newQty = item.quantity + delta;
             return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
@@ -119,8 +172,8 @@ export default function CashierPOS() {
     );
   };
 
-  const removeFromCart = (id) => {
-    setCart((prev) => prev.filter((item) => item._id !== id));
+  const removeFromCart = (index) => {
+    setCart((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const calculateSubtotal = () => {
@@ -224,6 +277,7 @@ export default function CashierPOS() {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
+        options: item.chosenOptions || [],
       })),
       subtotal,
       discount,
@@ -309,9 +363,13 @@ export default function CashierPOS() {
               .map((item) => {
                 const name = item.name || "Menu Item";
                 const price = item.price || 0;
+                const optText =
+                  item.options && item.options.length > 0
+                    ? `<br/><small style="color:#555;">(${item.options.map((o) => o.name).join(", ")})</small>`
+                    : "";
                 return `
                 <tr>
-                  <td colspan="2"><strong>${name}</strong></td>
+                  <td colspan="2"><strong>${name}</strong>${optText}</td>
                 </tr>
                 <tr>
                   <td>${item.quantity}x @ ${price.toLocaleString("id-ID")}</td>
@@ -428,7 +486,7 @@ export default function CashierPOS() {
               {filteredMenus.map((menu) => (
                 <div
                   key={menu._id}
-                  onClick={() => addToCart(menu)}
+                  onClick={() => handleMenuClick(menu)}
                   className="bg-white border border-neutral-200/80 p-4 rounded-3xl shadow-2xs hover:shadow-md transition cursor-pointer flex gap-4 items-center group relative overflow-hidden"
                 >
                   <img
@@ -454,7 +512,6 @@ export default function CashierPOS() {
                       {menu.name}
                     </h3>
 
-                    {/* Harga Jual dan Harga Coret (Konsisten dengan MenuManagement) */}
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs font-mono font-black text-emerald-600">
                         Rp {menu.price.toLocaleString("id-ID")}
@@ -465,6 +522,12 @@ export default function CashierPOS() {
                         </span>
                       )}
                     </div>
+
+                    {menu.bundleOptions && menu.bundleOptions.length > 0 && (
+                      <span className="inline-block mt-1 text-[9px] font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md border border-amber-200">
+                        Ada Varian/Add-On
+                      </span>
+                    )}
                   </div>
                   <div className="w-9 h-9 rounded-2xl bg-neutral-900 text-white flex items-center justify-center shrink-0 group-hover:bg-amber-400 group-hover:text-neutral-950 transition">
                     <Plus className="w-4 h-4" />
@@ -566,15 +629,20 @@ export default function CashierPOS() {
                   Belum ada menu dipilih.
                 </div>
               ) : (
-                cart.map((item) => (
+                cart.map((item, idx) => (
                   <div
-                    key={item._id}
+                    key={idx}
                     className="bg-neutral-50 border border-neutral-200/60 p-3 rounded-2xl flex justify-between items-center gap-2"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-neutral-900 truncate">
                         {item.name}
                       </p>
+                      {item.chosenOptions && item.chosenOptions.length > 0 && (
+                        <p className="text-[10px] text-neutral-500 truncate">
+                          {item.chosenOptions.map((o) => o.name).join(", ")}
+                        </p>
+                      )}
                       <p className="text-[11px] text-emerald-600 font-semibold">
                         Rp{" "}
                         {(item.price * item.quantity).toLocaleString("id-ID")}
@@ -583,7 +651,7 @@ export default function CashierPOS() {
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         type="button"
-                        onClick={() => updateQuantity(item._id, -1)}
+                        onClick={() => updateQuantity(idx, -1)}
                         className="w-7 h-7 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 cursor-pointer"
                       >
                         <Minus className="w-3 h-3" />
@@ -593,14 +661,14 @@ export default function CashierPOS() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => updateQuantity(item._id, 1)}
+                        onClick={() => updateQuantity(idx, 1)}
                         className="w-7 h-7 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => removeFromCart(item._id)}
+                        onClick={() => removeFromCart(idx)}
                         className="w-7 h-7 rounded-xl bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 cursor-pointer ml-1"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -705,6 +773,92 @@ export default function CashierPOS() {
           </form>
         </div>
       </div>
+
+      {/* MODAL PILIHAN VARIAN / LEVEL KEPEDASAN / ADD-ON */}
+      {selectedMenuForOptions && (
+        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-md space-y-6 shadow-2xl my-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-3 border-b border-neutral-100">
+              <div>
+                <h3 className="text-base font-bold text-neutral-900">
+                  Pilih Varian: {selectedMenuForOptions.name}
+                </h3>
+                <p className="text-xs text-neutral-500">
+                  Sesuaikan level kepedasan atau tambahan add-on.
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedMenuForOptions(null)}
+                className="text-neutral-400 p-2 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+              {selectedMenuForOptions.bundleOptions.map((opt, optIdx) => (
+                <div
+                  key={optIdx}
+                  className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-2.5"
+                >
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-neutral-800 block">
+                    {opt.title}
+                  </label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {opt.choices.map((choice, cIdx) => {
+                      const isSelected =
+                        selectedOptionsState[optIdx]?.name === choice.name;
+                      return (
+                        <button
+                          key={cIdx}
+                          type="button"
+                          onClick={() =>
+                            setSelectedOptionsState({
+                              ...selectedOptionsState,
+                              [optIdx]: choice,
+                            })
+                          }
+                          className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold border transition flex justify-between items-center cursor-pointer ${
+                            isSelected
+                              ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
+                              : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-100"
+                          }`}
+                        >
+                          <span>{choice.name}</span>
+                          <span
+                            className={`font-mono text-[11px] ${isSelected ? "text-amber-300" : "text-emerald-600"}`}
+                          >
+                            {choice.price > 0
+                              ? `+Rp ${choice.price.toLocaleString("id-ID")}`
+                              : "Gratis"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3 pt-2 border-t border-neutral-100">
+              <button
+                type="button"
+                onClick={() => setSelectedMenuForOptions(null)}
+                className="flex-1 bg-neutral-100 text-neutral-700 py-3 rounded-2xl text-xs font-bold cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmWithOptions}
+                className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold shadow-md cursor-pointer"
+              >
+                Masukkan ke Keranjang
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL QRIS DINAMIS */}
       {isQrisModalOpen && (

@@ -21,6 +21,12 @@ import {
   Phone,
   Mail,
   Layers,
+  CheckCircle2,
+  AlertCircle,
+  ArrowUpRight,
+  ChevronRight,
+  ShieldCheck,
+  Coffee,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -33,7 +39,7 @@ import {
 } from "recharts";
 
 // ==========================================
-// SUB-KOMPONEN MODULAR (OPTIMASI PERFORMA)
+// SUB-KOMPONEN MODULAR
 // ==========================================
 
 function OrderTimer({ createdAt }) {
@@ -59,16 +65,16 @@ function OrderTimer({ createdAt }) {
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border transition ${
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-bold border transition ${
         isUrgent
-          ? "bg-red-50 text-red-700 border-red-200 animate-pulse"
-          : "bg-neutral-100 text-neutral-700 border-neutral-200"
+          ? "bg-red-50 text-red-700 border-red-200 animate-pulse shadow-2xs"
+          : "bg-neutral-100 text-neutral-700 border-neutral-200/80"
       }`}
     >
       <Clock
         className={`w-3.5 h-3.5 ${isUrgent ? "text-red-600" : "text-neutral-500"}`}
       />
-      <span>{elapsedMinutes} mnt yang lalu</span>
+      <span>{elapsedMinutes} mnt lalu</span>
     </div>
   );
 }
@@ -373,9 +379,13 @@ export default function CashierDashboard() {
               .map((item) => {
                 const name = item.menu?.name || item.name || "Menu Item";
                 const price = item.price || item.menu?.price || 0;
+                const optText =
+                  item.options && item.options.length > 0
+                    ? `<br/><small>(${item.options.map((o) => o.name).join(", ")})</small>`
+                    : "";
                 return `
                 <tr>
-                  <td colspan="2"><strong>${name}</strong></td>
+                  <td colspan="2"><strong>${name}</strong>${optText}</td>
                 </tr>
                 <tr>
                   <td>${item.quantity}x @ ${price.toLocaleString("id-ID")}</td>
@@ -419,35 +429,35 @@ export default function CashierDashboard() {
     switch (order.orderStatus) {
       case "pending":
         return (
-          <span className="inline-flex items-center gap-1.5 bg-neutral-100 text-neutral-700 border border-neutral-200 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide">
-            <span className="w-1.5 h-1.5 rounded-full bg-neutral-400"></span>
-            PENDING (MENUNGGU PEMBAYARAN)
+          <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            MENUNGGU BAYAR (CASH)
           </span>
         );
       case "processing":
         return (
-          <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-            PROCESSING (DI DAPUR)
+          <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+            SEDANG DIKERJAKAN (DAPUR)
           </span>
         );
       case "ready":
         return (
-          <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide animate-pulse">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-            DALAM PEMANGGILAN (READY)
+          <span className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide animate-pulse">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+            SIAP SAJI (READY)
           </span>
         );
       case "completed":
         return (
-          <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide">
+          <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            COMPLETED
+            SELESAI (COMPLETED)
           </span>
         );
       default:
         return (
-          <span className="bg-neutral-100 text-neutral-700 border border-neutral-200 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide">
+          <span className="bg-neutral-100 text-neutral-700 border border-neutral-200 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide">
             {order.orderStatus}
           </span>
         );
@@ -518,29 +528,29 @@ export default function CashierDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 pb-20">
+    <div className="min-h-screen bg-neutral-50/50 text-neutral-900 pb-24">
       {/* HERO BANNER */}
-      <div className="relative bg-neutral-900 text-white py-10 px-6 md:px-12 overflow-hidden mb-8 shadow-md">
+      <div className="relative bg-neutral-900 text-white py-12 px-6 md:px-12 overflow-hidden mb-8 shadow-lg">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50 scale-105 pointer-events-none"
           style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1556742049-0a67d5e236ef?auto=format&fit=crop&w=1920&q=80')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/85 to-transparent pointer-events-none" />
 
         <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-white/10">
+            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[11px] font-bold text-amber-300 border border-white/10 shadow-sm">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Swift Control Center & POS Engine</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
               Halo, {cashierProfile.name} 👋
             </h1>
             <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Kelola seluruh transaksi masuk, pantau status dapur secara
-              real-time dengan mudah.
+              Kelola transaksi secara efisien, pantau status dapur real-time,
+              dan pastikan kepuasan pelanggan terjaga.
             </p>
           </div>
 
@@ -582,7 +592,7 @@ export default function CashierDashboard() {
                 onClick={() =>
                   setShowNotificationDropdown(!showNotificationDropdown)
                 }
-                className="relative bg-white hover:bg-neutral-50 border border-neutral-200 p-2.5 rounded-2xl text-neutral-700 transition cursor-pointer shadow-2xs flex items-center justify-center"
+                className="relative bg-white hover:bg-neutral-50 border border-neutral-200 p-3 rounded-2xl text-neutral-700 transition cursor-pointer shadow-2xs flex items-center justify-center"
                 title="Notifikasi Pesanan"
               >
                 <Bell className="w-4 h-4 text-neutral-700" />
@@ -594,7 +604,7 @@ export default function CashierDashboard() {
               </button>
 
               {showNotificationDropdown && (
-                <div className="absolute right-0 mt-3 w-80 bg-white border border-neutral-200 rounded-3xl shadow-xl z-50 overflow-hidden">
+                <div className="absolute right-0 mt-3 w-80 bg-white border border-neutral-200 rounded-3xl shadow-2xl z-50 overflow-hidden">
                   <div className="p-4 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
                     <div className="flex items-center gap-2">
                       <Bell className="w-4 h-4 text-neutral-900" />
@@ -650,7 +660,7 @@ export default function CashierDashboard() {
               )}
             </div>
 
-            <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200 px-4 py-2.5 rounded-2xl text-xs font-semibold text-neutral-700 shadow-2xs">
+            <div className="flex items-center gap-2 bg-white border border-neutral-200 px-4 py-3 rounded-2xl text-xs font-semibold text-neutral-700 shadow-2xs">
               <Radio className="w-4 h-4 text-emerald-500 animate-pulse" />
               <span>Live Socket Connected</span>
             </div>
@@ -667,21 +677,21 @@ export default function CashierDashboard() {
         ) : (
           <div className="space-y-10 animate-fadeIn">
             {/* ========================================================= */}
-            {/* 1. HIGHLIGHT UTAMA: PESANAN BERLANGSUNG & ANTREAN (DIPINDAH KE ATAS) */}
+            {/* 1. HIGHLIGHT UTAMA: PESANAN BERLANGSUNG & ANTREAN */}
             {/* ========================================================= */}
-            <section className="space-y-5 bg-neutral-50/60 border border-neutral-200/80 p-6 md:p-8 rounded-3xl shadow-2xs">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-neutral-200/60">
+            <section className="space-y-6 bg-white border border-neutral-200/80 p-6 md:p-8 rounded-[32px] shadow-sm">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-neutral-100">
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md">
-                      <Layers className="w-4 h-4" />
+                    <div className="w-9 h-9 rounded-2xl bg-neutral-900 text-white flex items-center justify-center shadow-md">
+                      <Layers className="w-4 h-4 text-amber-400" />
                     </div>
-                    <h3 className="text-xl font-black text-neutral-950 tracking-tight">
+                    <h3 className="text-lg md:text-xl font-black text-neutral-950 tracking-tight">
                       Pesanan Berlangsung & Antrean Aktif
                     </h3>
-                    <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                      <Flame className="w-3 h-3 text-amber-600" /> Prioritas
-                      FIFO ({activeOrders.length})
+                    <span className="bg-amber-100 text-amber-900 text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow-2xs">
+                      <Flame className="w-3 h-3 text-amber-600 fill-amber-600" />{" "}
+                      Prioritas FIFO ({activeOrders.length})
                     </span>
                   </div>
                   <p className="text-xs text-neutral-500 mt-1">
@@ -699,13 +709,16 @@ export default function CashierDashboard() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Cari nama pelanggan / meja..."
-                    className="w-full bg-white border border-neutral-200 rounded-2xl pl-10 pr-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 font-medium shadow-2xs transition"
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl pl-10 pr-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 font-medium shadow-2xs transition"
                   />
                 </div>
               </div>
 
               {filteredActiveOrders.length === 0 ? (
-                <div className="text-center py-16 bg-white border border-neutral-200/80 rounded-2xl shadow-2xs space-y-2">
+                <div className="text-center py-20 bg-neutral-50/60 border border-dashed border-neutral-200 rounded-3xl space-y-2">
+                  <div className="w-12 h-12 bg-white rounded-2xl shadow-2xs flex items-center justify-center mx-auto text-neutral-400">
+                    <Coffee className="w-6 h-6" />
+                  </div>
                   <p className="text-sm font-bold text-neutral-700">
                     Tidak ada antrean pesanan aktif saat ini 🎉
                   </p>
@@ -726,29 +739,31 @@ export default function CashierDashboard() {
                     return (
                       <div
                         key={order._id}
-                        className={`bg-white border p-6 rounded-3xl flex flex-col justify-between space-y-6 shadow-sm hover:shadow-md transition relative overflow-hidden ${
+                        className={`bg-white border p-6 md:p-7 rounded-[28px] flex flex-col justify-between space-y-6 shadow-xs hover:shadow-md transition relative overflow-hidden ${
                           isCallingWaiter
-                            ? "border-red-400 ring-2 ring-red-400/30 bg-red-50/10"
+                            ? "border-red-400 ring-4 ring-red-400/20 bg-red-50/10"
                             : isCashPending
-                              ? "border-amber-300 bg-amber-50/10"
+                              ? "border-amber-300 ring-2 ring-amber-300/30 bg-amber-50/10"
                               : "border-neutral-200/80"
                         }`}
                       >
-                        <div className="absolute top-0 right-0 bg-neutral-900 text-white px-3.5 py-1 rounded-bl-2xl text-[10px] font-black font-mono shadow-2xs">
-                          #PRIORITY {index + 1}
+                        {/* Top Badge Priority */}
+                        <div className="absolute top-0 right-0 bg-neutral-900 text-white px-4 py-1.5 rounded-bl-2xl text-[10px] font-black font-mono tracking-wider shadow-2xs">
+                          #QUEUE {index + 1}
                         </div>
 
-                        <div>
-                          <div className="flex justify-between items-start pb-4 mb-4 border-b border-neutral-100">
+                        <div className="space-y-4">
+                          {/* Header Card: Table & Customer */}
+                          <div className="flex justify-between items-start pr-12">
                             <div>
-                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                <span className="inline-block bg-neutral-900 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-xl tracking-wider shadow-2xs">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <span className="bg-neutral-900 text-white text-[11px] font-black uppercase px-3.5 py-1 rounded-xl tracking-wider shadow-2xs">
                                   Meja #{order.tableNumber}
                                 </span>
                                 <span
-                                  className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1 border ${
+                                  className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 border ${
                                     order.paymentMethod === "cash"
-                                      ? "bg-amber-100 text-amber-800 border-amber-300"
+                                      ? "bg-amber-100 text-amber-900 border-amber-300"
                                       : "bg-blue-50 text-blue-700 border-blue-200"
                                   }`}
                                 >
@@ -758,11 +773,11 @@ export default function CashierDashboard() {
                                     <QrCode className="w-3 h-3" />
                                   )}
                                   {order.paymentMethod === "cash"
-                                    ? "CASH"
-                                    : "QRIS"}
+                                    ? "CASH TUNAI"
+                                    : "QRIS DINAMIS"}
                                 </span>
                                 {order.couponCode && (
-                                  <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-xl text-[10px] font-extrabold flex items-center gap-1">
+                                  <span className="bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded-xl text-[10px] font-extrabold flex items-center gap-1">
                                     <Tag className="w-3 h-3" />{" "}
                                     {order.couponCode}
                                   </span>
@@ -772,16 +787,11 @@ export default function CashierDashboard() {
                                 {order.customerName}
                               </h4>
                             </div>
-                            <button
-                              onClick={() => handlePrintReceipt(order)}
-                              className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer flex items-center gap-1.5 mt-4 sm:mt-0"
-                            >
-                              <Printer className="w-3.5 h-3.5" /> Cetak Struk
-                            </button>
                           </div>
 
+                          {/* Call Waiter Alert Banner */}
                           {isCallingWaiter && (
-                            <div className="mb-4 bg-red-500 text-white p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md animate-pulse">
+                            <div className="bg-red-600 text-white p-3.5 rounded-2xl flex items-center justify-between gap-3 shadow-md animate-pulse">
                               <div className="flex items-center gap-2.5">
                                 <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                                   <Megaphone className="w-4 h-4 text-white animate-bounce" />
@@ -791,8 +801,7 @@ export default function CashierDashboard() {
                                     Panggilan Bantuan Pelanggan!
                                   </p>
                                   <p className="text-[11px] text-red-100 font-medium">
-                                    Pelanggan di Meja #{order.tableNumber}{" "}
-                                    memanggil pelayan.
+                                    Meja #{order.tableNumber} memanggil pelayan.
                                   </p>
                                 </div>
                               </div>
@@ -800,41 +809,41 @@ export default function CashierDashboard() {
                                 onClick={() =>
                                   handleResolveWaiterCall(order.tableNumber)
                                 }
-                                className="bg-white text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl text-[11px] font-black transition cursor-pointer whitespace-nowrap"
+                                className="bg-white text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl text-[11px] font-black transition cursor-pointer whitespace-nowrap shadow-sm"
                               >
-                                Selesai / Respon
+                                Selesai
                               </button>
                             </div>
                           )}
 
-                          <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
+                          {/* Status & Timer Bar */}
+                          <div className="flex flex-wrap justify-between items-center gap-2 pt-1">
                             <OrderTimer
                               createdAt={order.createdAt || order.updatedAt}
                             />
                             <div>{getStatusBadge(order)}</div>
                           </div>
 
-                          <div className="bg-neutral-100/70 border border-neutral-200/60 p-3.5 rounded-2xl space-y-1.5 mb-4 text-xs">
-                            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-1">
-                              Informasi Kontak:
-                            </span>
+                          {/* Contact Info Pill */}
+                          <div className="bg-neutral-50 border border-neutral-200/60 p-3 rounded-2xl flex items-center justify-between gap-4 text-xs">
                             <div className="flex items-center gap-2 text-neutral-700 font-medium">
-                              <Phone className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                              <Phone className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                               <span className="font-mono">
                                 {order.customerPhone || order.phone || "-"}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-neutral-700 font-medium truncate">
-                              <Mail className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                              <Mail className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                               <span className="truncate">
                                 {order.customerEmail || order.email || "-"}
                               </span>
                             </div>
                           </div>
 
-                          <div className="space-y-2.5 bg-neutral-50/80 p-4 rounded-2xl border border-neutral-100">
+                          {/* Menu Items List */}
+                          <div className="space-y-2 bg-neutral-50/70 p-4 rounded-2xl border border-neutral-100">
                             <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-1">
-                              Rincian Menu:
+                              Daftar Pesanan Menu:
                             </span>
                             {order.items.map((item, idx) => {
                               const itemName =
@@ -850,7 +859,7 @@ export default function CashierDashboard() {
                                   className="flex items-center justify-between gap-3 bg-white p-2.5 rounded-xl border border-neutral-200/60 shadow-2xs"
                                 >
                                   <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-12 h-12 rounded-xl bg-neutral-100 overflow-hidden shrink-0 border border-neutral-200">
+                                    <div className="w-11 h-11 rounded-xl bg-neutral-100 overflow-hidden shrink-0 border border-neutral-200">
                                       {itemImage ? (
                                         <img
                                           src={itemImage}
@@ -867,6 +876,14 @@ export default function CashierDashboard() {
                                       <p className="text-xs font-bold text-neutral-900 truncate">
                                         {itemName}
                                       </p>
+                                      {item.options &&
+                                        item.options.length > 0 && (
+                                          <p className="text-[10px] text-amber-700 font-medium truncate">
+                                            {item.options
+                                              .map((o) => o.name)
+                                              .join(", ")}
+                                          </p>
+                                        )}
                                       <p className="text-[10px] text-neutral-500 font-mono">
                                         {item.quantity}x @ Rp{" "}
                                         {itemPrice.toLocaleString("id-ID")}
@@ -885,7 +902,8 @@ export default function CashierDashboard() {
                           </div>
                         </div>
 
-                        <div className="pt-4 border-t border-neutral-100 space-y-2 text-xs">
+                        {/* Card Footer: Pricing & Action Buttons */}
+                        <div className="pt-4 border-t border-neutral-100 space-y-2.5 text-xs">
                           <div className="flex justify-between items-center text-neutral-500">
                             <span>Subtotal Menu</span>
                             <span className="font-mono font-bold text-neutral-900">
@@ -915,39 +933,52 @@ export default function CashierDashboard() {
                             </div>
                           )}
 
-                          <div className="flex justify-between items-center text-base font-extrabold text-neutral-900 pt-2 border-t border-dashed border-neutral-200">
+                          <div className="flex justify-between items-center text-base font-black text-neutral-900 pt-2 border-t border-dashed border-neutral-200">
                             <span>Total Pembayaran</span>
                             <span className="font-mono text-emerald-600 font-black">
                               Rp {order.totalAmount.toLocaleString("id-ID")}
                             </span>
                           </div>
 
-                          {isCashPending ? (
+                          <div className="flex gap-2 pt-2">
                             <button
-                              onClick={() =>
-                                handleConfirmCashPayment(order._id)
-                              }
-                              className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer flex items-center justify-center gap-2 animate-pulse mt-3"
+                              onClick={() => handlePrintReceipt(order)}
+                              className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-4 py-3 rounded-2xl text-xs font-bold transition border border-neutral-200 shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                              title="Cetak Struk"
                             >
-                              <Wallet className="w-4 h-4" />
-                              <span>Konfirmasi Bayar Di Kasir (Cash)</span>
+                              <Printer className="w-4 h-4" />
                             </button>
-                          ) : (
-                            <button
-                              onClick={() => handleNextStatus(order)}
-                              className={`w-full py-3 rounded-2xl text-xs font-bold transition shadow-sm cursor-pointer flex items-center justify-center gap-2 mt-3 ${
-                                order.orderStatus === "processing" ||
-                                order.orderStatus === "pending"
-                                  ? "bg-blue-600 hover:bg-blue-500 text-white"
-                                  : "bg-neutral-900 hover:bg-neutral-800 text-white"
-                              }`}
-                            >
-                              {order.orderStatus === "processing" ||
-                              order.orderStatus === "pending"
-                                ? "Panggil Pesanan (Ready)"
-                                : "Selesaikan Pesanan (Done)"}
-                            </button>
-                          )}
+
+                            {isCashPending ? (
+                              <button
+                                onClick={() =>
+                                  handleConfirmCashPayment(order._id)
+                                }
+                                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer flex items-center justify-center gap-2 animate-pulse"
+                              >
+                                <Wallet className="w-4 h-4" />
+                                <span>Konfirmasi Bayar Cash</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleNextStatus(order)}
+                                className={`flex-1 py-3 rounded-2xl text-xs font-bold transition shadow-sm cursor-pointer flex items-center justify-center gap-2 ${
+                                  order.orderStatus === "processing" ||
+                                  order.orderStatus === "pending"
+                                    ? "bg-blue-600 hover:bg-blue-500 text-white"
+                                    : "bg-neutral-900 hover:bg-neutral-800 text-white"
+                                }`}
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span>
+                                  {order.orderStatus === "processing" ||
+                                  order.orderStatus === "pending"
+                                    ? "Panggil Pesanan (Ready)"
+                                    : "Selesaikan Pesanan (Done)"}
+                                </span>
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -959,29 +990,32 @@ export default function CashierDashboard() {
             {/* ========================================================= */}
             {/* 2. STATISTIK & METRIK PENDAPATAN HARI INI */}
             {/* ========================================================= */}
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white border border-neutral-200/80 p-6 rounded-[28px] shadow-sm space-y-2">
                 <div className="flex justify-between items-center text-neutral-400">
                   <span className="text-xs font-bold uppercase tracking-wider">
                     Total Pendapatan Hari Ini
                   </span>
-                  <TrendingUp className="w-5 h-5 text-emerald-600" />
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
                 </div>
                 <h3 className="text-2xl font-black font-mono text-neutral-900">
                   Rp {totalRevenue.toLocaleString("id-ID")}
                 </h3>
                 <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
                   Akumulasi dari {completedOrdersToday.length} pesanan selesai
-                  hari ini
                 </p>
               </div>
 
-              <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
+              <div className="bg-white border border-neutral-200/80 p-6 rounded-[28px] shadow-sm space-y-2">
                 <div className="flex justify-between items-center text-neutral-400">
                   <span className="text-xs font-bold uppercase tracking-wider">
                     Pesanan Aktif
                   </span>
-                  <Clock className="w-5 h-5 text-amber-600" />
+                  <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <Clock className="w-5 h-5" />
+                  </div>
                 </div>
                 <h3 className="text-2xl font-black font-mono text-neutral-900">
                   {activeOrders.length}{" "}
@@ -994,12 +1028,14 @@ export default function CashierDashboard() {
                 </p>
               </div>
 
-              <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-2xs space-y-2">
+              <div className="bg-white border border-neutral-200/80 p-6 rounded-[28px] shadow-sm space-y-2">
                 <div className="flex justify-between items-center text-neutral-400">
                   <span className="text-xs font-bold uppercase tracking-wider">
                     Menu Terfavorit
                   </span>
-                  <Award className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <Award className="w-5 h-5" />
+                  </div>
                 </div>
                 <h3 className="text-lg font-black text-neutral-900 truncate">
                   {topMenus.length > 0 ? topMenus[0][0] : "Belum ada data"}
@@ -1015,7 +1051,7 @@ export default function CashierDashboard() {
             {/* ========================================================= */}
             {/* 3. GRAFIK TREN PENJUALAN */}
             {/* ========================================================= */}
-            <section className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
+            <section className="bg-white border border-neutral-200/80 rounded-[32px] p-6 md:p-8 shadow-sm space-y-4">
               <div>
                 <h3 className="text-base font-bold text-neutral-900">
                   Grafik Tren Penjualan
@@ -1042,11 +1078,16 @@ export default function CashierDashboard() {
                       contentStyle={{
                         backgroundColor: "#ffffff",
                         borderColor: "#e5e5e5",
-                        borderRadius: "12px",
+                        borderRadius: "16px",
                         fontSize: "12px",
+                        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05)",
                       }}
                     />
-                    <Bar dataKey="sales" fill="#171717" radius={[8, 8, 0, 0]} />
+                    <Bar
+                      dataKey="sales"
+                      fill="#171717"
+                      radius={[10, 10, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

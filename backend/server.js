@@ -13,6 +13,7 @@ const tableRoutes = require("./routes/tableRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
+const settingsRoute = require("./routes/settings");
 
 const app = express();
 const server = http.createServer(app);
@@ -63,6 +64,7 @@ app.use("/api/tables", tableRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/settings", settingsRoute);
 
 // Socket.io Connection Listener
 io.on("connection", (socket) => {

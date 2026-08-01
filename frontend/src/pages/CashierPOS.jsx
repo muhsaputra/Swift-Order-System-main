@@ -17,9 +17,11 @@ import {
   Tag,
   Package,
   Flame,
+  ExternalLink,
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { fromString } from "qris-dynamicify";
+import QRCode from "qrcode";
 
 // URL untuk REST API (menggunakan /api di akhir)
 const API_BASE_URL =
@@ -60,6 +62,11 @@ export default function CashierPOS() {
   const [qrisImageUrl, setQrisImageUrl] = useState("");
   const [generatingQris, setGeneratingQris] = useState(false);
 
+  // State Baru untuk Modal QR Waiting Page setelah Pembayaran Sukses
+  const [isWaitingQrModalOpen, setIsWaitingQrModalOpen] = useState(false);
+  const [successOrderData, setSuccessOrderData] = useState(null);
+  const [waitingPageQrUrl, setWaitingPageQrUrl] = useState("");
+
   useEffect(() => {
     fetchMenus();
     fetchCoupons();
@@ -98,30 +105,25 @@ export default function CashierPOS() {
   // Handler saat menu diklik di katalog
   const handleMenuClick = (menu) => {
     if (menu.bundleOptions && menu.bundleOptions.length > 0) {
-      // Jika memiliki opsi varian / add-on / level pedas, buka modal pilihan
       setSelectedMenuForOptions(menu);
       const initialSelections = {};
       menu.bundleOptions.forEach((opt, idx) => {
         if (opt.choices && opt.choices.length > 0) {
-          initialSelections[idx] = opt.choices[0]; // Set default pilihan pertama
+          initialSelections[idx] = opt.choices[0];
         }
       });
       setSelectedOptionsState(initialSelections);
     } else {
-      // Jika tidak punya opsi, langsung masukkan ke keranjang
       addToCartDirectly(menu, []);
     }
   };
 
   const addToCartDirectly = (menu, chosenOptions) => {
-    // Hitung total tambahan harga dari varian/add-on yang dipilih
     const optionsExtraPrice = chosenOptions.reduce(
       (acc, curr) => acc + (curr.price || 0),
       0,
     );
     const finalItemPrice = menu.price + optionsExtraPrice;
-
-    // Buat unique cart item key berdasarkan menu dan varian pilihan
     const optionString = JSON.stringify(chosenOptions);
 
     setCart((prevCart) => {
@@ -194,7 +196,7 @@ export default function CashierPOS() {
   };
 
   const calculateServiceFee = (subtotalAfterDiscount) => {
-    return Math.round(subtotalAfterDiscount * 0.05); // Pajak/Layanan 5%
+    return Math.round(subtotalAfterDiscount * 0.05);
   };
 
   const handleApplyCoupon = (e) => {
@@ -228,7 +230,6 @@ export default function CashierPOS() {
     gooeyToast.info("Kupon promo dibatalkan.");
   };
 
-  // Fungsi untuk men-generate QRIS Dinamis menggunakan qris-dynamicify
   const generateDynamicQris = async (amount) => {
     setGeneratingQris(true);
     try {
@@ -304,8 +305,21 @@ export default function CashierPOS() {
       const res = await API.post("/orders", payload);
       gooeyToast.success("Pesanan walk-in berhasil diproses! 🚀");
 
-      if (res.data) {
-        handlePrintReceipt(res.data);
+      const createdOrder = res.data.order || res.data;
+
+      if (createdOrder) {
+        handlePrintReceipt(createdOrder);
+
+        // Buat QR Code untuk Waiting Page pelanggan berdasarkan ID pesanan
+        const waitingPageUrl = `${window.location.origin}/waiting/${createdOrder._id}`;
+        const qrDataUrl = await QRCode.toDataURL(waitingPageUrl, {
+          width: 300,
+          margin: 2,
+        });
+
+        setSuccessOrderData(createdOrder);
+        setWaitingPageQrUrl(qrDataUrl);
+        setIsWaitingQrModalOpen(true);
       }
 
       setCart([]);
@@ -860,7 +874,7 @@ export default function CashierPOS() {
         </div>
       )}
 
-      {/* MODAL QRIS DINAMIS */}
+      {/* MODAL QRIS DINAMIS PEMBAYARAN */}
       {isQrisModalOpen && (
         <div className="fixed inset-0 w-screen h-screen bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden border border-neutral-200 animate-in fade-in zoom-in-95 duration-200 my-auto">
@@ -956,6 +970,78 @@ export default function CashierPOS() {
                     {submitting ? "Menyimpan..." : "Konfirmasi Lunas"}
                   </span>
                   <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL SCAN QR WAITING PAGE (MUNCUL SETELAH PEMBAYARAN KONFIRMASI / SUKSES) */}
+      {isWaitingQrModalOpen && successOrderData && (
+        <div className="fixed inset-0 w-screen h-screen bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden border border-neutral-200 animate-in fade-in zoom-in-95 duration-200 my-auto text-center">
+            <div className="bg-neutral-900 text-white px-6 pt-6 pb-5 relative flex flex-col items-center shadow-md">
+              <button
+                onClick={() => setIsWaitingQrModalOpen(false)}
+                className="absolute right-4 top-4 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mb-2 font-bold">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-black tracking-tight text-white">
+                Pembayaran Berhasil! 🎉
+              </h3>
+              <p className="text-xs text-neutral-300 mt-0.5">
+                Silakan arahkan kamera pelanggan ke QR Code di bawah ini.
+              </p>
+            </div>
+
+            <div className="px-6 py-5 space-y-4 bg-gradient-to-b from-neutral-50 to-white">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs">
+                <p className="font-extrabold text-emerald-900">
+                  {successOrderData.customerName} (Meja #
+                  {successOrderData.tableNumber})
+                </p>
+                <p className="text-[11px] text-emerald-700 font-mono mt-0.5">
+                  Total: Rp{" "}
+                  {successOrderData.totalAmount.toLocaleString("id-ID")}
+                </p>
+              </div>
+
+              <div className="bg-white border-2 border-neutral-200 p-4 rounded-3xl shadow-sm flex flex-col items-center justify-center relative">
+                <div className="absolute -top-3 bg-neutral-900 text-white text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
+                  Scan untuk Halaman Antrean (Waiting Page)
+                </div>
+
+                <div className="w-48 h-48 flex items-center justify-center mt-2">
+                  {waitingPageQrUrl ? (
+                    <img
+                      src={waitingPageQrUrl}
+                      alt="QR Waiting Page"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin"></div>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-[11px] text-neutral-500 italic">
+                Pelanggan dapat memantau status pesanan (Pending → Processing →
+                Ready) secara langsung dari HP mereka.
+              </p>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsWaitingQrModalOpen(false)}
+                  className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>Selesai / Tutup</span>
                 </button>
               </div>
             </div>

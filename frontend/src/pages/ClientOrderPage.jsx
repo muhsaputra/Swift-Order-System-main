@@ -59,6 +59,9 @@ export default function ClientOrderPage() {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
+  // State untuk Persentase Biaya Layanan Dinamis
+  const [serviceFeePercentage, setServiceFeePercentage] = useState(5);
+
   const [customerInfo, setCustomerInfo] = useState({
     name: "",
     email: "",
@@ -84,6 +87,7 @@ export default function ClientOrderPage() {
     }
 
     fetchMenus();
+    fetchServiceFeeSettings();
 
     const midtransUrl = "https://app.sandbox.midtrans.com/snap/snap.js";
     const clientKey = "Mid-client-Wc7y3D9VmGino8oi";
@@ -138,6 +142,17 @@ export default function ClientOrderPage() {
       setMenus(res.data);
     } catch (err) {
       console.error("Gagal memuat menu", err);
+    }
+  };
+
+  const fetchServiceFeeSettings = async () => {
+    try {
+      const res = await API.get("/settings/service-fee");
+      if (res.data && res.data.serviceFeePercentage !== undefined) {
+        setServiceFeePercentage(Number(res.data.serviceFeePercentage));
+      }
+    } catch (err) {
+      console.log("Menggunakan fee layanan default 5%");
     }
   };
 
@@ -332,11 +347,13 @@ export default function ClientOrderPage() {
   }, [cart]);
 
   const priceAfterDiscount = Math.max(0, subtotalPrice - discountAmount);
-  const serviceFee = priceAfterDiscount * 0.05;
+  const serviceFee = Math.round(
+    priceAfterDiscount * (serviceFeePercentage / 100),
+  );
   const finalTotalPrice = priceAfterDiscount + serviceFee;
 
   const originalServiceFee = Math.round(
-    (subtotalPrice - discountAmount) * 0.05,
+    (subtotalPrice - discountAmount) * (serviceFeePercentage / 100),
   );
   const originalTotalBeforeDiscount =
     subtotalPrice + totalMenuSavings + originalServiceFee;
@@ -1524,7 +1541,7 @@ export default function ClientOrderPage() {
               )}
 
               <div className="flex justify-between items-center text-xs text-neutral-500">
-                <span>Biaya Layanan (Service 5%)</span>
+                <span>Biaya Layanan (Service {serviceFeePercentage}%)</span>
                 <span className="font-mono font-bold text-neutral-900">
                   Rp {serviceFee.toLocaleString("id-ID")}
                 </span>

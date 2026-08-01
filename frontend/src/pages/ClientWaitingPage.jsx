@@ -48,6 +48,9 @@ export default function ClientWaitingPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [recommendedMenus, setRecommendedMenus] = useState([]);
 
+  // State untuk Persentase Biaya Layanan Dinamis
+  const [serviceFeePercentage, setServiceFeePercentage] = useState(5);
+
   // State tambahan untuk fitur Panggil Pelayan
   const [isCallingStaff, setIsCallingStaff] = useState(false);
   const [callSuccess, setCallSuccess] = useState(false);
@@ -113,6 +116,8 @@ export default function ClientWaitingPage() {
   }, []);
 
   useEffect(() => {
+    fetchServiceFeeSettings();
+
     const verifyAndFetchOrder = async () => {
       try {
         const statusCode = searchParams.get("status_code");
@@ -220,6 +225,17 @@ export default function ClientWaitingPage() {
 
     return () => socket.disconnect();
   }, [id, searchParams]);
+
+  const fetchServiceFeeSettings = async () => {
+    try {
+      const res = await API.get("/settings/service-fee");
+      if (res.data && res.data.serviceFeePercentage !== undefined) {
+        setServiceFeePercentage(Number(res.data.serviceFeePercentage));
+      }
+    } catch (err) {
+      console.log("Menggunakan fee layanan default 5%");
+    }
+  };
 
   const toggleMute = () => {
     setIsMuted((prev) => {
@@ -409,10 +425,12 @@ export default function ClientWaitingPage() {
 
     const serviceFeeAmount =
       Number(order.serviceFee) ||
-      Math.round((calculatedSubtotal - discountAmountVal) * 0.05);
+      Math.round(
+        (calculatedSubtotal - discountAmountVal) * (serviceFeePercentage / 100),
+      );
 
     y += 4;
-    doc.text("Biaya Layanan (Service 5%)", margin, y);
+    doc.text(`Biaya Layanan (Service ${serviceFeePercentage}%)`, margin, y);
     doc.text(
       `Rp ${serviceFeeAmount.toLocaleString("id-ID")}`,
       pageWidth - margin,
@@ -557,10 +575,13 @@ export default function ClientWaitingPage() {
 
   const calculatedServiceFee =
     Number(order?.serviceFee) ||
-    Math.round((subtotalAmount - discountAmountVal) * 0.05);
+    Math.round(
+      (subtotalAmount - discountAmountVal) * (serviceFeePercentage / 100),
+    );
 
   const originalServiceFee = Math.round(
-    (subtotalOriginalAmount - totalMenuSavings - discountAmountVal) * 0.05,
+    (subtotalOriginalAmount - totalMenuSavings - discountAmountVal) *
+      (serviceFeePercentage / 100),
   );
   const originalTotalBeforeDiscount =
     subtotalOriginalAmount + originalServiceFee;
@@ -871,7 +892,7 @@ export default function ClientWaitingPage() {
               <div className="flex justify-between text-neutral-700 pt-1 border-t border-dashed border-neutral-200">
                 <span className="flex items-center gap-1">
                   <Percent className="w-3 h-3 text-emerald-600" /> Biaya Layanan
-                  (Service 5%)
+                  (Service {serviceFeePercentage}%)
                 </span>
                 <span className="font-mono font-semibold text-neutral-900">
                   Rp {calculatedServiceFee.toLocaleString("id-ID")}

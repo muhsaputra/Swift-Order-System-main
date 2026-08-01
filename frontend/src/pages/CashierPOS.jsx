@@ -3,7 +3,6 @@ import API from "../services/api";
 import { gooeyToast } from "goey-toast";
 import {
   Sparkles,
-  Store,
   ShoppingCart,
   Plus,
   Minus,
@@ -15,8 +14,8 @@ import {
   QrCode,
   X,
   ArrowRight,
-  ShieldCheck,
-  Printer,
+  Tag,
+  Percent,
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { fromString } from "qris-dynamicify";
@@ -45,6 +44,11 @@ export default function CashierPOS() {
   const [searchQuery, setSearchQuery] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
 
+  // State untuk Fitur Kupon / Promo Diskon
+  const [coupons, setCoupons] = useState([]);
+  const [couponCodeInput, setCouponCodeInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+
   // State untuk Modal QRIS Dinamis & URL Gambar QR
   const [isQrisModalOpen, setIsQrisModalOpen] = useState(false);
   const [pendingOrderData, setPendingOrderData] = useState(null);
@@ -53,6 +57,7 @@ export default function CashierPOS() {
 
   useEffect(() => {
     fetchMenus();
+    fetchCoupons();
 
     const socket = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
@@ -73,6 +78,15 @@ export default function CashierPOS() {
       gooeyToast.error("Gagal memuat katalog menu.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCoupons = async () => {
+    try {
+      const res = await API.get("/coupons");
+      setCoupons(res.data || []);
+    } catch (err) {
+      console.log("Gagal memuat data kupon, menggunakan kupon kosong.");
     }
   };
 
@@ -113,8 +127,52 @@ export default function CashierPOS() {
     return cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   };
 
-  const calculateServiceFee = (subtotal) => {
-    return Math.round(subtotal * 0.05); // Pajak/Layanan 5%
+  const calculateDiscount = (subtotal) => {
+    if (!appliedCoupon) return 0;
+    if (appliedCoupon.discountType === "percentage") {
+      const disc = (subtotal * appliedCoupon.discountValue) / 100;
+      return appliedCoupon.maxDiscount && disc > appliedCoupon.maxDiscount
+        ? appliedCoupon.maxDiscount
+        : disc;
+    } else if (appliedCoupon.discountType === "fixed") {
+      return Math.min(subtotal, appliedCoupon.discountValue);
+    }
+    return 0;
+  };
+
+  const calculateServiceFee = (subtotalAfterDiscount) => {
+    return Math.round(subtotalAfterDiscount * 0.05); // Pajak/Layanan 5%
+  };
+
+  const handleApplyCoupon = (e) => {
+    e.preventDefault();
+    const code = couponCodeInput.trim().toUpperCase();
+    if (!code) return;
+
+    const found = coupons.find(
+      (c) => c.code.toUpperCase() === code && c.isActive !== false,
+    );
+    if (!found) {
+      gooeyToast.error("Kode kupon tidak valid atau sudah tidak aktif.");
+      return;
+    }
+
+    const subtotal = calculateSubtotal();
+    if (found.minPurchase && subtotal < found.minPurchase) {
+      gooeyToast.error(
+        `Minimum belanja untuk kupon ini adalah Rp ${found.minPurchase.toLocaleString("id-ID")}`,
+      );
+      return;
+    }
+
+    setAppliedCoupon(found);
+    gooeyToast.success(`Kupon "${found.code}" berhasil diterapkan! 🎉`);
+    setCouponCodeInput("");
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    gooeyToast.info("Kupon promo dibatalkan.");
   };
 
   // Fungsi untuk men-generate QRIS Dinamis menggunakan qris-dynamicify
@@ -152,8 +210,10 @@ export default function CashierPOS() {
     }
 
     const subtotal = calculateSubtotal();
-    const serviceFee = calculateServiceFee(subtotal);
-    const totalAmount = subtotal + serviceFee;
+    const discount = calculateDiscount(subtotal);
+    const subtotalAfterDiscount = subtotal - discount;
+    const serviceFee = calculateServiceFee(subtotalAfterDiscount);
+    const totalAmount = subtotalAfterDiscount + serviceFee;
 
     const orderPayload = {
       customerName,
@@ -166,10 +226,12 @@ export default function CashierPOS() {
         quantity: item.quantity,
       })),
       subtotal,
+      discount,
+      couponCode: appliedCoupon ? appliedCoupon.code : null,
       serviceFee,
       totalAmount,
       paymentMethod: paymentMethod.toLowerCase(),
-      paymentStatus: paymentMethod.toLowerCase() === "qris" ? "paid" : "paid",
+      paymentStatus: "paid",
       orderStatus: "processing",
     };
 
@@ -188,7 +250,6 @@ export default function CashierPOS() {
       const res = await API.post("/orders", payload);
       gooeyToast.success("Pesanan walk-in berhasil diproses! 🚀");
 
-      // Cetak struk otomatis setelah berhasil
       if (res.data) {
         handlePrintReceipt(res.data);
       }
@@ -197,6 +258,7 @@ export default function CashierPOS() {
       setCustomerName("");
       setTableNumber("");
       setPaymentMethod("cash");
+      setAppliedCoupon(null);
       setIsQrisModalOpen(false);
       setPendingOrderData(null);
       setQrisImageUrl("");
@@ -213,6 +275,7 @@ export default function CashierPOS() {
     if (!printWindow) return;
 
     const subtotalVal = order.subtotal || order.totalAmount;
+    const discountVal = order.discount || 0;
     const serviceFeeVal = order.serviceFee || 0;
 
     printWindow.document.write(`
@@ -264,6 +327,7 @@ export default function CashierPOS() {
               <td>Subtotal</td>
               <td class="right">Rp ${subtotalVal.toLocaleString("id-ID")}</td>
             </tr>
+            ${discountVal > 0 ? `<tr><td>Diskon (${order.couponCode || "PROMO"})</td><td class="right">-Rp ${discountVal.toLocaleString("id-ID")}</td></tr>` : ""}
             ${serviceFeeVal > 0 ? `<tr><td>Biaya Layanan (5%)</td><td class="right">Rp ${serviceFeeVal.toLocaleString("id-ID")}</td></tr>` : ""}
           </table>
           <div class="line"></div>
@@ -292,8 +356,10 @@ export default function CashierPOS() {
   );
 
   const subtotal = calculateSubtotal();
-  const serviceFee = calculateServiceFee(subtotal);
-  const totalAmount = subtotal + serviceFee;
+  const discount = calculateDiscount(subtotal);
+  const subtotalAfterDiscount = subtotal - discount;
+  const serviceFee = calculateServiceFee(subtotalAfterDiscount);
+  const totalAmount = subtotalAfterDiscount + serviceFee;
 
   return (
     <div className="min-h-screen bg-neutral-100 p-6 md:p-10 space-y-8 pb-20 relative">
@@ -478,9 +544,9 @@ export default function CashierPOS() {
             </div>
 
             {/* DAFTAR ITEM DIPILIH */}
-            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
               {cart.length === 0 ? (
-                <div className="py-10 text-center border-2 border-dashed border-neutral-200 rounded-2xl text-xs text-neutral-400">
+                <div className="py-8 text-center border-2 border-dashed border-neutral-200 rounded-2xl text-xs text-neutral-400">
                   Belum ada menu dipilih.
                 </div>
               ) : (
@@ -529,6 +595,57 @@ export default function CashierPOS() {
               )}
             </div>
 
+            {/* FITUR KUPON / PROMO */}
+            <div className="space-y-2 pt-2 border-t border-neutral-100">
+              <label className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-amber-500" />
+                <span>Kupon / Voucher Promo</span>
+              </label>
+              {appliedCoupon ? (
+                <div className="bg-amber-50 border border-amber-200 p-2.5 rounded-2xl flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 bg-amber-500 text-white rounded-xl flex items-center justify-center font-black text-xs">
+                      %
+                    </div>
+                    <div>
+                      <p className="text-xs font-extrabold text-amber-900">
+                        {appliedCoupon.code}
+                      </p>
+                      <p className="text-[10px] text-amber-700">
+                        {appliedCoupon.discountType === "percentage"
+                          ? `Diskon ${appliedCoupon.discountValue}%`
+                          : `Potongan Rp ${appliedCoupon.discountValue.toLocaleString("id-ID")}`}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="text-amber-800 hover:text-red-600 p-1 text-xs font-bold cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCodeInput}
+                    onChange={(e) => setCouponCodeInput(e.target.value)}
+                    placeholder="Masukkan kode kupon..."
+                    className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-xs uppercase font-medium focus:outline-none focus:border-neutral-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    className="bg-neutral-900 hover:bg-neutral-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    Pakai
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* RINCIAN BIAYA */}
             <div className="space-y-1.5 pt-3 border-t border-neutral-100 text-xs">
               <div className="flex justify-between text-neutral-500">
@@ -537,6 +654,12 @@ export default function CashierPOS() {
                   Rp {subtotal.toLocaleString("id-ID")}
                 </span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-amber-600 font-semibold">
+                  <span>Diskon Kupon</span>
+                  <span>-Rp {discount.toLocaleString("id-ID")}</span>
+                </div>
+              )}
               <div className="flex justify-between text-neutral-500">
                 <span>Biaya Layanan (5%)</span>
                 <span className="font-semibold">
@@ -567,11 +690,10 @@ export default function CashierPOS() {
         </div>
       </div>
 
-      {/* MODAL QRIS DINAMIS (FULL-SCREEN VIEWPORT FIX AGAR BLUR TIDAK TERPOTONG) */}
+      {/* MODAL QRIS DINAMIS */}
       {isQrisModalOpen && (
         <div className="fixed inset-0 w-screen h-screen bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden border border-neutral-200 animate-in fade-in zoom-in-95 duration-200 my-auto">
-            {/* Header Resmi QRIS (Merah & Putih khas BI/QRIS) */}
             <div className="bg-red-700 text-white px-6 pt-5 pb-4 relative flex flex-col items-center text-center shadow-md">
               <button
                 onClick={() => setIsQrisModalOpen(false)}
@@ -590,9 +712,7 @@ export default function CashierPOS() {
               </p>
             </div>
 
-            {/* Body Kartu QRIS */}
             <div className="px-6 py-5 space-y-4 text-center bg-gradient-to-b from-neutral-50 to-white">
-              {/* Info Merchant */}
               <div className="space-y-0.5 border-b border-neutral-200/60 pb-3">
                 <h3 className="text-xs font-black uppercase text-neutral-900 tracking-wide">
                   MUHAMAD TRI SAPUTRA
@@ -606,7 +726,6 @@ export default function CashierPOS() {
                 </div>
               </div>
 
-              {/* Tagihan Pelanggan */}
               <div className="bg-red-50/60 border border-red-100 rounded-2xl py-2 px-4 flex justify-between items-center text-xs">
                 <span className="text-neutral-600 font-bold">
                   Total Tagihan:
@@ -616,7 +735,6 @@ export default function CashierPOS() {
                 </span>
               </div>
 
-              {/* Kotak QR Code */}
               <div className="bg-white border-2 border-neutral-200 p-4 rounded-3xl shadow-sm flex flex-col items-center justify-center relative">
                 <div className="absolute -top-3 bg-neutral-900 text-white text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
                   Scan Dengan Semua E-Wallet & M-Banking
@@ -639,7 +757,6 @@ export default function CashierPOS() {
                 </div>
               </div>
 
-              {/* Info Pelanggan */}
               <div className="text-[11px] text-neutral-500 space-y-0.5">
                 <p>
                   Pelanggan:{" "}
@@ -651,32 +768,6 @@ export default function CashierPOS() {
                 </p>
               </div>
 
-              {/* Footer Logo Pendukung */}
-              <div className="pt-2 flex items-center justify-center gap-3 opacity-60 grayscale hover:grayscale-0 transition">
-                <span className="text-[9px] font-extrabold tracking-tighter text-neutral-500 border border-neutral-300 px-2 py-0.5 rounded">
-                  GOPAY
-                </span>
-                <span className="text-[9px] font-extrabold tracking-tighter text-neutral-300">
-                  •
-                </span>
-                <span className="text-[9px] font-extrabold tracking-tighter text-neutral-500 border border-neutral-300 px-2 py-0.5 rounded">
-                  OVO
-                </span>
-                <span className="text-[9px] font-extrabold tracking-tighter text-neutral-300">
-                  •
-                </span>
-                <span className="text-[9px] font-extrabold tracking-tighter text-neutral-500 border border-neutral-300 px-2 py-0.5 rounded">
-                  DANA
-                </span>
-                <span className="text-[9px] font-extrabold tracking-tighter text-neutral-300">
-                  •
-                </span>
-                <span className="text-[9px] font-extrabold tracking-tighter text-neutral-500 border border-neutral-300 px-2 py-0.5 rounded">
-                  BCA/M-BSI
-                </span>
-              </div>
-
-              {/* Action Buttons */}
               <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"

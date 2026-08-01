@@ -381,7 +381,7 @@ export default function CashierDashboard() {
                 const price = item.price || item.menu?.price || 0;
                 const optText =
                   item.options && item.options.length > 0
-                    ? `<br/><small>(${item.options.map((o) => o.name).join(", ")})</small>`
+                    ? `<br/><small>(${item.options.map((o) => `${o.name}${o.price > 0 ? ` (+Rp ${o.price.toLocaleString("id-ID")})` : ""}`).join(", ")})</small>`
                     : "";
                 return `
                 <tr>
@@ -840,7 +840,7 @@ export default function CashierDashboard() {
                             </div>
                           </div>
 
-                          {/* Menu Items List */}
+                          {/* Menu Items List with Add-Ons / Options */}
                           <div className="space-y-2 bg-neutral-50/70 p-4 rounded-2xl border border-neutral-100">
                             <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-1">
                               Daftar Pesanan Menu:
@@ -876,15 +876,30 @@ export default function CashierDashboard() {
                                       <p className="text-xs font-bold text-neutral-900 truncate">
                                         {itemName}
                                       </p>
+                                      {/* Informasi Add-on / Level Kepedasan */}
                                       {item.options &&
                                         item.options.length > 0 && (
-                                          <p className="text-[10px] text-amber-700 font-medium truncate">
-                                            {item.options
-                                              .map((o) => o.name)
-                                              .join(", ")}
-                                          </p>
+                                          <div className="flex flex-wrap gap-1 mt-0.5">
+                                            {item.options.map((opt, oIdx) => (
+                                              <span
+                                                key={oIdx}
+                                                className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 text-[9px] font-extrabold px-2 py-0.5 rounded-md"
+                                              >
+                                                <span>{opt.name}</span>
+                                                {opt.price > 0 && (
+                                                  <span className="font-mono text-emerald-600">
+                                                    (+Rp{" "}
+                                                    {opt.price.toLocaleString(
+                                                      "id-ID",
+                                                    )}
+                                                    )
+                                                  </span>
+                                                )}
+                                              </span>
+                                            ))}
+                                          </div>
                                         )}
-                                      <p className="text-[10px] text-neutral-500 font-mono">
+                                      <p className="text-[10px] text-neutral-500 font-mono mt-0.5">
                                         {item.quantity}x @ Rp{" "}
                                         {itemPrice.toLocaleString("id-ID")}
                                       </p>

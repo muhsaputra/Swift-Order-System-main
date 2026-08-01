@@ -44,6 +44,9 @@ export default function TransactionHistory() {
   const [completedOrders, setCompletedOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // State untuk Persentase Biaya Layanan Dinamis
+  const [serviceFeePercentage, setServiceFeePercentage] = useState(5);
+
   // State untuk Modal Detail Item & Struk
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -83,6 +86,7 @@ export default function TransactionHistory() {
 
   useEffect(() => {
     fetchCompletedOrders();
+    fetchServiceFeeSettings();
 
     const handleClickOutside = (event) => {
       if (calendarRef.current && !calendarRef.current.contains(event.target)) {
@@ -104,6 +108,17 @@ export default function TransactionHistory() {
       console.error("Gagal memuat riwayat transaksi", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchServiceFeeSettings = async () => {
+    try {
+      const res = await API.get("/settings/service-fee");
+      if (res.data && res.data.serviceFeePercentage !== undefined) {
+        setServiceFeePercentage(Number(res.data.serviceFeePercentage));
+      }
+    } catch (err) {
+      console.log("Menggunakan fee layanan default 5%");
     }
   };
 
@@ -242,7 +257,10 @@ export default function TransactionHistory() {
     const serviceFeeAmount =
       order.serviceFee && order.serviceFee > 0
         ? order.serviceFee
-        : Math.round((calculatedSubtotal - (order.discountAmount || 0)) * 0.05);
+        : Math.round(
+            (calculatedSubtotal - (order.discountAmount || 0)) *
+              (serviceFeePercentage / 100),
+          );
 
     printWindow.document.write(`
       <html>
@@ -304,7 +322,7 @@ export default function TransactionHistory() {
                 : ""
             }
             <tr>
-              <td>Biaya Layanan (5%)</td>
+              <td>Biaya Layanan (${serviceFeePercentage}%)</td>
               <td class="right">Rp ${serviceFeeAmount.toLocaleString("id-ID")}</td>
             </tr>
             <tr>
@@ -370,7 +388,9 @@ export default function TransactionHistory() {
     const fee =
       order.serviceFee && order.serviceFee > 0
         ? order.serviceFee
-        : Math.round((sub - (order.discountAmount || 0)) * 0.05);
+        : Math.round(
+            (sub - (order.discountAmount || 0)) * (serviceFeePercentage / 100),
+          );
     return acc + fee;
   }, 0);
   const totalDiscount = filteredOrders.reduce(
@@ -407,7 +427,10 @@ export default function TransactionHistory() {
       const fee =
         order.serviceFee && order.serviceFee > 0
           ? order.serviceFee
-          : Math.round((sub - (order.discountAmount || 0)) * 0.05);
+          : Math.round(
+              (sub - (order.discountAmount || 0)) *
+                (serviceFeePercentage / 100),
+            );
       return acc + fee;
     }, 0);
 
@@ -415,7 +438,7 @@ export default function TransactionHistory() {
     let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
 
     // 1. Header Kolom Tabel Utama (Pemisah menggunakan titik koma ;)
-    csvContent += `ID Pesanan;Waktu Transaksi;Nomor Meja;Nama Pelanggan;Metode Pembayaran;Daftar Item Menu;Subtotal (Rp);Diskon Kupon (Rp);Service Fee 5% (Rp);Total Pembayaran (Rp);Status\r\n`;
+    csvContent += `ID Pesanan;Waktu Transaksi;Nomor Meja;Nama Pelanggan;Metode Pembayaran;Daftar Item Menu;Subtotal (Rp);Diskon Kupon (Rp);Service Fee ${serviceFeePercentage}% (Rp);Total Pembayaran (Rp);Status\r\n`;
 
     // 2. Baris Data Transaksi Selesai
     dataToExport.forEach((order) => {
@@ -441,7 +464,7 @@ export default function TransactionHistory() {
       const fee =
         order.serviceFee && order.serviceFee > 0
           ? order.serviceFee
-          : Math.round((sub - disc) * 0.05);
+          : Math.round((sub - disc) * (serviceFeePercentage / 100));
       const total = order.totalAmount;
       const status = `SELESAI`;
 
@@ -629,7 +652,7 @@ export default function TransactionHistory() {
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">
-                Akumulasi Service Fee (5%)
+                Akumulasi Service Fee ({serviceFeePercentage}%)
               </p>
               <p className="text-sm font-black font-mono text-neutral-900">
                 Rp {totalServiceFee.toLocaleString("id-ID")}
@@ -715,7 +738,7 @@ export default function TransactionHistory() {
             </div>
           </div>
 
-          {/* Grid Grafik: Diperlebar menggunakan max-w-7xl dan grid-cols-1 lg:grid-cols-3 agar setiap grafik punya ruang leluasa */}
+          {/* Grid Grafik */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 1. Tren Omset Area Chart */}
             <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
@@ -1417,7 +1440,7 @@ export default function TransactionHistory() {
                 <div className="flex justify-between text-neutral-800 font-medium">
                   <span className="flex items-center gap-1">
                     <Percent className="w-3 h-3 text-emerald-600" /> Biaya
-                    Layanan (Service 5%)
+                    Layanan (Service {serviceFeePercentage}%)
                   </span>
                   <span className="font-mono font-semibold">
                     Rp{" "}
@@ -1432,7 +1455,7 @@ export default function TransactionHistory() {
                             0,
                           ) -
                             (selectedOrder.discountAmount || 0)) *
-                            0.05,
+                            (serviceFeePercentage / 100),
                         )
                     ).toLocaleString("id-ID")}
                   </span>

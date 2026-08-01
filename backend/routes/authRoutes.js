@@ -10,12 +10,14 @@ const JWT_SECRET =
   authMiddleware.JWT_SECRET || process.env.JWT_SECRET || "fallback_secret_key";
 const verifyToken = authMiddleware.verifyToken || authMiddleware;
 
-// 1. Register Kasir Pertama (Opsional/Helper untuk setup akun)
+// 1. Register User (Mendukung role dinamis: 'cashier', 'owner', dll.)
 router.post("/register", async (req, res) => {
   try {
-    const { username, password, name } = req.body;
+    const { username, password, name, role } = req.body;
     console.log(`\n--- [DEBUG POST /register] ---`);
-    console.log(`Mencoba register - Username: "${username}"`);
+    console.log(
+      `Mencoba register - Username: "${username}", Role: "${role || "cashier"}"`,
+    );
 
     if (!username || !password) {
       return res
@@ -24,26 +26,31 @@ router.post("/register", async (req, res) => {
     }
 
     const existingUser = await User.findOne({ username });
-    if (existingUser)
+    if (existingUser) {
       return res.status(400).json({ error: "Username sudah terdaftar" });
+    }
 
     const newUser = new User({
       username,
       password,
       name: name || username,
-      role: "cashier",
+      role: role || "cashier", // Mengambil role dari body jika ada, default ke "cashier"
     });
 
     await newUser.save();
-    console.log(`[DEBUG REGISTER] Berhasil menyimpan user baru ke DB.`);
-    return res.status(201).json({ message: "Akun kasir berhasil dibuat" });
+    console.log(
+      `[DEBUG REGISTER] Berhasil menyimpan user baru ke DB dengan role: ${newUser.role}`,
+    );
+    return res
+      .status(201)
+      .json({ message: `Akun ${newUser.role} berhasil dibuat` });
   } catch (err) {
     console.error("DEBUG ERROR REGISTER:", err);
     return res.status(500).json({ error: err.message });
   }
 });
 
-// 2. Login Kasir
+// 2. Login (Kasir / Owner / Kitchen)
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -77,7 +84,7 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Password salah" });
     }
 
-    // Buat JWT Token berlaku selama 1 hari
+    // Buat JWT Token berlaku selama 1 hari (menyertakan role user)
     const token = jwt.sign(
       { id: user._id, username: user.username, role: user.role },
       JWT_SECRET,
@@ -95,7 +102,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// 3. Verifikasi Token (Digunakan Frontend untuk Cek Sesi Login Kasir)
+// 3. Verifikasi Token (Digunakan Frontend untuk Cek Sesi Login)
 router.get("/verify", verifyToken, (req, res) => {
   return res.status(200).json({
     valid: true,
@@ -103,7 +110,7 @@ router.get("/verify", verifyToken, (req, res) => {
   });
 });
 
-// 4. Ambil Profil Admin/Kasir yang sedang login
+// 4. Ambil Profil Pengguna yang sedang login
 router.get("/profile", verifyToken, async (req, res) => {
   try {
     const userId = req.id || req.user?.id;
@@ -118,7 +125,7 @@ router.get("/profile", verifyToken, async (req, res) => {
   }
 });
 
-// 5. Update Profil Admin/Kasir (Nama, Username, atau Password opsional)
+// 5. Update Profil Pengguna (Nama, Username, atau Password opsional)
 router.put("/profile", verifyToken, async (req, res) => {
   try {
     const userId = req.id || req.user?.id;

@@ -126,6 +126,20 @@ export default function OwnerLayout() {
               </div>
 
               <button
+                onClick={() => navigate("/owner/settings")}
+                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
+                  isActive("/owner/settings")
+                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
+                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                }`}
+              >
+                <Percent
+                  className={`w-4 h-4 ${isActive("/owner/settings") ? "text-amber-600" : "text-amber-400"}`}
+                />
+                <span>Pengaturan Service Fee</span>
+              </button>
+
+              <button
                 onClick={() => navigate("/owner/menu")}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
                   isActive("/owner/menu")

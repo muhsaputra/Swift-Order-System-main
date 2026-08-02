@@ -189,7 +189,7 @@ export default function StaffManagement() {
 
   const handleAttendance = async (id, status) => {
     try {
-      await API.post(`/staff/${id}/attendance`, { status });
+      await API.post(`/auth/users/${id}/attendance`, { status });
       gooeyToast.success(`Absensi "${status}" berhasil dicatat.`);
       fetchStaff();
     } catch (err) {
@@ -201,7 +201,7 @@ export default function StaffManagement() {
     e.preventDefault();
     if (!activeStaff) return;
     try {
-      await API.post(`/staff/${activeStaff._id}/payroll`, {
+      await API.post(`/auth/users/${activeStaff._id}/payroll`, {
         month: payrollData.month,
         baseSalary: activeStaff.baseSalary || 0,
         bonus: Number(payrollData.bonus) || 0,
@@ -247,7 +247,6 @@ export default function StaffManagement() {
       s.position?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  // Perhitungan Statistik Cepat
   const totalStaffCount = staffList.length;
   const totalMonthlyPayroll = staffList.reduce(
     (acc, curr) => acc + (curr.baseSalary || 0),

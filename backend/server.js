@@ -45,9 +45,9 @@ app.use(
   }),
 );
 
-// PENGATURAN LIMIT PAYLOAD (Dinaikkan ke 10mb agar aman untuk upload gambar produk)
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
+// PENGATURAN LIMIT PAYLOAD (Dinaikkan ke 20mb agar selaras dengan Nginx dan aman untuk upload gambar produk)
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
 // 2. REGISTRASI FOLDER STATIS UPLOADS (Agar foto pegawai/menu bisa diakses publik)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Percent,
   Users,
+  Wallet,
 } from "lucide-react";
 
 export default function OwnerLayout() {
@@ -125,6 +126,20 @@ export default function OwnerLayout() {
               <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
                 Pengaturan Restoran
               </div>
+
+              <button
+                onClick={() => navigate("/owner/finance")}
+                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
+                  isActive("/owner/finance")
+                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
+                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                }`}
+              >
+                <Wallet
+                  className={`w-4 h-4 ${isActive("/owner/finance") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                />
+                <span>Laporan Keuangan</span>
+              </button>
 
               <button
                 onClick={() => navigate("/owner/settings")}

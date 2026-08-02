@@ -23,6 +23,7 @@ import ClientHistoryPage from "./pages/ClientHistoryPage";
 import DashboardLayout from "./components/DashboardLayout";
 import OwnerLayout from "./layouts/OwnerLayout"; // <-- Import Layout Khusus Owner
 import StaffManagement from "./pages/owner/StaffManagement"; // <-- Import Halaman Manajemen Staff Owner
+import FinanceManagement from "./pages/owner/FinanceManagement"; // <-- Import Halaman Laporan Keuangan Owner
 import ClientOrderHistory from "./pages/ClientOrderHistory";
 import ComprehensiveHistoryPage from "./pages/ComprehensiveHistoryPage";
 
@@ -65,8 +66,9 @@ export default function App() {
         <Route path="/owner" element={<OwnerLayout />}>
           <Route index element={<CashierDashboard />} />
           <Route path="dashboard" element={<CashierDashboard />} />
-          <Route path="staff" element={<StaffManagement />} />{" "}
-          {/* <--- Rute Manajemen Staff Owner */}
+          <Route path="finance" element={<FinanceManagement />} />{" "}
+          {/* <--- Rute Laporan Keuangan Owner */}
+          <Route path="staff" element={<StaffManagement />} />
           <Route path="menu" element={<MenuManagement />} />
           <Route path="tables" element={<TableManagement />} />
           <Route path="coupons" element={<CouponManagementPage />} />

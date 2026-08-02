@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Users,
   UserPlus,
@@ -10,8 +10,6 @@ import {
   Search,
   User,
   Camera,
-  CalendarCheck,
-  DollarSign,
   Sparkles,
 } from "lucide-react";
 import API from "../../services/api";
@@ -28,20 +26,17 @@ export default function StaffManagement() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
 
-  // Form State Akun & Profil Pegawai
+  // Form State Akun & Profil Pegawai (Mendukung File Upload & Preview)
   const [formData, setFormData] = useState({
     name: "",
     username: "",
     password: "",
     role: "cashier", // cashier, kitchen, owner
-    nickname: "",
     phone: "",
     position: "Kasir",
-    photo: "",
-    address: "",
-    emergencyName: "",
-    emergencyPhone: "",
     baseSalary: "",
+    photoFile: null,
+    photoPreview: "",
   });
 
   // State Modal Hapus
@@ -81,14 +76,11 @@ export default function StaffManagement() {
       username: "",
       password: "",
       role: "cashier",
-      nickname: "",
       phone: "",
       position: "Kasir",
-      photo: "",
-      address: "",
-      emergencyName: "",
-      emergencyPhone: "",
       baseSalary: "",
+      photoFile: null,
+      photoPreview: "",
     });
     setShowModal(true);
   };
@@ -101,46 +93,52 @@ export default function StaffManagement() {
       username: staff.username || "",
       password: "", // Kosongkan password saat edit, isi jika ingin mereset
       role: staff.role || "cashier",
-      nickname: staff.nickname || "",
       phone: staff.phone || "",
       position: staff.position || "Kasir",
-      photo: staff.photo || "",
-      address: staff.address || "",
-      emergencyName: staff.emergencyContact?.name || "",
-      emergencyPhone: staff.emergencyContact?.phone || "",
       baseSalary: staff.baseSalary || "",
+      photoFile: null,
+      photoPreview: staff.photo ? `http://localhost:5000${staff.photo}` : "",
     });
     setShowModal(true);
+  };
+
+  // Handler Pemilihan File Foto Lokal
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        photoFile: file,
+        photoPreview: URL.createObjectURL(file),
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        name: formData.name,
-        username: formData.username,
-        role: formData.role,
-        nickname: formData.nickname,
-        phone: formData.phone,
-        position: formData.position,
-        photo: formData.photo,
-        address: formData.address,
-        emergencyContact: {
-          name: formData.emergencyName,
-          phone: formData.emergencyPhone,
-        },
-        baseSalary: Number(formData.baseSalary) || 0,
-      };
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("username", formData.username);
+      data.append("role", formData.role);
+      data.append("phone", formData.phone);
+      data.append("position", formData.position);
+      data.append("baseSalary", Number(formData.baseSalary) || 0);
 
       if (formData.password) {
-        payload.password = formData.password;
+        data.append("password", formData.password);
+      }
+      if (formData.photoFile) {
+        data.append("photo", formData.photoFile);
       }
 
+      const config = { headers: { "Content-Type": "multipart/form-data" } };
+
       if (isEditing) {
-        await API.put(`/auth/users/${currentId}`, payload);
-        gooeyToast.success("Data staff & akun berhasil diperbarui!");
+        await API.put(`/auth/users/${currentId}`, data, config);
+        gooeyToast.success("Data staff & foto berhasil diperbarui!");
       } else {
-        await API.post("/auth/users", payload);
+        await API.post("/auth/users", data, config);
         gooeyToast.success("Staff baru berhasil ditambahkan!");
       }
       setShowModal(false);
@@ -234,8 +232,9 @@ export default function StaffManagement() {
               Manajemen Staff, Akun & Penggajian
             </h1>
             <p className="text-xs text-neutral-400 font-medium max-w-xl">
-              Kontrol akses akun login, profil pegawai lengkap dengan foto,
-              absensi harian, hingga rekapitulasi penggajian (payroll).
+              Kontrol akses akun login, profil pegawai lengkap dengan upload
+              foto asli, absensi harian, hingga rekapitulasi penggajian
+              (payroll).
             </p>
           </div>
 
@@ -331,7 +330,7 @@ export default function StaffManagement() {
                         <div className="w-10 h-10 rounded-2xl bg-neutral-900 text-amber-400 font-black overflow-hidden flex items-center justify-center shrink-0 border border-neutral-200">
                           {staff.photo ? (
                             <img
-                              src={staff.photo}
+                              src={`http://localhost:5000${staff.photo}`}
                               alt={staff.name}
                               className="w-full h-full object-cover"
                             />
@@ -440,7 +439,7 @@ export default function StaffManagement() {
                         <div className="w-8 h-8 rounded-full bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
                           {staff.photo ? (
                             <img
-                              src={staff.photo}
+                              src={`http://localhost:5000${staff.photo}`}
                               alt={staff.name}
                               className="w-full h-full object-cover"
                             />
@@ -519,7 +518,7 @@ export default function StaffManagement() {
                           <div className="w-8 h-8 rounded-full bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
                             {staff.photo ? (
                               <img
-                                src={staff.photo}
+                                src={`http://localhost:5000${staff.photo}`}
                                 alt={staff.name}
                                 className="w-full h-full object-cover"
                               />
@@ -560,7 +559,7 @@ export default function StaffManagement() {
         )}
       </div>
 
-      {/* MODAL TAMBAH / EDIT STAFF */}
+      {/* MODAL TAMBAH / EDIT STAFF DENGAN UPLOAD FOTO */}
       {showModal && (
         <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-neutral-200 rounded-3xl p-6 lg:p-8 w-full max-w-lg space-y-6 shadow-2xl animate-fadeIn max-h-[90vh] overflow-y-auto">
@@ -584,6 +583,31 @@ export default function StaffManagement() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* UPLOAD & PREVIEW FOTO */}
+              <div className="flex flex-col items-center gap-3 py-2">
+                <div className="w-20 h-20 rounded-full bg-neutral-100 border-2 border-dashed border-neutral-300 overflow-hidden flex items-center justify-center relative shadow-inner">
+                  {formData.photoPreview ? (
+                    <img
+                      src={formData.photoPreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-8 h-8 text-neutral-400" />
+                  )}
+                </div>
+                <label className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm">
+                  <Camera className="w-3.5 h-3.5 inline mr-1.5" /> Pilih Foto
+                  Perangkat
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
@@ -680,24 +704,6 @@ export default function StaffManagement() {
                     }
                     placeholder="3000000"
                     className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-neutral-900"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
-                  URL Foto Profil (Opsional)
-                </label>
-                <div className="relative">
-                  <Camera className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                  <input
-                    type="url"
-                    value={formData.photo}
-                    onChange={(e) =>
-                      setFormData({ ...formData, photo: e.target.value })
-                    }
-                    placeholder="https://example.com/foto.jpg"
-                    className="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-neutral-900"
                   />
                 </div>
               </div>

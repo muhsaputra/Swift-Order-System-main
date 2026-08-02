@@ -3,6 +3,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path"); // <--- 1. Import Path untuk Static Folder Uploads
 require("dotenv").config();
 
 // routes
@@ -14,8 +15,8 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const settingsRoute = require("./routes/settings");
-const financeRoutes = require("./routes/financeRoutes"); // <--- 1. Import Finance Routes
-const staffRoutes = require("./routes/staffRoutes"); // <--- 1. Import Staff Routes
+const financeRoutes = require("./routes/financeRoutes");
+const staffRoutes = require("./routes/staffRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -33,7 +34,7 @@ const io = new Server(server, {
   },
 });
 
-// 1. SIMPAN INSTANCE IO LEBIH AWAL AGAR SIAP DIGUNAKAN DI MANA SAJA
+// SIMPAN INSTANCE IO LEBIH AWAL AGAR SIAP DIGUNAKAN DI MANA SAJA
 app.set("io", io);
 
 app.use(
@@ -44,6 +45,9 @@ app.use(
 );
 
 app.use(express.json());
+
+// 2. REGISTRASI FOLDER STATIS UPLOADS (Agar foto pegawai bisa diakses publik)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Koneksi MongoDB
 mongoose
@@ -58,7 +62,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// 2. REGISTRASI ROUTES (Routes sekarang sudah bisa dengan aman memanggil req.app.get("io"))
+// REGISTRASI ROUTES
 app.use("/api/menus", menuRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/auth", authRoutes);
@@ -67,7 +71,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/settings", settingsRoute);
-app.use("/api/finance", financeRoutes); // <--- 2. Daftarkan Middleware Finance Routes
+app.use("/api/finance", financeRoutes);
 app.use("/api/staff", staffRoutes);
 
 // Socket.io Connection Listener

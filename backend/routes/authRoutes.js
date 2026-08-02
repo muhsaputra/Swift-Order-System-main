@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const Transaction = require("../models/Transaction"); // Model transaksi keuangan untuk laporan
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
@@ -357,7 +358,7 @@ router.post("/users/:id/attendance", verifyToken, async (req, res) => {
   }
 });
 
-// F. Proses Pembayaran Gaji (Payroll)
+// F. Proses Pembayaran Gaji (Payroll) & Integrasi Otomatis ke Laporan Keuangan (Expense)
 router.post("/users/:id/payroll", verifyToken, async (req, res) => {
   try {
     if (req.user.role !== "owner") {
@@ -369,24 +370,45 @@ router.post("/users/:id/payroll", verifyToken, async (req, res) => {
       return res.status(404).json({ error: "Pegawai tidak ditemukan." });
     }
 
-    const totalPaid =
-      (Number(baseSalary) || user.baseSalary || 0) +
-      (Number(bonus) || 0) -
-      (Number(deduction) || 0);
+    const calculatedBase = Number(baseSalary) || user.baseSalary || 0;
+    const calculatedBonus = Number(bonus) || 0;
+    const calculatedDeduction = Number(deduction) || 0;
 
+    const totalPaid = calculatedBase + calculatedBonus - calculatedDeduction;
+
+    // 1. Simpan riwayat payroll pada profil user
     user.payrollHistory.push({
       month: month || new Date().toISOString().slice(0, 7),
-      baseSalary: Number(baseSalary) || user.baseSalary || 0,
-      bonus: Number(bonus) || 0,
-      deduction: Number(deduction) || 0,
+      baseSalary: calculatedBase,
+      bonus: calculatedBonus,
+      deduction: calculatedDeduction,
       totalPaid,
       status: "Lunas",
+      date: new Date(),
     });
 
     await user.save();
-    return res
-      .status(200)
-      .json({ message: "Penggajian berhasil dicatat", data: user });
+
+    // 2. Catat otomatis sebagai pengeluaran ke model Expense (Laporan Keuangan)
+    try {
+      const Expense = require("../models/Expense");
+      await Expense.create({
+        title: `Gaji Staf - ${user.name} (${month || new Date().toISOString().slice(0, 7)})`,
+        category: "Gaji & Upah",
+        amount: totalPaid,
+        note: `Pembayaran gaji untuk posisi ${user.position || user.role}. Gaji Pokok: ${calculatedBase}, Bonus: ${calculatedBonus}, Potongan: ${calculatedDeduction}`,
+        recordedBy: req.user.username,
+        date: new Date(),
+      });
+    } catch (expError) {
+      console.error("Gagal mencatat otomatis ke Expense:", expError.message);
+    }
+
+    return res.status(200).json({
+      message:
+        "Penggajian berhasil dicatat dan otomatis masuk ke Laporan Keuangan!",
+      data: user,
+    });
   } catch (err) {
     console.error("Error POST /users/:id/payroll:", err);
     return res.status(500).json({ error: err.message });

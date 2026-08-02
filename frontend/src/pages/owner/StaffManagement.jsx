@@ -95,7 +95,7 @@ export default function StaffManagement() {
       role: staff.role || "cashier",
       phone: staff.phone || "",
       position: staff.position || "Kasir",
-      baseSalary: staff.baseSalary || "",
+      baseSalary: staff.baseSalary ? staff.baseSalary.toString() : "",
       photoFile: null,
       photoPreview: staff.photo ? `http://localhost:5000${staff.photo}` : "",
     });
@@ -123,7 +123,12 @@ export default function StaffManagement() {
       data.append("role", formData.role);
       data.append("phone", formData.phone);
       data.append("position", formData.position);
-      data.append("baseSalary", Number(formData.baseSalary) || 0);
+
+      // Bersihkan format rupiah sebelum dikirim ke backend (ambil angka saja)
+      const rawSalary = formData.baseSalary
+        ? formData.baseSalary.replace(/[^0-9]/g, "")
+        : "0";
+      data.append("baseSalary", Number(rawSalary) || 0);
 
       if (formData.password) {
         data.append("password", formData.password);
@@ -207,6 +212,17 @@ export default function StaffManagement() {
       currency: "IDR",
       maximumFractionDigits: 0,
     }).format(val || 0);
+  };
+
+  // Helper untuk mengubah input string mentah menjadi format Rupiah saat diketik
+  const handleSalaryInput = (e) => {
+    const rawValue = e.target.value.replace(/[^0-9]/g, "");
+    if (rawValue === "") {
+      setFormData({ ...formData, baseSalary: "" });
+      return;
+    }
+    const formatted = new Intl.NumberFormat("id-ID").format(Number(rawValue));
+    setFormData({ ...formData, baseSalary: `Rp ${formatted}` });
   };
 
   const filteredStaff = staffList.filter(
@@ -697,12 +713,10 @@ export default function StaffManagement() {
                     Gaji Pokok (Rupiah)
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     value={formData.baseSalary}
-                    onChange={(e) =>
-                      setFormData({ ...formData, baseSalary: e.target.value })
-                    }
-                    placeholder="3000000"
+                    onChange={handleSalaryInput}
+                    placeholder="Rp 3.000.000"
                     className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-neutral-900"
                   />
                 </div>

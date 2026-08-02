@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Award,
   Clock,
+  Eye,
 } from "lucide-react";
 import API from "../../services/api";
 import { gooeyToast } from "goey-toast";
@@ -63,6 +64,13 @@ export default function StaffManagement() {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyStaff, setHistoryStaff] = useState(null);
 
+  // Modal State Riwayat Absensi Bulanan
+  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+  const [attendanceStaff, setAttendanceStaff] = useState(null);
+  const [selectedAttendanceMonth, setSelectedAttendanceMonth] = useState(
+    new Date().toISOString().slice(0, 7),
+  );
+
   const fetchStaff = async () => {
     setLoading(true);
     try {
@@ -102,7 +110,9 @@ export default function StaffManagement() {
 
     let formattedSalary = "";
     if (staff.baseSalary) {
-      formattedSalary = `Rp ${new Intl.NumberFormat("id-ID").format(staff.baseSalary)}`;
+      formattedSalary = `Rp ${new Intl.NumberFormat("id-ID").format(
+        staff.baseSalary,
+      )}`;
     }
 
     setFormData({
@@ -526,8 +536,8 @@ export default function StaffManagement() {
         {selectedTab === "absensi" && (
           <div className="space-y-4">
             <p className="text-xs text-neutral-500 font-medium">
-              Catat kehadiran harian staf untuk kepentingan evaluasi dan rekap
-              gaji.
+              Catat kehadiran harian staf atau lihat rekapitulasi absensi
+              bulanan secara lengkap.
             </p>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -537,6 +547,7 @@ export default function StaffManagement() {
                     <th className="py-4 px-4">Role / Posisi</th>
                     <th className="py-4 px-4">Status Kehadiran Hari Ini</th>
                     <th className="py-4 px-4 text-center">Aksi Presensi</th>
+                    <th className="py-4 px-4 text-center">Rekap Bulanan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
@@ -588,24 +599,43 @@ export default function StaffManagement() {
                             {lastAtt?.status || "Belum Absen"}
                           </span>
                         </td>
-                        <td className="py-4 px-4 text-center flex items-center justify-center gap-2">
+                        <td className="py-4 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() =>
+                                handleAttendance(staff._id, "Hadir")
+                              }
+                              className="px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer active:scale-95"
+                            >
+                              Hadir
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleAttendance(staff._id, "Izin")
+                              }
+                              className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer active:scale-95"
+                            >
+                              Izin
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleAttendance(staff._id, "Sakit")
+                              }
+                              className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer active:scale-95"
+                            >
+                              Sakit
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-center">
                           <button
-                            onClick={() => handleAttendance(staff._id, "Hadir")}
-                            className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer active:scale-95"
+                            onClick={() => {
+                              setAttendanceStaff(staff);
+                              setShowAttendanceModal(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-[11px] font-black transition shadow-sm cursor-pointer"
                           >
-                            Hadir
-                          </button>
-                          <button
-                            onClick={() => handleAttendance(staff._id, "Izin")}
-                            className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer active:scale-95"
-                          >
-                            Izin
-                          </button>
-                          <button
-                            onClick={() => handleAttendance(staff._id, "Sakit")}
-                            className="px-3.5 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer active:scale-95"
-                          >
-                            Sakit
+                            <Eye className="w-3.5 h-3.5" /> Lihat Bulan Ini
                           </button>
                         </td>
                       </tr>
@@ -877,6 +907,155 @@ export default function StaffManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL REKAP ABSENSI BULANAN */}
+      {showAttendanceModal && attendanceStaff && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-lg space-y-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 overflow-hidden flex items-center justify-center">
+                  {attendanceStaff.photo ? (
+                    <img
+                      src={attendanceStaff.photo}
+                      alt={attendanceStaff.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-6 h-6 text-indigo-600" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-neutral-900">
+                    {attendanceStaff.name}
+                  </h3>
+                  <p className="text-xs text-neutral-500 font-medium">
+                    Rekapitulasi Absensi Bulanan
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAttendanceModal(false)}
+                className="w-9 h-9 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-600 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  Pilih Bulan Rekap
+                </label>
+                <input
+                  type="month"
+                  value={selectedAttendanceMonth}
+                  onChange={(e) => setSelectedAttendanceMonth(e.target.value)}
+                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 transition"
+                />
+              </div>
+
+              {(() => {
+                const filteredAttendance = (
+                  attendanceStaff.attendance || []
+                ).filter((item) => {
+                  if (!item.date) return false;
+                  return item.date.startsWith(selectedAttendanceMonth);
+                });
+
+                const totalHadir = filteredAttendance.filter(
+                  (i) => i.status === "Hadir",
+                ).length;
+                const totalIzin = filteredAttendance.filter(
+                  (i) => i.status === "Izin",
+                ).length;
+                const totalSakit = filteredAttendance.filter(
+                  (i) => i.status === "Sakit",
+                ).length;
+
+                return (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-emerald-50 border border-emerald-200/80 p-3.5 rounded-2xl text-center">
+                        <p className="text-[10px] font-black uppercase text-emerald-600">
+                          Hadir
+                        </p>
+                        <p className="text-lg font-black text-emerald-700">
+                          {totalHadir} Hari
+                        </p>
+                      </div>
+                      <div className="bg-amber-50 border border-amber-200/80 p-3.5 rounded-2xl text-center">
+                        <p className="text-[10px] font-black uppercase text-amber-600">
+                          Izin
+                        </p>
+                        <p className="text-lg font-black text-amber-700">
+                          {totalIzin} Hari
+                        </p>
+                      </div>
+                      <div className="bg-blue-50 border border-blue-200/80 p-3.5 rounded-2xl text-center">
+                        <p className="text-[10px] font-black uppercase text-blue-600">
+                          Sakit
+                        </p>
+                        <p className="text-lg font-black text-blue-700">
+                          {totalSakit} Hari
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                      {filteredAttendance.length > 0 ? (
+                        filteredAttendance.map((att, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between bg-neutral-50 px-4 py-3 rounded-2xl border border-neutral-200/60 text-xs font-semibold"
+                          >
+                            <span className="text-neutral-700">
+                              {new Date(att.date).toLocaleDateString("id-ID", {
+                                weekday: "long",
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-neutral-400 font-mono">
+                                {att.checkIn || "-"}
+                              </span>
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                  att.status === "Hadir"
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : att.status === "Izin"
+                                      ? "bg-amber-100 text-amber-800"
+                                      : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {att.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-10 text-neutral-400 font-medium text-xs">
+                          Tidak ada catatan absensi pada bulan{" "}
+                          {selectedAttendanceMonth}.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <button
+              onClick={() => setShowAttendanceModal(false)}
+              className="w-full bg-slate-950 hover:bg-slate-800 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
+            >
+              Tutup
+            </button>
           </div>
         </div>
       )}

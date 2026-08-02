@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   Tag,
   Boxes,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import API from "../../services/api";
 import { gooeyToast } from "goey-toast";
@@ -21,6 +23,10 @@ export default function InventoryManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
+
+  // State Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // Anda bisa mengubah jumlah item per halaman di sini
 
   // State Modal Tambah Barang
   const [showAddModal, setShowAddModal] = useState(false);
@@ -57,6 +63,11 @@ export default function InventoryManagement() {
   useEffect(() => {
     fetchInventory();
   }, []);
+
+  // Reset ke halaman 1 saat pencarian atau kategori berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -122,6 +133,14 @@ export default function InventoryManagement() {
       selectedCategory === "Semua" || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  // Logika Pagination
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = filteredItems.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
 
   const totalItemsCount = inventoryList.length;
   const lowStockCount = inventoryList.filter(
@@ -266,8 +285,8 @@ export default function InventoryManagement() {
                     Memuat data inventaris gudang...
                   </td>
                 </tr>
-              ) : filteredItems.length > 0 ? (
-                filteredItems.map((item) => {
+              ) : currentItems.length > 0 ? (
+                currentItems.map((item) => {
                   const isLow = item.stock <= (item.minAlert || 5);
                   return (
                     <tr
@@ -348,6 +367,61 @@ export default function InventoryManagement() {
             </tbody>
           </table>
         </div>
+
+        {/* PAGINATION CONTROLS */}
+        {!loading && filteredItems.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-neutral-100">
+            <p className="text-xs font-semibold text-neutral-500">
+              Menampilkan{"	"}
+              <span className="font-bold text-neutral-900">
+                {Math.min(startIndex + 1, filteredItems.length)}
+              </span>{" "}
+              sampai{" "}
+              <span className="font-bold text-neutral-900">
+                {Math.min(startIndex + itemsPerPage, filteredItems.length)}
+              </span>{" "}
+              dari{" "}
+              <span className="font-bold text-neutral-900">
+                {filteredItems.length}
+              </span>{" "}
+              total item
+            </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:hover:bg-neutral-100 text-neutral-700 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Sebelumnya</span>
+              </button>
+
+              <div className="flex items-center gap-1 px-2">
+                <span className="text-xs font-black text-neutral-900">
+                  {currentPage}
+                </span>
+                <span className="text-xs font-semibold text-neutral-400">
+                  /
+                </span>
+                <span className="text-xs font-semibold text-neutral-500">
+                  {totalPages}
+                </span>
+              </div>
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:hover:bg-neutral-100 text-neutral-700 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                <span>Berikutnya</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* MODAL TAMBAH BARANG INVENTARIS */}

@@ -45,9 +45,11 @@ app.use(
   }),
 );
 
-app.use(express.json());
+// PENGATURAN LIMIT PAYLOAD (Dinaikkan ke 10mb agar aman untuk upload gambar produk)
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-// 2. REGISTRASI FOLDER STATIS UPLOADS (Agar foto pegawai bisa diakses publik)
+// 2. REGISTRASI FOLDER STATIS UPLOADS (Agar foto pegawai/menu bisa diakses publik)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Koneksi MongoDB

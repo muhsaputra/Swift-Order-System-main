@@ -4,15 +4,21 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
-const path = require("path");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-// Konfigurasi Multer untuk Upload Foto (Sama seperti di staffRoutes)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+// Konfigurasi Cloudinary (Konsisten dengan modul Menu Management)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "swift-ordering/staff", // Folder penyimpanan di Cloudinary
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
   },
 });
 const upload = multer({ storage });
@@ -120,36 +126,44 @@ router.get("/profile", verifyToken, async (req, res) => {
   }
 });
 
-// 5. Update Profil Pengguna
-router.put("/profile", verifyToken, async (req, res) => {
-  try {
-    const userId = req.id || req.user?.id;
-    const { username, name, password } = req.body;
+// 5. Update Profil Pengguna (Mendukung Upload Foto Cloudinary)
+router.put(
+  "/profile",
+  verifyToken,
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      const userId = req.id || req.user?.id;
+      const { username, name, password } = req.body;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      }
+
+      if (username) user.username = username;
+      if (name) user.name = name;
+      if (password && password.trim() !== "") {
+        user.password = password;
+      }
+      if (req.file) {
+        user.photo = req.file.path; // URL Cloudinary
+      }
+
+      const updatedUser = await user.save();
+      const userResponse = updatedUser.toObject();
+      delete userResponse.password;
+
+      return res.status(200).json({
+        message: "Profil berhasil diperbarui",
+        admin: userResponse,
+      });
+    } catch (err) {
+      console.error("Error PUT /profile:", err);
+      return res.status(500).json({ error: err.message });
     }
-
-    if (username) user.username = username;
-    if (name) user.name = name;
-    if (password && password.trim() !== "") {
-      user.password = password;
-    }
-
-    const updatedUser = await user.save();
-    const userResponse = updatedUser.toObject();
-    delete userResponse.password;
-
-    return res.status(200).json({
-      message: "Profil berhasil diperbarui",
-      admin: userResponse,
-    });
-  } catch (err) {
-    console.error("Error PUT /profile:", err);
-    return res.status(500).json({ error: err.message });
-  }
-});
+  },
+);
 
 // ==========================================
 // 6. RUTE MANAJEMEN STAFF & AKUN (KHUSUS OWNER)
@@ -170,7 +184,7 @@ router.get("/users", verifyToken, async (req, res) => {
   }
 });
 
-// B. Tambah Staff Baru oleh Owner (Mendukung Upload Foto)
+// B. Tambah Staff Baru oleh Owner (Mendukung Upload Foto Cloudinary)
 router.post("/users", verifyToken, upload.single("photo"), async (req, res) => {
   try {
     if (req.user.role !== "owner") {
@@ -194,10 +208,15 @@ router.post("/users", verifyToken, upload.single("photo"), async (req, res) => {
       return res.status(400).json({ error: "Username sudah terdaftar" });
     }
 
-    let photoPath = "";
+    let photoUrl = "";
     if (req.file) {
-      photoPath = `/uploads/${req.file.filename}`;
+      photoUrl = req.file.path;
     }
+
+    const cleanSalary =
+      typeof baseSalary === "string"
+        ? baseSalary.replace(/[^0-9]/g, "")
+        : baseSalary;
 
     const newStaff = new User({
       username,
@@ -206,8 +225,8 @@ router.post("/users", verifyToken, upload.single("photo"), async (req, res) => {
       role,
       phone,
       position,
-      baseSalary: Number(baseSalary) || 0,
-      photo: photoPath,
+      baseSalary: Number(cleanSalary) || 0,
+      photo: photoUrl,
     });
 
     await newStaff.save();
@@ -218,7 +237,7 @@ router.post("/users", verifyToken, upload.single("photo"), async (req, res) => {
   }
 });
 
-// C. Update Data atau Reset Sandi Staff Berdasarkan ID (Mendukung Upload Foto)
+// C. Update Data atau Reset Sandi Staff Berdasarkan ID (Mendukung Upload Foto Cloudinary)
 router.put(
   "/users/:id",
   verifyToken,
@@ -246,15 +265,22 @@ router.put(
       if (role) user.role = role;
       if (phone !== undefined) user.phone = phone;
       if (position !== undefined) user.position = position;
-      if (baseSalary !== undefined) user.baseSalary = Number(baseSalary) || 0;
+
+      if (baseSalary !== undefined) {
+        const cleanSalary =
+          typeof baseSalary === "string"
+            ? baseSalary.replace(/[^0-9]/g, "")
+            : baseSalary;
+        user.baseSalary = Number(cleanSalary) || 0;
+      }
 
       if (password && password.trim() !== "") {
         user.password = password;
       }
 
-      // Jika ada file foto baru yang diunggah
+      // Jika ada file foto baru yang diunggah ke Cloudinary
       if (req.file) {
-        user.photo = `/uploads/${req.file.filename}`;
+        user.photo = req.file.path;
       }
 
       await user.save();

@@ -97,7 +97,8 @@ export default function StaffManagement() {
       position: staff.position || "Kasir",
       baseSalary: staff.baseSalary ? staff.baseSalary.toString() : "",
       photoFile: null,
-      photoPreview: staff.photo ? `http://localhost:5000${staff.photo}` : "",
+      // Menggunakan URL Cloudinary langsung
+      photoPreview: staff.photo || "",
     });
     setShowModal(true);
   };
@@ -346,7 +347,7 @@ export default function StaffManagement() {
                         <div className="w-10 h-10 rounded-2xl bg-neutral-900 text-amber-400 font-black overflow-hidden flex items-center justify-center shrink-0 border border-neutral-200">
                           {staff.photo ? (
                             <img
-                              src={`http://localhost:5000${staff.photo}`}
+                              src={staff.photo}
                               alt={staff.name}
                               className="w-full h-full object-cover"
                             />
@@ -455,7 +456,7 @@ export default function StaffManagement() {
                         <div className="w-8 h-8 rounded-full bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
                           {staff.photo ? (
                             <img
-                              src={`http://localhost:5000${staff.photo}`}
+                              src={staff.photo}
                               alt={staff.name}
                               className="w-full h-full object-cover"
                             />
@@ -534,7 +535,7 @@ export default function StaffManagement() {
                           <div className="w-8 h-8 rounded-full bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
                             {staff.photo ? (
                               <img
-                                src={`http://localhost:5000${staff.photo}`}
+                                src={staff.photo}
                                 alt={staff.name}
                                 className="w-full h-full object-cover"
                               />

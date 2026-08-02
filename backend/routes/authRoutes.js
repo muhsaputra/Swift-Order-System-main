@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
-const Transaction = require("../models/Transaction"); // Model transaksi keuangan untuk laporan
+const Expense = require("../models/Expense"); // Model transaksi keuangan untuk laporan
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");

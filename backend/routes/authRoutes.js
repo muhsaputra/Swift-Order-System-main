@@ -3,6 +3,19 @@ const router = express.Router();
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const multer = require("multer");
+const path = require("path");
+
+// Konfigurasi Multer untuk Upload Foto (Sama seperti di staffRoutes)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+const upload = multer({ storage });
 
 // Pastikan file middleware/auth.js mengekspor objek yang sesuai
 const authMiddleware = require("../middleware/auth");
@@ -34,13 +47,10 @@ router.post("/register", async (req, res) => {
       username,
       password,
       name: name || username,
-      role: role || "cashier", // Mengambil role dari body jika ada, default ke "cashier"
+      role: role || "cashier",
     });
 
     await newUser.save();
-    console.log(
-      `[DEBUG REGISTER] Berhasil menyimpan user baru ke DB dengan role: ${newUser.role}`,
-    );
     return res
       .status(201)
       .json({ message: `Akun ${newUser.role} berhasil dibuat` });
@@ -54,11 +64,6 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log(`\n--- [DEBUG POST /login] ---`);
-    console.log(
-      `Mencoba masuk - Username: "${username}", Password input mentah: "${password}"`,
-    );
-
     if (!username || !password) {
       return res
         .status(400)
@@ -67,24 +72,14 @@ router.post("/login", async (req, res) => {
 
     const user = await User.findOne({ username });
     if (!user) {
-      console.log(`[DEBUG LOGIN] User "${username}" tidak ditemukan.`);
       return res.status(404).json({ error: "Akun tidak ditemukan" });
     }
 
-    console.log(
-      `[DEBUG LOGIN] User ditemukan. Hash password di DB: ${user.password}`,
-    );
-
     const isMatch = await user.comparePassword(password);
-    console.log(
-      `[DEBUG LOGIN] Hasil perbandingan password (isMatch): ${isMatch}`,
-    );
-
     if (!isMatch) {
       return res.status(400).json({ error: "Password salah" });
     }
 
-    // Buat JWT Token berlaku selama 1 hari (menyertakan role user)
     const token = jwt.sign(
       { id: user._id, username: user.username, role: user.role },
       JWT_SECRET,
@@ -102,7 +97,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// 3. Verifikasi Token (Digunakan Frontend untuk Cek Sesi Login)
+// 3. Verifikasi Token
 router.get("/verify", verifyToken, (req, res) => {
   return res.status(200).json({
     valid: true,
@@ -125,17 +120,11 @@ router.get("/profile", verifyToken, async (req, res) => {
   }
 });
 
-// 5. Update Profil Pengguna (Nama, Username, atau Password opsional)
+// 5. Update Profil Pengguna
 router.put("/profile", verifyToken, async (req, res) => {
   try {
     const userId = req.id || req.user?.id;
     const { username, name, password } = req.body;
-
-    console.log(`\n--- [DEBUG PUT /profile] ---`);
-    console.log(`User ID: ${userId}`);
-    console.log(
-      `Payload diterima - username: "${username}", name: "${name}", password field exists: ${Boolean(password)}, password length: ${password ? password.length : 0}`,
-    );
 
     const user = await User.findById(userId);
     if (!user) {
@@ -144,20 +133,11 @@ router.put("/profile", verifyToken, async (req, res) => {
 
     if (username) user.username = username;
     if (name) user.name = name;
-
-    // Set password mentah, biarkan pre("save") di model User.js yang meng-hash-nya
     if (password && password.trim() !== "") {
       user.password = password;
-      console.log(
-        `[DEBUG PUT /profile] Password baru di-set ke instance user, siap di-save.`,
-      );
     }
 
     const updatedUser = await user.save();
-    console.log(
-      `[DEBUG PUT /profile] Berhasil save. Hash password baru di DB: ${updatedUser.password}`,
-    );
-
     const userResponse = updatedUser.toObject();
     delete userResponse.password;
 
@@ -190,14 +170,19 @@ router.get("/users", verifyToken, async (req, res) => {
   }
 });
 
-// B. Tambah Staff Baru oleh Owner
-router.post("/users", verifyToken, async (req, res) => {
+// B. Tambah Staff Baru oleh Owner (Mendukung Upload Foto)
+router.post("/users", verifyToken, upload.single("photo"), async (req, res) => {
   try {
     if (req.user.role !== "owner") {
       return res.status(403).json({ error: "Akses ditolak. Khusus Owner." });
     }
 
-    const { username, password, name, role } = req.body;
+    if (!req.body) {
+      return res.status(400).json({ error: "Data form kosong." });
+    }
+
+    const { username, password, name, role, phone, position, baseSalary } =
+      req.body;
     if (!username || !password || !role) {
       return res
         .status(400)
@@ -209,11 +194,20 @@ router.post("/users", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Username sudah terdaftar" });
     }
 
+    let photoPath = "";
+    if (req.file) {
+      photoPath = `/uploads/${req.file.filename}`;
+    }
+
     const newStaff = new User({
       username,
-      password, // Akan otomatis di-hash oleh model Mongoose
+      password,
       name: name || username,
       role,
+      phone,
+      position,
+      baseSalary: Number(baseSalary) || 0,
+      photo: photoPath,
     });
 
     await newStaff.save();
@@ -224,36 +218,55 @@ router.post("/users", verifyToken, async (req, res) => {
   }
 });
 
-// C. Update Data atau Reset Sandi Staff Berdasarkan ID
-router.put("/users/:id", verifyToken, async (req, res) => {
-  try {
-    if (req.user.role !== "owner") {
-      return res.status(403).json({ error: "Akses ditolak. Khusus Owner." });
+// C. Update Data atau Reset Sandi Staff Berdasarkan ID (Mendukung Upload Foto)
+router.put(
+  "/users/:id",
+  verifyToken,
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      if (req.user.role !== "owner") {
+        return res.status(403).json({ error: "Akses ditolak. Khusus Owner." });
+      }
+
+      if (!req.body) {
+        return res.status(400).json({ error: "Data form kosong." });
+      }
+
+      const { name, username, password, role, phone, position, baseSalary } =
+        req.body;
+      const user = await User.findById(req.params.id);
+
+      if (!user) {
+        return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      }
+
+      if (name) user.name = name;
+      if (username) user.username = username;
+      if (role) user.role = role;
+      if (phone !== undefined) user.phone = phone;
+      if (position !== undefined) user.position = position;
+      if (baseSalary !== undefined) user.baseSalary = Number(baseSalary) || 0;
+
+      if (password && password.trim() !== "") {
+        user.password = password;
+      }
+
+      // Jika ada file foto baru yang diunggah
+      if (req.file) {
+        user.photo = `/uploads/${req.file.filename}`;
+      }
+
+      await user.save();
+      return res
+        .status(200)
+        .json({ message: "Data staff berhasil diperbarui" });
+    } catch (err) {
+      console.error("Error PUT /users/:id:", err);
+      return res.status(500).json({ error: err.message });
     }
-
-    const { name, username, password, role } = req.body;
-    const user = await User.findById(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({ error: "Pengguna tidak ditemukan" });
-    }
-
-    if (name) user.name = name;
-    if (username) user.username = username;
-    if (role) user.role = role;
-
-    // Jika password diisi, perbarui password (akan otomatis ter-hash)
-    if (password && password.trim() !== "") {
-      user.password = password;
-    }
-
-    await user.save();
-    return res.status(200).json({ message: "Data staff berhasil diperbarui" });
-  } catch (err) {
-    console.error("Error PUT /users/:id:", err);
-    return res.status(500).json({ error: err.message });
-  }
-});
+  },
+);
 
 // D. Hapus Akun Staff Berdasarkan ID
 router.delete("/users/:id", verifyToken, async (req, res) => {
@@ -267,14 +280,11 @@ router.delete("/users/:id", verifyToken, async (req, res) => {
       return res.status(404).json({ error: "Pengguna tidak ditemukan" });
     }
 
-    // Mencegah owner menghapus akunnya sendiri
     const currentUserId = req.user.id || req.user._id;
     if (user._id.toString() === currentUserId.toString()) {
-      return res
-        .status(400)
-        .json({
-          error: "Anda tidak dapat menghapus akun owner yang sedang aktif",
-        });
+      return res.status(400).json({
+        error: "Anda tidak dapat menghapus akun owner yang sedang aktif",
+      });
     }
 
     await User.findByIdAndDelete(req.params.id);

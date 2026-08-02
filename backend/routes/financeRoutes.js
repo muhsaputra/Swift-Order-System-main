@@ -91,14 +91,14 @@ router.get("/expenses", verifyToken, async (req, res) => {
   }
 });
 
-// 3. Tambah Catatan Pengeluaran Baru
+// 3. Tambah Catatan Pengeluaran Baru (Diperbarui dengan menyertakan field 'date')
 router.post("/expenses", verifyToken, async (req, res) => {
   try {
     if (req.user.role !== "owner") {
       return res.status(403).json({ error: "Akses ditolak." });
     }
 
-    const { title, category, amount, note } = req.body;
+    const { title, category, amount, note, date } = req.body;
     if (!title || !amount) {
       return res
         .status(400)
@@ -111,6 +111,7 @@ router.post("/expenses", verifyToken, async (req, res) => {
       amount: Number(amount),
       note,
       recordedBy: req.user.username,
+      date: date ? new Date(date) : new Date(), // Memastikan field tanggal selalu terisi dengan benar
     });
 
     await newExpense.save();

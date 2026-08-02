@@ -15,10 +15,8 @@ import {
   Maximize2,
   Minimize2,
   ShieldCheck,
-  Percent,
   Users,
   Wallet,
-  ReceiptText,
 } from "lucide-react";
 
 export default function OwnerLayout() {
@@ -217,20 +215,6 @@ export default function OwnerLayout() {
                   className={`w-4 h-4 ${isActive("/owner/coupons") ? "text-amber-600" : "text-amber-400"}`}
                 />
                 <span>Kelola Kupon Promo & Fee</span>
-              </button>
-
-              <button
-                onClick={() => navigate("/owner/settings")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/settings")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <Percent
-                  className={`w-4 h-4 ${isActive("/owner/settings") ? "text-amber-600" : "text-amber-400"}`}
-                />
-                <span>Pengaturan Service Fee</span>
               </button>
             </div>
 

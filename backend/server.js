@@ -17,6 +17,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const settingsRoute = require("./routes/settings");
 const financeRoutes = require("./routes/financeRoutes");
 const staffRoutes = require("./routes/staffRoutes");
+const inventoryRoutes = require("./routes/inventoryRoutes"); // <--- Import Rute Inventory / Gudang
 
 const app = express();
 const server = http.createServer(app);
@@ -73,6 +74,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/settings", settingsRoute);
 app.use("/api/finance", financeRoutes);
 app.use("/api/staff", staffRoutes);
+app.use("/api/inventory", inventoryRoutes); // <--- Registrasi Endpoint Inventory / Gudang
 
 // Socket.io Connection Listener
 io.on("connection", (socket) => {

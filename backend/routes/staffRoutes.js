@@ -5,11 +5,12 @@ const authMiddleware = require("../middleware/auth");
 const verifyToken = authMiddleware.verifyToken || authMiddleware;
 const multer = require("multer");
 const path = require("path");
+const bcrypt = require("bcryptjs");
 
 // Konfigurasi Penyimpanan File Upload Lokal (Multer)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Pastikan folder 'uploads' sudah ada di root backend Anda
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -36,6 +37,11 @@ router.post("/", verifyToken, upload.single("photo"), async (req, res) => {
     if (req.user.role !== "owner") {
       return res.status(403).json({ error: "Akses ditolak." });
     }
+
+    if (!req.body) {
+      return res.status(400).json({ error: "Data form kosong." });
+    }
+
     const {
       name,
       username,
@@ -56,16 +62,21 @@ router.post("/", verifyToken, upload.single("photo"), async (req, res) => {
         .json({ error: "Nama, nomor telepon, dan posisi wajib diisi." });
     }
 
-    // Tangani path file foto jika diunggah
     let photoPath = "";
     if (req.file) {
       photoPath = `/uploads/${req.file.filename}`;
     }
 
+    let hashedPassword = "";
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      hashedPassword = await bcrypt.hash(password, salt);
+    }
+
     const newStaff = new Staff({
       name,
       username,
-      password, // Pastikan model Anda menangani hashing password jika ini akun login
+      password: hashedPassword,
       role: role || "cashier",
       nickname,
       phone,
@@ -93,6 +104,10 @@ router.put("/:id", verifyToken, upload.single("photo"), async (req, res) => {
       return res.status(403).json({ error: "Akses ditolak." });
     }
 
+    if (!req.body) {
+      return res.status(400).json({ error: "Data form kosong." });
+    }
+
     const staff = await Staff.findById(req.params.id);
     if (!staff) {
       return res.status(404).json({ error: "Pegawai tidak ditemukan." });
@@ -101,6 +116,7 @@ router.put("/:id", verifyToken, upload.single("photo"), async (req, res) => {
     const {
       name,
       username,
+      password,
       role,
       nickname,
       phone,
@@ -111,7 +127,6 @@ router.put("/:id", verifyToken, upload.single("photo"), async (req, res) => {
       bankAccount,
     } = req.body;
 
-    // Update field data
     if (name) staff.name = name;
     if (username) staff.username = username;
     if (role) staff.role = role;
@@ -122,6 +137,12 @@ router.put("/:id", verifyToken, upload.single("photo"), async (req, res) => {
     if (emergencyContact) staff.emergencyContact = emergencyContact;
     if (baseSalary !== undefined) staff.baseSalary = Number(baseSalary) || 0;
     if (bankAccount) staff.bankAccount = bankAccount;
+
+    // Update password jika diisi
+    if (password && password.trim() !== "") {
+      const salt = await bcrypt.genSalt(10);
+      staff.password = await bcrypt.hash(password, salt);
+    }
 
     // Jika ada file foto baru yang diunggah
     if (req.file) {
@@ -209,7 +230,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
     await Staff.findByIdAndDelete(req.params.id);
     return res.status(200).json({ message: "Data pegawai berhasil dihapus." });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.model });
   }
 });
 

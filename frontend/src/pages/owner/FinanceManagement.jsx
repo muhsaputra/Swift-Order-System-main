@@ -14,15 +14,19 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  PieChart as PieIcon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
+  Legend,
 } from "recharts";
 import * as XLSX from "xlsx";
 import API from "../../services/api";
@@ -203,7 +207,7 @@ export default function FinanceManagement() {
     }).format(val || 0);
   };
 
-  // Data Grafik Tren
+  // Data Grafik Tren Area (Revenue)
   const chartData = useMemo(() => {
     const map = {};
     if (summary.ordersList) {
@@ -212,12 +216,40 @@ export default function FinanceManagement() {
           day: "numeric",
           month: "short",
         });
-        if (!map[dateStr]) map[dateStr] = { date: dateStr, revenue: 0 };
+        if (!map[dateStr])
+          map[dateStr] = { date: dateStr, revenue: 0, expense: 0 };
         map[dateStr].revenue += order.totalAmount || order.grandTotal || 0;
       });
     }
+    if (expenses) {
+      expenses.forEach((exp) => {
+        const dateStr = new Date(exp.date).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+        });
+        if (!map[dateStr])
+          map[dateStr] = { date: dateStr, revenue: 0, expense: 0 };
+        map[dateStr].expense += exp.amount || 0;
+      });
+    }
     return Object.values(map);
-  }, [summary.ordersList]);
+  }, [summary.ordersList, expenses]);
+
+  // Data Breakdown Kategori Pengeluaran
+  const expenseCategoryBreakdown = useMemo(() => {
+    const categories = { Operasional: 0, "Bahan Baku": 0, Gaji: 0, Lainnya: 0 };
+    expenses.forEach((exp) => {
+      if (categories[exp.category] !== undefined) {
+        categories[exp.category] += exp.amount || 0;
+      } else {
+        categories.Lainnya += exp.amount || 0;
+      }
+    });
+    return Object.keys(categories).map((key) => ({
+      name: key,
+      total: categories[key],
+    }));
+  }, [expenses]);
 
   // Filter Pengeluaran
   const filteredExpenses = useMemo(() => {
@@ -410,68 +442,160 @@ export default function FinanceManagement() {
         </div>
       </div>
 
-      {/* Grafik Visualisasi Tren Pendapatan */}
-      <div className="bg-white border border-neutral-200/80 rounded-3xl shadow-sm p-6 space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-neutral-900" />
-            <h3 className="text-base font-black text-neutral-900">
-              Grafik Tren Pendapatan Harian
-            </h3>
-          </div>
-          <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
-            Visualisasi Omzet
-          </span>
-        </div>
-        <div className="h-64 w-full pt-4">
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={chartData}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#f0f0f0"
-                />
-                <XAxis
-                  dataKey="date"
-                  stroke="#888888"
-                  fontSize={11}
-                  tickLine={false}
-                />
-                <YAxis
-                  stroke="#888888"
-                  fontSize={11}
-                  tickLine={false}
-                  tickFormatter={(val) => `Rp ${val / 1000}k`}
-                />
-                <Tooltip
-                  formatter={(value) => [formatRupiah(value), "Omzet"]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#10b981"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorRevenue)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center text-xs font-bold text-neutral-400">
-              Belum cukup data untuk menampilkan grafik tren.
+      {/* GRAFIK VISUALISASI (AREA TREN & KOMPARASI BATANG) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Grafik Area Tren Pendapatan */}
+        <div className="lg:col-span-2 bg-white border border-neutral-200/80 rounded-3xl shadow-sm p-6 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-neutral-900" />
+              <h3 className="text-base font-black text-neutral-900">
+                Grafik Tren Pendapatan Harian
+              </h3>
             </div>
-          )}
+            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+              Visualisasi Omzet
+            </span>
+          </div>
+          <div className="h-64 w-full pt-4">
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="colorRevenue"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f0f0f0"
+                  />
+                  <XAxis
+                    dataKey="date"
+                    stroke="#888888"
+                    fontSize={11}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    stroke="#888888"
+                    fontSize={11}
+                    tickLine={false}
+                    tickFormatter={(val) => `Rp ${val / 1000}k`}
+                  />
+                  <Tooltip
+                    formatter={(value) => [formatRupiah(value), "Omzet"]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs font-bold text-neutral-400">
+                Belum cukup data untuk menampilkan grafik tren.
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Grafik Komparasi Bar Chart (Pemasukan vs Pengeluaran) */}
+        <div className="bg-white border border-neutral-200/80 rounded-3xl shadow-sm p-6 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-neutral-900" />
+              <h3 className="text-base font-black text-neutral-900">
+                Komparasi Kas
+              </h3>
+            </div>
+            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+              Masuk vs Keluar
+            </span>
+          </div>
+          <div className="h-64 w-full pt-2">
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f0f0f0"
+                  />
+                  <XAxis
+                    dataKey="date"
+                    stroke="#888888"
+                    fontSize={10}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    stroke="#888888"
+                    fontSize={10}
+                    tickLine={false}
+                    tickFormatter={(val) => `${val / 1000}k`}
+                  />
+                  <Tooltip formatter={(value) => [formatRupiah(value)]} />
+                  <Legend
+                    wrapperStyle={{ fontSize: "10px", paddingTop: "5px" }}
+                  />
+                  <Bar
+                    dataKey="revenue"
+                    name="Pemasukan"
+                    fill="#10b981"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="expense"
+                    name="Pengeluaran"
+                    fill="#ef4444"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs font-bold text-neutral-400">
+                Belum ada data komparasi.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* BREAKDOWN KATEGORI PENGELUARAN */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {expenseCategoryBreakdown.map((cat, idx) => (
+          <div
+            key={idx}
+            className="bg-white border border-neutral-200/80 p-5 rounded-3xl shadow-sm space-y-1"
+          >
+            <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+              Kategori: {cat.name}
+            </span>
+            <h4 className="text-base font-black text-neutral-900">
+              {formatRupiah(cat.total)}
+            </h4>
+            <p className="text-[10px] text-neutral-500 font-medium">
+              Total biaya pos {cat.name}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* TAB PEMISAH: PENGELUARAN VS PEMASUKAN */}

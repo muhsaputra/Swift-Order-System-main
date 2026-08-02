@@ -216,7 +216,7 @@ export default function OwnerLayout() {
                 <Tag
                   className={`w-4 h-4 ${isActive("/owner/coupons") ? "text-amber-600" : "text-amber-400"}`}
                 />
-                <span>Kelola Kupon Promo</span>
+                <span>Kelola Kupon Promo & Fee</span>
               </button>
 
               <button

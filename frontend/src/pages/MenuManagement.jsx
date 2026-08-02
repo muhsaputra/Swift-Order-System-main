@@ -178,7 +178,6 @@ export default function MenuManagement() {
     }));
     setBundleOptions(normalizedOptions);
 
-    // Normalisasi data ingredients untuk form edit
     const normalizedIngredients = (menu.ingredients || []).map((ing) => ({
       inventoryItem: ing.inventoryItem?._id || ing.inventoryItem,
       qtyNeeded: ing.qtyNeeded || 0,
@@ -233,7 +232,6 @@ export default function MenuManagement() {
     setBundleOptions(updated);
   };
 
-  // Handler untuk Resep / BOM Inventaris
   const handleAddIngredientRow = () => {
     if (inventoryItems.length === 0) {
       gooeyToast.error(
@@ -382,7 +380,6 @@ export default function MenuManagement() {
     }
   };
 
-  // Filter menu berdasarkan pencarian dan kategori yang dipilih
   const filteredMenus = menus.filter((menu) => {
     const matchesSearch =
       menu.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -413,7 +410,7 @@ export default function MenuManagement() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 pb-28 selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50/50 text-slate-900 pb-28 selection:bg-amber-500 selection:text-white">
       {/* HIGH-LEVEL HERO BANNER */}
       <div className="relative bg-slate-900 text-white py-12 px-6 md:px-12 overflow-hidden mb-8 shadow-xl border-b border-slate-800">
         <div
@@ -426,8 +423,8 @@ export default function MenuManagement() {
 
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-indigo-500/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-indigo-400 border border-indigo-500/20 shadow-inner">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-amber-400 border border-amber-500/20 shadow-inner">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
               <span>Sistem Manajemen Katalog & Resep Terpadu</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">
@@ -441,7 +438,7 @@ export default function MenuManagement() {
           </div>
 
           <div className="flex items-center gap-3 bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-4 rounded-3xl shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-black shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center font-black shadow-inner">
               <Layers className="w-5 h-5" />
             </div>
             <div>
@@ -465,7 +462,7 @@ export default function MenuManagement() {
           <div className="space-y-1">
             <h2 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">
               <span>Daftar Produk & Varian</span>
-              <span className="text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full">
                 {filteredMenus.length} Ditampilkan
               </span>
             </h2>
@@ -485,7 +482,7 @@ export default function MenuManagement() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari nama menu, deskripsi, atau SKU..."
-                className="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 shadow-2xs font-medium transition"
+                className="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 shadow-2xs font-medium transition"
               />
               {searchQuery && (
                 <button
@@ -507,7 +504,7 @@ export default function MenuManagement() {
 
             <button
               onClick={handleOpenAddModal}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-indigo-600/20 flex items-center gap-2 cursor-pointer active:scale-95"
+              className="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-amber-500/20 flex items-center gap-2 cursor-pointer active:scale-95"
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Menu Baru</span>
@@ -558,7 +555,7 @@ export default function MenuManagement() {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 space-y-3">
-            <div className="w-9 h-9 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <div className="w-9 h-9 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
             <p className="text-xs text-slate-500 font-semibold">
               Memuat data katalog menu...
             </p>
@@ -660,7 +657,7 @@ export default function MenuManagement() {
 
                               {menu.ingredients &&
                                 menu.ingredients.length > 0 && (
-                                  <span className="px-2.5 py-1 text-[9px] rounded-full font-black bg-indigo-600 text-white shadow-md flex items-center gap-1">
+                                  <span className="px-2.5 py-1 text-[9px] rounded-full font-black bg-amber-600 text-white shadow-md flex items-center gap-1">
                                     <ChefHat className="w-3 h-3" /> Resep Stok
                                   </span>
                                 )}
@@ -669,7 +666,7 @@ export default function MenuManagement() {
 
                           <div className="p-5 space-y-3">
                             <div className="flex items-center justify-between">
-                              <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition">
+                              <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1 group-hover:text-amber-600 transition">
                                 {menu.name}
                               </h3>
                               {menu.sku && (
@@ -702,7 +699,7 @@ export default function MenuManagement() {
                                 ))}
                               {menu.ingredients &&
                                 menu.ingredients.length > 0 && (
-                                  <span className="text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
+                                  <span className="text-[9px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
                                     <Scale className="w-3 h-3" />{" "}
                                     {menu.ingredients.length} bahan terhubung
                                   </span>
@@ -819,7 +816,7 @@ export default function MenuManagement() {
 
                           <div className="p-5 space-y-3">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                              <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wider bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
                                 {menu.category}
                               </span>
                               {menu.sku && (
@@ -940,11 +937,11 @@ export default function MenuManagement() {
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder="Nama kategori baru..."
-                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-indigo-500"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-amber-500"
                 />
                 <button
                   type="submit"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-md shadow-indigo-600/20"
+                  className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-md shadow-amber-500/20"
                 >
                   Tambah
                 </button>
@@ -1031,7 +1028,7 @@ export default function MenuManagement() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-amber-500"
                       placeholder="Contoh: Nasi Goreng Spesial"
                     />
                   </div>
@@ -1043,7 +1040,7 @@ export default function MenuManagement() {
                       type="text"
                       value={sku}
                       onChange={(e) => setSku(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium uppercase focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium uppercase focus:outline-none focus:border-amber-500"
                       placeholder="Contoh: MKN-NSG-SPC"
                     />
                   </div>
@@ -1057,7 +1054,7 @@ export default function MenuManagement() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows="2"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs resize-none font-medium focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs resize-none font-medium focus:outline-none focus:border-amber-500"
                     placeholder="Deskripsi produk kuliner..."
                   />
                 </div>
@@ -1072,7 +1069,7 @@ export default function MenuManagement() {
                       value={price}
                       onChange={handlePriceChange}
                       required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium focus:outline-none focus:border-amber-500"
                       placeholder="25.000"
                     />
                   </div>
@@ -1084,7 +1081,7 @@ export default function MenuManagement() {
                       type="text"
                       value={originalPrice}
                       onChange={handleOriginalPriceChange}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium focus:outline-none focus:border-amber-500"
                       placeholder="35.000"
                     />
                   </div>
@@ -1097,7 +1094,7 @@ export default function MenuManagement() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer focus:outline-none focus:border-amber-500"
                   >
                     {categories.map((cat, idx) => (
                       <option key={idx} value={cat}>
@@ -1112,7 +1109,7 @@ export default function MenuManagement() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
-                        <ChefHat className="w-4 h-4 text-indigo-600" />
+                        <ChefHat className="w-4 h-4 text-amber-600" />
                         <span>Resep Bahan Baku (Bill of Materials / BOM)</span>
                       </h4>
                       <p className="text-[10px] text-slate-500 mt-0.5">
@@ -1123,7 +1120,7 @@ export default function MenuManagement() {
                     <button
                       type="button"
                       onClick={handleAddIngredientRow}
-                      className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-xl text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1"
+                      className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-xl text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1"
                     >
                       <Plus className="w-3 h-3" /> Tambah Bahan
                     </button>
@@ -1151,7 +1148,7 @@ export default function MenuManagement() {
                                 e.target.value,
                               )
                             }
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium cursor-pointer focus:outline-none focus:border-indigo-500"
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium cursor-pointer focus:outline-none focus:border-amber-500"
                           >
                             {inventoryItems.map((inv) => (
                               <option key={inv._id} value={inv._id}>
@@ -1172,7 +1169,7 @@ export default function MenuManagement() {
                                 )
                               }
                               placeholder="Takaran"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:outline-none focus:border-amber-500"
                             />
                             <span className="text-[10px] font-bold text-slate-400 shrink-0">
                               Porsi
@@ -1208,7 +1205,7 @@ export default function MenuManagement() {
                       type="checkbox"
                       checked={isBundle}
                       onChange={(e) => setIsBundle(e.target.checked)}
-                      className="w-4 h-4 rounded cursor-pointer accent-indigo-600"
+                      className="w-4 h-4 rounded cursor-pointer accent-amber-500"
                     />
                   </div>
 
@@ -1243,7 +1240,7 @@ export default function MenuManagement() {
                                 )
                               }
                               placeholder="Judul Pilihan (Contoh: LEVEL KEPEDASAN)"
-                              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-indigo-500"
+                              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-amber-500"
                             />
                             <button
                               type="button"
@@ -1275,7 +1272,7 @@ export default function MenuManagement() {
                                     )
                                   }
                                   placeholder="Nama Pilihan (Contoh: Level 1 / Keju)"
-                                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-indigo-500"
+                                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-amber-500"
                                 />
                                 <input
                                   type="number"
@@ -1289,7 +1286,7 @@ export default function MenuManagement() {
                                     )
                                   }
                                   placeholder="Harga (Rp)"
-                                  className="w-28 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500"
+                                  className="w-28 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:outline-none focus:border-amber-500"
                                 />
                                 <button
                                   type="button"
@@ -1305,7 +1302,7 @@ export default function MenuManagement() {
                             <button
                               type="button"
                               onClick={() => handleAddChoice(optIdx)}
-                              className="text-[10px] font-extrabold text-indigo-600 hover:underline pt-1 block cursor-pointer"
+                              className="text-[10px] font-extrabold text-amber-600 hover:underline pt-1 block cursor-pointer"
                             >
                               + Tambah Pilihan Lain
                             </button>
@@ -1322,7 +1319,7 @@ export default function MenuManagement() {
                     id="isAvailable"
                     checked={isAvailable}
                     onChange={(e) => setIsAvailable(e.target.checked)}
-                    className="w-4 h-4 rounded cursor-pointer accent-indigo-600"
+                    className="w-4 h-4 rounded cursor-pointer accent-amber-500"
                   />
                   <label
                     htmlFor="isAvailable"
@@ -1346,7 +1343,7 @@ export default function MenuManagement() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-lg shadow-indigo-600/20"
+                    className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-lg shadow-amber-500/20"
                   >
                     {submitting
                       ? "Menyimpan..."

@@ -11,6 +11,10 @@ import {
   X,
   FileSpreadsheet,
   BarChart3,
+  ArrowUpRight,
+  ShieldCheck,
+  Sparkles,
+  Receipt,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -37,6 +41,9 @@ export default function FinanceManagement() {
   });
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Tab View State ("pengeluaran" atau "pemasukan")
+  const [activeTab, setActiveTab] = useState("pengeluaran");
 
   // Filter Tanggal, Search & Category State
   const [startDate, setStartDate] = useState("");
@@ -139,33 +146,48 @@ export default function FinanceManagement() {
     }
   };
 
-  // Ekspor Laporan ke Excel
+  // Ekspor Laporan ke Excel dengan Branding & Desain Rapi
   const exportToExcel = () => {
     if (
-      expenses.length === 0 &&
+      (!expenses || expenses.length === 0) &&
       (!summary.ordersList || summary.ordersList.length === 0)
     ) {
       gooeyToast.error("Tidak ada data untuk diekspor.");
       return;
     }
 
-    const expenseData = expenses.map((exp, idx) => ({
+    const wb = XLSX.utils.book_new();
+
+    // 1. Sheet Pemasukan (Revenue)
+    const revenueRows = summary.ordersList.map((ord, idx) => ({
       No: idx + 1,
-      Judul: exp.title,
+      "ID Pesanan": ord._id ? ord._id.slice(-6).toUpperCase() : "-",
+      "No Meja": ord.tableNumber || "Takeaway",
+      "Total Omzet (Rp)": ord.totalAmount || ord.grandTotal || 0,
+      "Status Pembayaran": ord.paymentStatus || "Paid",
+      "Tanggal Transaksi": new Date(ord.createdAt).toLocaleString("id-ID"),
+    }));
+    const wsRevenue = XLSX.utils.json_to_sheet(revenueRows);
+    XLSX.utils.book_append_sheet(wb, wsRevenue, "Data Pemasukan");
+
+    // 2. Sheet Pengeluaran (Expenses)
+    const expenseRows = expenses.map((exp, idx) => ({
+      No: idx + 1,
+      "Judul Pengeluaran": exp.title,
       Kategori: exp.category,
-      Nominal: exp.amount,
+      "Nominal (Rp)": exp.amount,
       Tanggal: new Date(exp.date).toLocaleDateString("id-ID"),
       Catatan: exp.note || "-",
     }));
+    const wsExpense = XLSX.utils.json_to_sheet(expenseRows);
+    XLSX.utils.book_append_sheet(wb, wsExpense, "Data Pengeluaran");
 
-    const ws = XLSX.utils.json_to_sheet(expenseData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pengeluaran Operasional");
+    // Unduh File Excel
     XLSX.writeFile(
       wb,
       `Laporan_Keuangan_SwiftOrder_${new Date().toISOString().slice(0, 10)}.xlsx`,
     );
-    gooeyToast.success("Laporan berhasil diunduh ke Excel!");
+    gooeyToast.success("Laporan Excel profesional berhasil diunduh!");
   };
 
   const formatRupiah = (val) => {
@@ -176,7 +198,7 @@ export default function FinanceManagement() {
     }).format(val || 0);
   };
 
-  // Data untuk Grafik Tren (Recharts)
+  // Data Grafik Tren
   const chartData = useMemo(() => {
     const map = {};
     if (summary.ordersList) {
@@ -192,7 +214,7 @@ export default function FinanceManagement() {
     return Object.values(map);
   }, [summary.ordersList]);
 
-  // Filter & Search Pengeluaran
+  // Filter Pengeluaran
   const filteredExpenses = useMemo(() => {
     return expenses.filter((exp) => {
       const matchesSearch =
@@ -204,40 +226,58 @@ export default function FinanceManagement() {
     });
   }, [expenses, searchTerm, selectedCategory]);
 
+  // Filter Pemasukan (Orders)
+  const filteredOrders = useMemo(() => {
+    if (!summary.ordersList) return [];
+    return summary.ordersList.filter((ord) => {
+      const searchStr = searchTerm.toLowerCase();
+      const tableMatch = String(ord.tableNumber || "")
+        .toLowerCase()
+        .includes(searchStr);
+      const idMatch = String(ord._id || "")
+        .toLowerCase()
+        .includes(searchStr);
+      return tableMatch || idMatch;
+    });
+  }, [summary.ordersList, searchTerm]);
+
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto">
-      {/* Header Halaman & Tombol Aksi */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-[11px] font-black text-emerald-600 mb-2">
-            <Wallet className="w-3.5 h-3.5" />
-            <span>Manajemen Finansial Restoran</span>
+    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans">
+      {/* 1. BANNER HEADER ESTETIK & BRANDING */}
+      <div className="relative bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 rounded-3xl p-6 lg:p-8 text-white shadow-2xl overflow-hidden border border-neutral-800">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 px-3 py-1 rounded-full text-[11px] font-black text-emerald-400 tracking-wide">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>SWIFT ORDERING ENTERPRISE FINANCE</span>
+            </div>
+            <h1 className="text-2xl lg:text-3xl font-black tracking-tight text-white">
+              Pusat Kontrol Finansial & Laba Rugi
+            </h1>
+            <p className="text-xs text-neutral-400 font-medium max-w-xl">
+              Kelola seluruh aliran kas masuk dari transaksi pelanggan dan
+              pencatatan biaya operasional restoran secara akurat dan
+              transparan.
+            </p>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900">
-            Laporan Keuangan & Laba Rugi
-          </h1>
-          <p className="text-xs text-neutral-500 mt-1 font-medium">
-            Pantau omzet, pengeluaran operasional, grafik tren, dan kalkulasi
-            laba bersih secara real-time.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={exportToExcel}
-            className="flex items-center justify-center gap-2 px-4 py-3.5 bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-800 rounded-2xl text-xs font-black shadow-sm transition cursor-pointer"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>Ekspor Excel</span>
-          </button>
-
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center justify-center gap-2 px-5 py-3.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-2xl text-xs font-black shadow-lg shadow-neutral-900/10 transition cursor-pointer active:scale-95"
-          >
-            <PlusCircle className="w-4 h-4 text-emerald-400" />
-            <span>Catat Pengeluaran Baru</span>
-          </button>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-2 px-5 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-2xl text-xs font-black shadow-md border border-neutral-700 transition cursor-pointer"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+              <span>Unduh Laporan Excel</span>
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-5 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 rounded-2xl text-xs font-black shadow-lg transition cursor-pointer active:scale-95"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Catat Pengeluaran</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -355,7 +395,7 @@ export default function FinanceManagement() {
         </div>
       </div>
 
-      {/* Grafik Visualisasi Tren Pendapatan (Recharts) */}
+      {/* Grafik Visualisasi Tren Pendapatan */}
       <div className="bg-white border border-neutral-200/80 rounded-3xl shadow-sm p-6 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
           <div className="flex items-center gap-2">
@@ -419,124 +459,226 @@ export default function FinanceManagement() {
         </div>
       </div>
 
-      {/* Tabel & Filter Riwayat Pengeluaran */}
+      {/* TAB PEMISAH: PENGELUARAN VS PEMASUKAN */}
       <div className="bg-white border border-neutral-200/80 rounded-3xl shadow-sm overflow-hidden p-6 space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-neutral-100">
-          <div>
-            <h3 className="text-base font-black text-neutral-900">
-              Riwayat Pengeluaran Operasional
-            </h3>
-            <p className="text-xs text-neutral-500 font-medium">
-              Daftar biaya harian, bahan baku, atau pengeluaran lain restoran.
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-100">
+          {/* Navigasi Tab */}
+          <div className="flex items-center gap-2 bg-neutral-100 p-1.5 rounded-2xl">
+            <button
+              onClick={() => setActiveTab("pengeluaran")}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
+                activeTab === "pengeluaran"
+                  ? "bg-neutral-900 text-white shadow-md"
+                  : "text-neutral-600 hover:text-neutral-900"
+              }`}
+            >
+              Riwayat Pengeluaran ({expenses.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("pemasukan")}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
+                activeTab === "pemasukan"
+                  ? "bg-neutral-900 text-white shadow-md"
+                  : "text-neutral-600 hover:text-neutral-900"
+              }`}
+            >
+              Riwayat Pemasukan / Omzet ({summary.ordersList?.length || 0})
+            </button>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Cari pengeluaran..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-neutral-900 transition"
-              />
-            </div>
-
-            <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-              {["Semua", "Operasional", "Bahan Baku", "Gaji", "Lainnya"].map(
-                (cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-2 rounded-xl text-[11px] font-black transition cursor-pointer whitespace-nowrap ${
-                      selectedCategory === cat
-                        ? "bg-neutral-900 text-white shadow-sm"
-                        : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ),
-              )}
-            </div>
+          {/* Search Bar */}
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <input
+              type="text"
+              placeholder={
+                activeTab === "pengeluaran"
+                  ? "Cari pengeluaran..."
+                  : "Cari meja / id pesanan..."
+              }
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-neutral-900 transition"
+            />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
-                <th className="py-3 px-4">Keterangan / Judul</th>
-                <th className="py-3 px-4">Kategori</th>
-                <th className="py-3 px-4">Nominal</th>
-                <th className="py-3 px-4">Tanggal</th>
-                <th className="py-3 px-4 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="text-center py-12 text-neutral-400 font-bold"
-                  >
-                    Memuat data pengeluaran...
-                  </td>
-                </tr>
-              ) : filteredExpenses.length > 0 ? (
-                filteredExpenses.map((exp) => (
-                  <tr
-                    key={exp._id}
-                    className="hover:bg-neutral-50/60 transition group"
-                  >
-                    <td className="py-3.5 px-4">
-                      <p className="font-extrabold text-neutral-900">
-                        {exp.title}
-                      </p>
-                      {exp.note && (
-                        <p className="text-[11px] text-neutral-400 font-normal mt-0.5">
-                          {exp.note}
-                        </p>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 bg-neutral-100 border border-neutral-200 text-neutral-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
-                        {exp.category}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-black text-red-600 text-sm">
-                      {formatRupiah(exp.amount)}
-                    </td>
-                    <td className="py-3.5 px-4 text-neutral-500 font-medium">
-                      {new Date(exp.date).toLocaleDateString("id-ID", {
-                        dateStyle: "medium",
-                      })}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <button
-                        onClick={() => handleDeleteExpense(exp._id)}
-                        className="p-2 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition cursor-pointer shadow-sm"
-                        title="Hapus Catatan"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+        {/* KONTEN TAB: PENGELUARAN */}
+        {activeTab === "pengeluaran" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-neutral-500 font-medium">
+                Daftar biaya operasional, bahan baku, atau pengeluaran lain
+                restoran.
+              </p>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                {["Semua", "Operasional", "Bahan Baku", "Gaji", "Lainnya"].map(
+                  (cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition cursor-pointer whitespace-nowrap ${
+                        selectedCategory === cat
+                          ? "bg-neutral-900 text-white shadow-sm"
+                          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+                    <th className="py-3 px-4">Keterangan / Judul</th>
+                    <th className="py-3 px-4">Kategori</th>
+                    <th className="py-3 px-4">Nominal</th>
+                    <th className="py-3 px-4">Tanggal</th>
+                    <th className="py-3 px-4 text-center">Aksi</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="text-center py-12 text-neutral-400 font-bold"
-                  >
-                    Tidak ada catatan pengeluaran yang ditemukan.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        className="text-center py-12 text-neutral-400 font-bold"
+                      >
+                        Memuat data pengeluaran...
+                      </td>
+                    </tr>
+                  ) : filteredExpenses.length > 0 ? (
+                    filteredExpenses.map((exp) => (
+                      <tr
+                        key={exp._id}
+                        className="hover:bg-neutral-50/60 transition group"
+                      >
+                        <td className="py-3.5 px-4">
+                          <p className="font-extrabold text-neutral-900">
+                            {exp.title}
+                          </p>
+                          {exp.note && (
+                            <p className="text-[11px] text-neutral-400 font-normal mt-0.5">
+                              {exp.note}
+                            </p>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 bg-neutral-100 border border-neutral-200 text-neutral-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                            {exp.category}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-black text-red-600 text-sm">
+                          {formatRupiah(exp.amount)}
+                        </td>
+                        <td className="py-3.5 px-4 text-neutral-500 font-medium">
+                          {new Date(exp.date).toLocaleDateString("id-ID", {
+                            dateStyle: "medium",
+                          })}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <button
+                            onClick={() => handleDeleteExpense(exp._id)}
+                            className="p-2 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition cursor-pointer shadow-sm"
+                            title="Hapus Catatan"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        className="text-center py-12 text-neutral-400 font-bold"
+                      >
+                        Tidak ada catatan pengeluaran ditemukan.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* KONTEN TAB: PEMASUKAN */}
+        {activeTab === "pemasukan" && (
+          <div className="space-y-4">
+            <p className="text-xs text-neutral-500 font-medium">
+              Daftar transaksi pesanan masuk yang sukses dibayar oleh pelanggan.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+                    <th className="py-3 px-4">ID Pesanan</th>
+                    <th className="py-3 px-4">Meja</th>
+                    <th className="py-3 px-4">Total Omzet</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Waktu Transaksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        className="text-center py-12 text-neutral-400 font-bold"
+                      >
+                        Memuat data pemasukan...
+                      </td>
+                    </tr>
+                  ) : filteredOrders.length > 0 ? (
+                    filteredOrders.map((ord) => (
+                      <tr
+                        key={ord._id}
+                        className="hover:bg-neutral-50/60 transition"
+                      >
+                        <td className="py-3.5 px-4 font-mono font-bold text-neutral-900">
+                          #{ord._id.slice(-6).toUpperCase()}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-[10px] font-black uppercase">
+                            Meja {ord.tableNumber || "Takeaway"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-black text-emerald-600 text-sm">
+                          {formatRupiah(ord.totalAmount || ord.grandTotal)}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-black uppercase">
+                            {ord.paymentStatus || "Paid"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-neutral-500 font-medium">
+                          {new Date(ord.createdAt).toLocaleString("id-ID", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        className="text-center py-12 text-neutral-400 font-bold"
+                      >
+                        Tidak ada data pemasukan ditemukan.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* MODAL TAMBAH PENGELUARAN */}

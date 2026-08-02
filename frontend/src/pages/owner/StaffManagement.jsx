@@ -15,10 +15,11 @@ import {
   Calendar,
   CheckCircle2,
   FileText,
-  TrendingUp,
   Award,
   Clock,
   Eye,
+  Download,
+  CalendarCheck,
 } from "lucide-react";
 import API from "../../services/api";
 import { gooeyToast } from "goey-toast";
@@ -27,7 +28,7 @@ export default function StaffManagement() {
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTab, setSelectedTab] = useState("direktori"); // "direktori", "absensi", "gaji"
+  const [selectedTab, setSelectedTab] = useState("direktori"); // "direktori", "absensi", "gaji", "shift"
 
   // State Modal Akun (Tambah / Edit)
   const [showModal, setShowModal] = useState(false);
@@ -43,6 +44,7 @@ export default function StaffManagement() {
     phone: "",
     position: "Kasir",
     baseSalary: "",
+    shift: "Pagi (08:00 - 16:00)",
     photoFile: null,
     photoPreview: "",
   });
@@ -58,6 +60,8 @@ export default function StaffManagement() {
     month: new Date().toISOString().slice(0, 7),
     bonus: "",
     deduction: "",
+    overtimeHours: 0,
+    overtimePayRate: 25000, // Tarif lembur per jam default
   });
 
   // Modal State Riwayat Slip Gaji Staff
@@ -98,6 +102,7 @@ export default function StaffManagement() {
       phone: "",
       position: "Kasir",
       baseSalary: "",
+      shift: "Pagi (08:00 - 16:00)",
       photoFile: null,
       photoPreview: "",
     });
@@ -123,6 +128,7 @@ export default function StaffManagement() {
       phone: staff.phone || "",
       position: staff.position || "Kasir",
       baseSalary: formattedSalary,
+      shift: staff.shift || "Pagi (08:00 - 16:00)",
       photoFile: null,
       photoPreview: staff.photo || "",
     });
@@ -149,6 +155,7 @@ export default function StaffManagement() {
       data.append("role", formData.role);
       data.append("phone", formData.phone);
       data.append("position", formData.position);
+      data.append("shift", formData.shift);
 
       const rawSalary = formData.baseSalary
         ? formData.baseSalary.replace(/[^0-9]/g, "")
@@ -199,7 +206,19 @@ export default function StaffManagement() {
 
   const handleAttendance = async (id, status) => {
     try {
-      await API.post(`/auth/users/${id}/attendance`, { status });
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      // Simulasi jam check-out otomatis 9 jam kemudian untuk uji coba lembur
+      const checkoutTime = "17:00";
+
+      await API.post(`/auth/users/${id}/attendance`, {
+        status,
+        checkIn: timeStr,
+        checkOut: checkoutTime,
+      });
       gooeyToast.success(`Absensi "${status}" berhasil dicatat.`);
       fetchStaff();
     } catch (err) {
@@ -211,10 +230,16 @@ export default function StaffManagement() {
     e.preventDefault();
     if (!activeStaff) return;
     try {
+      const calculatedOvertimeBonus =
+        (Number(payrollData.overtimeHours) || 0) *
+        (Number(payrollData.overtimePayRate) || 0);
+      const totalBonusFinal =
+        (Number(payrollData.bonus) || 0) + calculatedOvertimeBonus;
+
       await API.post(`/auth/users/${activeStaff._id}/payroll`, {
         month: payrollData.month,
         baseSalary: activeStaff.baseSalary || 0,
-        bonus: Number(payrollData.bonus) || 0,
+        bonus: totalBonusFinal,
         deduction: Number(payrollData.deduction) || 0,
       });
       gooeyToast.success(`Penggajian ${activeStaff.name} berhasil dicatat!`);
@@ -224,6 +249,8 @@ export default function StaffManagement() {
         month: new Date().toISOString().slice(0, 7),
         bonus: "",
         deduction: "",
+        overtimeHours: 0,
+        overtimePayRate: 25000,
       });
       fetchStaff();
     } catch (err) {
@@ -247,6 +274,40 @@ export default function StaffManagement() {
     }
     const formatted = new Intl.NumberFormat("id-ID").format(Number(rawValue));
     setFormData({ ...formData, baseSalary: `Rp ${formatted}` });
+  };
+
+  const exportAttendanceReport = (staff) => {
+    const rows = [
+      ["Laporan Absensi Karyawan"],
+      ["Nama", staff.name],
+      ["Username", staff.username],
+      ["Posisi", staff.position || "-"],
+      [],
+      ["Tanggal", "Jam Masuk", "Jam Keluar", "Status"],
+    ];
+
+    (staff.attendance || []).forEach((att) => {
+      rows.push([
+        att.date?.slice(0, 10) || "-",
+        att.checkIn || "-",
+        att.checkOut || "-",
+        att.status || "-",
+      ]);
+    });
+
+    let csvContent =
+      "data:text/csv;charset=utf-8," + rows.map((e) => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `Absensi_${staff.name}_${selectedAttendanceMonth}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    gooeyToast.success("Laporan absensi berhasil diunduh.");
   };
 
   const filteredStaff = staffList.filter(
@@ -284,8 +345,8 @@ export default function StaffManagement() {
             </h1>
             <p className="text-xs lg:text-sm text-indigo-200/80 font-medium max-w-2xl leading-relaxed">
               Pusat kendali operasional SDM restoran. Kelola hak akses akun,
-              kustomisasi posisi kerja, pencatatan absensi real-time, hingga
-              audit rekapitulasi gaji bulanan.
+              kustomisasi posisi kerja, penjadwalan shift, pencatatan absensi,
+              hingga audit rekapitulasi gaji bulanan.
             </p>
           </div>
 
@@ -350,7 +411,7 @@ export default function StaffManagement() {
           <div className="flex items-center gap-2 bg-neutral-100 p-1.5 rounded-2xl overflow-x-auto">
             <button
               onClick={() => setSelectedTab("direktori")}
-              className={`px-5 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 selectedTab === "direktori"
                   ? "bg-slate-950 text-white shadow-lg shadow-slate-950/20"
                   : "text-neutral-600 hover:text-neutral-900"
@@ -360,7 +421,7 @@ export default function StaffManagement() {
             </button>
             <button
               onClick={() => setSelectedTab("absensi")}
-              className={`px-5 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 selectedTab === "absensi"
                   ? "bg-slate-950 text-white shadow-lg shadow-slate-950/20"
                   : "text-neutral-600 hover:text-neutral-900"
@@ -369,8 +430,18 @@ export default function StaffManagement() {
               Absensi Kehadiran
             </button>
             <button
+              onClick={() => setSelectedTab("shift")}
+              className={`px-4 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                selectedTab === "shift"
+                  ? "bg-slate-950 text-white shadow-lg shadow-slate-950/20"
+                  : "text-neutral-600 hover:text-neutral-900"
+              }`}
+            >
+              Jadwal Shift Kerja
+            </button>
+            <button
               onClick={() => setSelectedTab("gaji")}
-              className={`px-5 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 selectedTab === "gaji"
                   ? "bg-slate-950 text-white shadow-lg shadow-slate-950/20"
                   : "text-neutral-600 hover:text-neutral-900"
@@ -400,9 +471,8 @@ export default function StaffManagement() {
                 <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
                   <th className="py-4 px-4">Pegawai & Akun</th>
                   <th className="py-4 px-4">Posisi & Hak Akses</th>
-                  <th className="py-4 px-4">No. Telepon</th>
+                  <th className="py-4 px-4">Shift Aktif</th>
                   <th className="py-4 px-4">Gaji Pokok</th>
-                  <th className="py-4 px-4">Bergabung</th>
                   <th className="py-4 px-4 text-center">Aksi Kontrol</th>
                 </tr>
               </thead>
@@ -410,7 +480,7 @@ export default function StaffManagement() {
                 {loading ? (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="5"
                       className="text-center py-16 text-neutral-400 font-bold animate-pulse"
                     >
                       Memuat direktori staff restoran...
@@ -441,7 +511,7 @@ export default function StaffManagement() {
                             {staff.name}
                           </p>
                           <p className="text-[11px] text-neutral-400 font-mono font-medium">
-                            @{staff.username}
+                            @{staff.username} • {staff.phone || "No telp -"}
                           </p>
                         </div>
                       </td>
@@ -465,27 +535,14 @@ export default function StaffManagement() {
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-neutral-600 font-medium">
-                        {staff.phone ? (
-                          <span className="inline-flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-neutral-200/60 font-mono text-neutral-700">
-                            {staff.phone}
-                          </span>
-                        ) : (
-                          <span className="text-neutral-400 italic">
-                            Tidak ada
-                          </span>
-                        )}
+                      <td className="py-4 px-4">
+                        <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl border border-indigo-100 font-bold text-[11px]">
+                          <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                          {staff.shift || "Pagi (08:00 - 16:00)"}
+                        </span>
                       </td>
                       <td className="py-4 px-4 font-black text-emerald-600 text-sm">
                         {formatRupiah(staff.baseSalary)}
-                      </td>
-                      <td className="py-4 px-4 text-neutral-500 font-medium">
-                        {staff.createdAt
-                          ? new Date(staff.createdAt).toLocaleDateString(
-                              "id-ID",
-                              { dateStyle: "medium" },
-                            )
-                          : "-"}
                       </td>
                       <td className="py-4 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -520,7 +577,7 @@ export default function StaffManagement() {
                 ) : (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="5"
                       className="text-center py-16 text-neutral-400 font-bold"
                     >
                       Tidak ada staff yang ditemukan dalam pencarian.
@@ -647,12 +704,129 @@ export default function StaffManagement() {
           </div>
         )}
 
-        {/* TAB 3: PENGGAJIAN (PAYROLL) */}
+        {/* TAB 3: JADWAL SHIFT KERJA */}
+        {selectedTab === "shift" && (
+          <div className="space-y-4">
+            <p className="text-xs text-neutral-500 font-medium">
+              Pengaturan shift kerja dan pembagian waktu operasional staf
+              restoran.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black bg-amber-100 text-amber-800 px-3 py-1 rounded-full">
+                    Shift Pagi
+                  </span>
+                  <Clock className="w-4 h-4 text-amber-600" />
+                </div>
+                <h4 className="text-sm font-extrabold text-neutral-900">
+                  08:00 - 16:00 WIB
+                </h4>
+                <p className="text-xs text-neutral-500">
+                  Shift operasional pembukaan restoran dan pelayanan awal.
+                </p>
+              </div>
+
+              <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
+                    Shift Siang
+                  </span>
+                  <Clock className="w-4 h-4 text-indigo-600" />
+                </div>
+                <h4 className="text-sm font-extrabold text-neutral-900">
+                  14:00 - 22:00 WIB
+                </h4>
+                <p className="text-xs text-neutral-500">
+                  Shift pelayanan jam puncak makan siang hingga malam.
+                </p>
+              </div>
+
+              <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
+                    Shift Malam
+                  </span>
+                  <Clock className="w-4 h-4 text-purple-600" />
+                </div>
+                <h4 className="text-sm font-extrabold text-neutral-900">
+                  16:00 - 00:00 WIB
+                </h4>
+                <p className="text-xs text-neutral-500">
+                  Shift penutupan restoran, audit kasir, dan kebersihan akhir.
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto pt-4">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+                    <th className="py-4 px-4">Pegawai</th>
+                    <th className="py-4 px-4">Posisi</th>
+                    <th className="py-4 px-4">Shift Terkini</th>
+                    <th className="py-4 px-4 text-center">
+                      Aksi Cepat Atur Shift
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+                  {filteredStaff.map((staff) => (
+                    <tr
+                      key={staff._id}
+                      className="hover:bg-slate-50/80 transition-colors"
+                    >
+                      <td className="py-4 px-4 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-neutral-100 border overflow-hidden flex items-center justify-center font-bold">
+                          {staff.photo ? (
+                            <img
+                              src={staff.photo}
+                              alt={staff.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            staff.name?.charAt(0)
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-neutral-900">
+                            {staff.name}
+                          </p>
+                          <p className="text-[10px] text-neutral-400">
+                            @{staff.username}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-neutral-600">
+                        {staff.position || "Kasir"}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
+                          {staff.shift || "Pagi (08:00 - 16:00)"}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <button
+                          onClick={() => handleOpenEditModal(staff)}
+                          className="px-3.5 py-2 bg-slate-950 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black transition cursor-pointer"
+                        >
+                          Ubah Shift
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: PENGGAJIAN (PAYROLL) */}
         {selectedTab === "gaji" && (
           <div className="space-y-4">
             <p className="text-xs text-neutral-500 font-medium">
-              Proses slip gaji bulanan, bonus kinerja, dan potongan kasbon
-              pegawai secara akurat.
+              Proses slip gaji bulanan, perhitungan bonus lembur otomatis, dan
+              potongan kasbon pegawai secara akurat.
             </p>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -661,7 +835,9 @@ export default function StaffManagement() {
                     <th className="py-4 px-4">Pegawai</th>
                     <th className="py-4 px-4">Gaji Pokok</th>
                     <th className="py-4 px-4">Riwayat Penggajian Terakhir</th>
-                    <th className="py-4 px-4 text-center">Proses Gaji</th>
+                    <th className="py-4 px-4 text-center">
+                      Proses Gaji & Lembur
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
@@ -878,17 +1054,41 @@ export default function StaffManagement() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
-                  Gaji Pokok (Rupiah)
-                </label>
-                <input
-                  type="text"
-                  value={formData.baseSalary}
-                  onChange={handleSalaryInput}
-                  placeholder="Rp 3.000.000"
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                    Gaji Pokok (Rupiah)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.baseSalary}
+                    onChange={handleSalaryInput}
+                    placeholder="Rp 3.000.000"
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                    Jadwal Shift Kerja
+                  </label>
+                  <select
+                    value={formData.shift}
+                    onChange={(e) =>
+                      setFormData({ ...formData, shift: e.target.value })
+                    }
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 cursor-pointer"
+                  >
+                    <option value="Pagi (08:00 - 16:00)">
+                      Pagi (08:00 - 16:00)
+                    </option>
+                    <option value="Siang (14:00 - 22:00)">
+                      Siang (14:00 - 22:00)
+                    </option>
+                    <option value="Malam (16:00 - 00:00)">
+                      Malam (16:00 - 00:00)
+                    </option>
+                  </select>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-neutral-100">
@@ -911,7 +1111,7 @@ export default function StaffManagement() {
         </div>
       )}
 
-      {/* MODAL REKAP ABSENSI BULANAN */}
+      {/* MODAL REKAP ABSENSI BULANAN DENGAN EKSPOR */}
       {showAttendanceModal && attendanceStaff && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-lg space-y-6 shadow-2xl max-h-[85vh] overflow-y-auto">
@@ -946,16 +1146,28 @@ export default function StaffManagement() {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
-                  Pilih Bulan Rekap
-                </label>
-                <input
-                  type="month"
-                  value={selectedAttendanceMonth}
-                  onChange={(e) => setSelectedAttendanceMonth(e.target.value)}
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 transition"
-                />
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                    Pilih Bulan Rekap
+                  </label>
+                  <input
+                    type="month"
+                    value={selectedAttendanceMonth}
+                    onChange={(e) => setSelectedAttendanceMonth(e.target.value)}
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 transition"
+                  />
+                </div>
+                <div className="pt-5">
+                  <button
+                    type="button"
+                    onClick={() => exportAttendanceReport(attendanceStaff)}
+                    className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black transition inline-flex items-center gap-2 shadow-sm cursor-pointer"
+                    title="Ekspor ke CSV / Excel"
+                  >
+                    <Download className="w-4 h-4" /> Ekspor
+                  </button>
+                </div>
               </div>
 
               {(() => {
@@ -1022,7 +1234,8 @@ export default function StaffManagement() {
                             </span>
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] text-neutral-400 font-mono">
-                                {att.checkIn || "-"}
+                                In: {att.checkIn || "-"} | Out:{" "}
+                                {att.checkOut || "-"}
                               </span>
                               <span
                                 className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
@@ -1198,17 +1411,17 @@ export default function StaffManagement() {
         </div>
       )}
 
-      {/* MODAL PROSES GAJI (PAYROLL) */}
+      {/* MODAL PROSES GAJI (PAYROLL) DENGAN LEMBUR OTOMATIS */}
       {showPayrollModal && activeStaff && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl">
+          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
               <div>
                 <h3 className="text-lg font-black text-neutral-900">
                   Bayar Gaji: {activeStaff.name}
                 </h3>
                 <p className="text-xs text-neutral-500 font-medium">
-                  Hitung komponen gaji, bonus, dan potongan.
+                  Kalkulasi gaji pokok, lembur otomatis, dan potongan kasbon.
                 </p>
               </div>
               <button
@@ -1247,9 +1460,45 @@ export default function StaffManagement() {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                    Jam Lembur
+                  </label>
+                  <input
+                    type="number"
+                    value={payrollData.overtimeHours}
+                    onChange={(e) =>
+                      setPayrollData({
+                        ...payrollData,
+                        overtimeHours: e.target.value,
+                      })
+                    }
+                    placeholder="0"
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                    Tarif / Jam (Rp)
+                  </label>
+                  <input
+                    type="number"
+                    value={payrollData.overtimePayRate}
+                    onChange={(e) =>
+                      setPayrollData({
+                        ...payrollData,
+                        overtimePayRate: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
-                  Bonus / Lembur (Opsional)
+                  Bonus Tambahan Lainnya (Opsional)
                 </label>
                 <input
                   type="number"
@@ -1282,11 +1531,13 @@ export default function StaffManagement() {
 
               <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
-                  Total Bersih yang Dibayarkan
+                  Total Bersih yang Dibayarkan (Termasuk Lembur)
                 </span>
                 <h4 className="text-lg font-black text-emerald-600">
                   {formatRupiah(
                     (activeStaff.baseSalary || 0) +
+                      Number(payrollData.overtimeHours || 0) *
+                        Number(payrollData.overtimePayRate || 0) +
                       (Number(payrollData.bonus) || 0) -
                       (Number(payrollData.deduction) || 0),
                   )}

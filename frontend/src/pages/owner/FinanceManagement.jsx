@@ -11,10 +11,9 @@ import {
   X,
   FileSpreadsheet,
   BarChart3,
-  ArrowUpRight,
-  ShieldCheck,
   Sparkles,
-  Receipt,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -50,6 +49,10 @@ export default function FinanceManagement() {
   const [endDate, setEndDate] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
+
+  // Pagination State (15 data per halaman)
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -87,6 +90,11 @@ export default function FinanceManagement() {
   useEffect(() => {
     fetchData();
   }, [startDate, endDate]);
+
+  // Reset halaman ke 1 saat tab atau filter berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchTerm, selectedCategory, startDate, endDate]);
 
   // Handler Format Input Nominal Rupiah Otomatis
   const handleAmountChange = (e) => {
@@ -146,7 +154,7 @@ export default function FinanceManagement() {
     }
   };
 
-  // Ekspor Laporan ke Excel dengan Branding & Desain Rapi
+  // Ekspor Laporan ke Excel
   const exportToExcel = () => {
     if (
       (!expenses || expenses.length === 0) &&
@@ -158,7 +166,6 @@ export default function FinanceManagement() {
 
     const wb = XLSX.utils.book_new();
 
-    // 1. Sheet Pemasukan (Revenue)
     const revenueRows = summary.ordersList.map((ord, idx) => ({
       No: idx + 1,
       "ID Pesanan": ord._id ? ord._id.slice(-6).toUpperCase() : "-",
@@ -170,7 +177,6 @@ export default function FinanceManagement() {
     const wsRevenue = XLSX.utils.json_to_sheet(revenueRows);
     XLSX.utils.book_append_sheet(wb, wsRevenue, "Data Pemasukan");
 
-    // 2. Sheet Pengeluaran (Expenses)
     const expenseRows = expenses.map((exp, idx) => ({
       No: idx + 1,
       "Judul Pengeluaran": exp.title,
@@ -182,7 +188,6 @@ export default function FinanceManagement() {
     const wsExpense = XLSX.utils.json_to_sheet(expenseRows);
     XLSX.utils.book_append_sheet(wb, wsExpense, "Data Pengeluaran");
 
-    // Unduh File Excel
     XLSX.writeFile(
       wb,
       `Laporan_Keuangan_SwiftOrder_${new Date().toISOString().slice(0, 10)}.xlsx`,
@@ -241,9 +246,19 @@ export default function FinanceManagement() {
     });
   }, [summary.ordersList, searchTerm]);
 
+  // Data Paginated untuk Tabel Aktif
+  const currentTableData =
+    activeTab === "pengeluaran" ? filteredExpenses : filteredOrders;
+  const totalPages = Math.ceil(currentTableData.length / itemsPerPage) || 1;
+
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return currentTableData.slice(start, start + itemsPerPage);
+  }, [currentTableData, currentPage]);
+
   return (
     <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans">
-      {/* 1. BANNER HEADER ESTETIK & BRANDING */}
+      {/* BANNER HEADER ESTETIK & BRANDING */}
       <div className="relative bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 rounded-3xl p-6 lg:p-8 text-white shadow-2xl overflow-hidden border border-neutral-800">
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -462,7 +477,6 @@ export default function FinanceManagement() {
       {/* TAB PEMISAH: PENGELUARAN VS PEMASUKAN */}
       <div className="bg-white border border-neutral-200/80 rounded-3xl shadow-sm overflow-hidden p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-100">
-          {/* Navigasi Tab */}
           <div className="flex items-center gap-2 bg-neutral-100 p-1.5 rounded-2xl">
             <button
               onClick={() => setActiveTab("pengeluaran")}
@@ -486,7 +500,6 @@ export default function FinanceManagement() {
             </button>
           </div>
 
-          {/* Search Bar */}
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input
@@ -551,8 +564,8 @@ export default function FinanceManagement() {
                         Memuat data pengeluaran...
                       </td>
                     </tr>
-                  ) : filteredExpenses.length > 0 ? (
-                    filteredExpenses.map((exp) => (
+                  ) : paginatedData.length > 0 ? (
+                    paginatedData.map((exp) => (
                       <tr
                         key={exp._id}
                         className="hover:bg-neutral-50/60 transition group"
@@ -634,8 +647,8 @@ export default function FinanceManagement() {
                         Memuat data pemasukan...
                       </td>
                     </tr>
-                  ) : filteredOrders.length > 0 ? (
-                    filteredOrders.map((ord) => (
+                  ) : paginatedData.length > 0 ? (
+                    paginatedData.map((ord) => (
                       <tr
                         key={ord._id}
                         className="hover:bg-neutral-50/60 transition"
@@ -676,6 +689,40 @@ export default function FinanceManagement() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* PAGINATION CONTROLS (NEXT / PREV) */}
+        {!loading && currentTableData.length > itemsPerPage && (
+          <div className="flex items-center justify-between pt-4 border-t border-neutral-100 text-xs font-bold text-neutral-600">
+            <p>
+              Menampilkan {(currentPage - 1) * itemsPerPage + 1} -{" "}
+              {Math.min(currentPage * itemsPerPage, currentTableData.length)}{" "}
+              dari {currentTableData.length} data
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl transition cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Sebelumnya</span>
+              </button>
+              <span className="px-3 py-2 bg-neutral-900 text-white rounded-xl">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1 px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl transition cursor-pointer"
+              >
+                <span>Berikutnya</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         )}

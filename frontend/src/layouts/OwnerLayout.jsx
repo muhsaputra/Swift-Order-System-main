@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Users,
   Wallet,
+  Package,
 } from "lucide-react";
 
 export default function OwnerLayout() {
@@ -173,6 +174,21 @@ export default function OwnerLayout() {
                   className={`w-4 h-4 ${isActive("/owner/menu") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
                 />
                 <span>Kelola Menu Pusat</span>
+              </button>
+
+              {/* Menu Baru: Inventory / Stok Gudang */}
+              <button
+                onClick={() => navigate("/owner/inventory")}
+                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
+                  isActive("/owner/inventory")
+                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
+                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                }`}
+              >
+                <Package
+                  className={`w-4 h-4 ${isActive("/owner/inventory") ? "text-emerald-600" : "text-emerald-400"}`}
+                />
+                <span>Kelola Stok & Gudang</span>
               </button>
 
               <button

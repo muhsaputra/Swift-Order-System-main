@@ -33,6 +33,7 @@ import OwnerLayout from "./layouts/OwnerLayout"; // Layout Khusus Owner
 // --- Import Pages Khusus Owner ---
 import StaffManagement from "./pages/owner/StaffManagement";
 import FinanceManagement from "./pages/owner/FinanceManagement";
+import InventoryManagement from "./pages/owner/InventoryManagement"; // <-- Import Halaman Inventaris Gudang
 
 export default function App() {
   return (
@@ -80,11 +81,12 @@ export default function App() {
           <Route
             path="comprehensive-history"
             element={<ComprehensiveHistoryPage />}
-          />{" "}
-          {/* <-- Ditambahkan agar Owner bisa akses Audit Arsip */}
+          />
           {/* Menu Manajemen Outlet */}
           <Route path="staff" element={<StaffManagement />} />
           <Route path="menu" element={<MenuManagement />} />
+          <Route path="inventory" element={<InventoryManagement />} />{" "}
+          {/* <-- Rute Stok & Gudang */}
           <Route path="tables" element={<TableManagement />} />
           <Route path="coupons" element={<CouponManagementPage />} />
           {/* Menu Sistem & Akun */}

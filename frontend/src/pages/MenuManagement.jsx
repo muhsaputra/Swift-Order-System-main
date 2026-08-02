@@ -8,18 +8,21 @@ import {
   Image as ImageIcon,
   X,
   Folder,
-  Tag,
   AlertTriangle,
   Sparkles,
   Layers,
   Package,
   Search,
   Flame,
+  Scale,
+  ChefHat,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function MenuManagement() {
   const [menus, setMenus] = useState([]);
   const [categories, setCategories] = useState(["Makanan", "Minuman", "Snack"]);
+  const [inventoryItems, setInventoryItems] = useState([]); // Daftar bahan baku gudang untuk BOM
   const [loading, setLoading] = useState(true);
 
   // State Filter & Pencarian Kategori
@@ -52,12 +55,16 @@ export default function MenuManagement() {
   const [bundleItems, setBundleItems] = useState([]);
   const [bundleOptions, setBundleOptions] = useState([]);
 
+  // State untuk Integrasi Inventaris / Resep (BOM)
+  const [ingredients, setIngredients] = useState([]);
+
   // Form Category State
   const [newCategoryName, setNewCategoryName] = useState("");
 
   useEffect(() => {
     fetchMenus();
     fetchCategories();
+    fetchInventory();
   }, []);
 
   const fetchMenus = async () => {
@@ -83,6 +90,15 @@ export default function MenuManagement() {
       }
     } catch (err) {
       console.log("Menggunakan kategori default lokal");
+    }
+  };
+
+  const fetchInventory = async () => {
+    try {
+      const res = await API.get("/inventory");
+      setInventoryItems(res.data);
+    } catch (err) {
+      console.error("Gagal memuat data inventaris gudang", err);
     }
   };
 
@@ -123,7 +139,6 @@ export default function MenuManagement() {
     setImagePreview("");
     setIsBundle(false);
     setBundleItems([]);
-    // Default template add-on dengan opsi Level Kepedasan
     setBundleOptions([
       {
         title: "LEVEL KEPEDASAN",
@@ -135,6 +150,7 @@ export default function MenuManagement() {
         ],
       },
     ]);
+    setIngredients([]);
     setShowModal(true);
   };
 
@@ -161,6 +177,14 @@ export default function MenuManagement() {
       ),
     }));
     setBundleOptions(normalizedOptions);
+
+    // Normalisasi data ingredients untuk form edit
+    const normalizedIngredients = (menu.ingredients || []).map((ing) => ({
+      inventoryItem: ing.inventoryItem?._id || ing.inventoryItem,
+      qtyNeeded: ing.qtyNeeded || 0,
+    }));
+    setIngredients(normalizedIngredients);
+
     setShowModal(true);
   };
 
@@ -209,6 +233,30 @@ export default function MenuManagement() {
     setBundleOptions(updated);
   };
 
+  // Handler untuk Resep / BOM Inventaris
+  const handleAddIngredientRow = () => {
+    if (inventoryItems.length === 0) {
+      gooeyToast.error(
+        "Data inventaris gudang kosong. Tambahkan dulu di menu Stok.",
+      );
+      return;
+    }
+    setIngredients([
+      ...ingredients,
+      { inventoryItem: inventoryItems[0]._id, qtyNeeded: 1 },
+    ]);
+  };
+
+  const handleRemoveIngredientRow = (index) => {
+    setIngredients(ingredients.filter((_, i) => i !== index));
+  };
+
+  const handleIngredientChange = (index, field, value) => {
+    const updated = [...ingredients];
+    updated[index][field] = value;
+    setIngredients(updated);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -230,6 +278,7 @@ export default function MenuManagement() {
       formData.append("isBundle", isBundle);
       formData.append("bundleItems", JSON.stringify(bundleItems));
       formData.append("bundleOptions", JSON.stringify(bundleOptions));
+      formData.append("ingredients", JSON.stringify(ingredients));
 
       if (imageFile) {
         formData.append("image", imageFile);
@@ -237,10 +286,12 @@ export default function MenuManagement() {
 
       if (editingId) {
         await API.put(`/menus/${editingId}`, formData);
-        gooeyToast.success("Menu & Pilihan Varian berhasil diperbarui!");
+        gooeyToast.success("Menu & Resep Inventaris berhasil diperbarui!");
       } else {
         await API.post("/menus", formData);
-        gooeyToast.success("Menu & Pilihan Varian baru berhasil ditambahkan!");
+        gooeyToast.success(
+          "Menu & Resep Inventaris baru berhasil ditambahkan!",
+        );
       }
 
       setShowModal(false);
@@ -268,6 +319,15 @@ export default function MenuManagement() {
       formData.append(
         "bundleOptions",
         JSON.stringify(menu.bundleOptions || []),
+      );
+      formData.append(
+        "ingredients",
+        JSON.stringify(
+          (menu.ingredients || []).map((ing) => ({
+            inventoryItem: ing.inventoryItem?._id || ing.inventoryItem,
+            qtyNeeded: ing.qtyNeeded,
+          })),
+        ),
       );
 
       await API.put(`/menus/${menu._id}`, formData);
@@ -338,7 +398,6 @@ export default function MenuManagement() {
     return matchesSearch && matchesCategory;
   });
 
-  // Kelompokkan menu berdasarkan kategori untuk tampilan bersekat
   const groupedMenus = categories.reduce((acc, cat) => {
     acc[cat] = filteredMenus.filter(
       (menu) => menu.category?.toLowerCase() === cat.toLowerCase(),
@@ -346,7 +405,6 @@ export default function MenuManagement() {
     return acc;
   }, {});
 
-  // Kategori lain di luar daftar standar
   const otherMenus = filteredMenus.filter(
     (menu) =>
       !categories.some(
@@ -355,79 +413,84 @@ export default function MenuManagement() {
   );
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 pb-24">
-      {/* HERO BANNER ATTRACTION */}
-      <div className="relative bg-neutral-900 text-white py-12 px-6 md:px-12 overflow-hidden mb-8 shadow-md">
+    <div className="min-h-screen bg-slate-50/50 text-slate-900 pb-28 selection:bg-indigo-500 selection:text-white">
+      {/* HIGH-LEVEL HERO BANNER */}
+      <div className="relative bg-slate-900 text-white py-12 px-6 md:px-12 overflow-hidden mb-8 shadow-xl border-b border-slate-800">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50 scale-105 pointer-events-none"
+          className="absolute inset-0 bg-cover bg-center opacity-20 filter brightness-50 scale-105 pointer-events-none"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80')`,
+            backgroundImage: `url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=80')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/85 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-transparent pointer-events-none" />
 
-        <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-white/10">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Katalog & Manajemen Produk</span>
+            <div className="inline-flex items-center gap-2 bg-indigo-500/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-indigo-400 border border-indigo-500/20 shadow-inner">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
+              <span>Sistem Manajemen Katalog & Resep Terpadu</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
-              Manajemen Menu & Varian Add-On
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">
+              Manajemen Menu & Varian
             </h1>
-            <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Atur produk, SKU, harga diskon, foto, serta pilihan varian modular
-              seperti level kepedasan dan add-on berharga.
+            <p className="text-xs md:text-sm text-slate-400 max-w-xl leading-relaxed">
+              Pusat kendali produk kuliner, pengaturan SKU, harga promosi,
+              varian add-on modular, serta sinkronisasi otomatis stok bahan baku
+              gudang (BOM).
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl flex items-center gap-4 shadow-xl">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center font-black">
-                <Layers className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">
-                  Total Menu
-                </p>
-                <p className="text-sm font-extrabold text-white">
-                  {menus.length} Produk Aktif
-                </p>
-              </div>
+          <div className="flex items-center gap-3 bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-4 rounded-3xl shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-black shadow-inner">
+              <Layers className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                Total Katalog Menu
+              </p>
+              <p className="text-base font-black text-white">
+                {menus.length}{" "}
+                <span className="text-xs font-medium text-slate-400">
+                  Produk Aktif
+                </span>
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-8">
         {/* HEADER KONTROL & PENCARIAN */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-neutral-200/80 gap-4">
+        <header className="flex flex-col lg:flex-row lg:items-center justify-between pb-6 border-b border-slate-200/80 gap-4">
           <div className="space-y-1">
-            <h2 className="text-xl font-extrabold tracking-tight text-neutral-900">
-              Daftar Katalog Produk
+            <h2 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+              <span>Daftar Produk & Varian</span>
+              <span className="text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 px-2.5 py-0.5 rounded-full">
+                {filteredMenus.length} Ditampilkan
+              </span>
             </h2>
-            <p className="text-xs text-neutral-500">
-              Kelola produk, SKU, harga, varian level pedas, add-on, dan
-              kategori.
+            <p className="text-xs text-slate-500 font-medium">
+              Filter berdasarkan kategori, cari dengan cepat, atau tambahkan
+              item baru.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 sm:w-64">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-neutral-400">
+            <div className="relative flex-1 sm:w-72">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                 <Search className="w-4 h-4" />
               </span>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari menu atau SKU..."
-                className="w-full bg-white border border-neutral-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 shadow-2xs font-medium"
+                placeholder="Cari nama menu, deskripsi, atau SKU..."
+                className="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 shadow-2xs font-medium transition"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-neutral-400 hover:text-neutral-700 text-xs font-bold cursor-pointer"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-700 text-xs font-bold cursor-pointer"
                 >
                   ✕
                 </button>
@@ -436,15 +499,15 @@ export default function MenuManagement() {
 
             <button
               onClick={() => setShowCategoryModal(true)}
-              className="bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-2xs flex items-center gap-2 cursor-pointer"
+              className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-2xs flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <Folder className="w-4 h-4 text-neutral-500" />
+              <Folder className="w-4 h-4 text-slate-500" />
               <span>Kelola Kategori</span>
             </button>
 
             <button
               onClick={handleOpenAddModal}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-md flex items-center gap-2 cursor-pointer"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-indigo-600/20 flex items-center gap-2 cursor-pointer active:scale-95"
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Menu Baru</span>
@@ -456,10 +519,10 @@ export default function MenuManagement() {
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           <button
             onClick={() => setSelectedCategoryTab("Semua")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs ${
+            className={`px-4.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs ${
               selectedCategoryTab === "Semua"
-                ? "bg-neutral-900 text-white shadow-sm"
-                : "bg-white text-neutral-600 border border-neutral-200/80 hover:text-neutral-900"
+                ? "bg-slate-900 text-white shadow-md shadow-slate-900/10"
+                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900"
             }`}
           >
             Semua Kategori ({menus.length})
@@ -472,18 +535,18 @@ export default function MenuManagement() {
               <button
                 key={idx}
                 onClick={() => setSelectedCategoryTab(cat)}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs flex items-center gap-1.5 ${
+                className={`px-4.5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs flex items-center gap-2 ${
                   selectedCategoryTab === cat
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "bg-white text-neutral-600 border border-neutral-200/80 hover:text-neutral-900"
+                    ? "bg-slate-900 text-white shadow-md shadow-slate-900/10"
+                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
                 <span>{cat}</span>
                 <span
-                  className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
                     selectedCategoryTab === cat
-                      ? "bg-neutral-800 text-white"
-                      : "bg-neutral-100 text-neutral-500"
+                      ? "bg-slate-800 text-white"
+                      : "bg-slate-100 text-slate-500"
                   }`}
                 >
                   {count}
@@ -494,19 +557,23 @@ export default function MenuManagement() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 space-y-3">
-            <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin"></div>
-            <p className="text-xs text-neutral-500 font-medium">
-              Memuat daftar menu...
+          <div className="flex flex-col items-center justify-center py-28 space-y-3">
+            <div className="w-9 h-9 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <p className="text-xs text-slate-500 font-semibold">
+              Memuat data katalog menu...
             </p>
           </div>
         ) : filteredMenus.length === 0 ? (
-          <div className="text-center py-20 bg-white border border-neutral-200/80 rounded-3xl shadow-2xs space-y-3">
-            <p className="text-sm font-bold text-neutral-700">
+          <div className="text-center py-24 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-3">
+            <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto">
+              <Search className="w-6 h-6" />
+            </div>
+            <p className="text-sm font-bold text-slate-700">
               Menu tidak ditemukan.
             </p>
-            <p className="text-xs text-neutral-400">
-              Coba kata kunci lain atau pilih kategori yang berbeda.
+            <p className="text-xs text-slate-400 max-w-xs mx-auto">
+              Coba gunakan kata kunci pencarian lain atau pilih kategori yang
+              berbeda.
             </p>
           </div>
         ) : (
@@ -524,39 +591,43 @@ export default function MenuManagement() {
               return (
                 <div key={cat} className="space-y-4">
                   {/* Sekat Kategori Header */}
-                  <div className="flex items-center gap-3 pb-2 border-b border-neutral-200">
-                    <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-2xs font-bold text-xs">
-                      <Flame className="w-4 h-4 text-amber-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-extrabold text-neutral-900 uppercase tracking-wider">
-                        {cat}
-                      </h3>
-                      <p className="text-[11px] text-neutral-400">
-                        {catMenus.length} produk tersedia dalam kategori ini
-                      </p>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-md font-bold text-xs">
+                        <Flame className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                          {cat}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 font-medium">
+                          {catMenus.length} produk tersedia dalam kategori ini
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   {/* Grid Produk dalam Sekat */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {catMenus.map((menu) => (
                       <div
                         key={menu._id}
-                        className="bg-white border border-neutral-200/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-md transition group relative"
+                        className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-xs hover:shadow-xl transition-all duration-300 group relative"
                       >
                         <div>
-                          <div className="relative h-40 w-full bg-neutral-100 overflow-hidden">
+                          <div className="relative h-44 w-full bg-slate-100 overflow-hidden">
                             {menu.image ? (
                               <img
                                 src={menu.image}
                                 alt={menu.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                               />
                             ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 text-xs gap-1">
-                                <ImageIcon className="w-5 h-5 text-neutral-300" />
-                                <span>Tidak ada foto</span>
+                              <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs gap-1.5 bg-slate-50">
+                                <ImageIcon className="w-6 h-6 text-slate-300" />
+                                <span className="font-medium text-[11px]">
+                                  Tidak ada foto
+                                </span>
                               </div>
                             )}
 
@@ -564,17 +635,17 @@ export default function MenuManagement() {
                               <button
                                 onClick={() => handleToggleAvailability(menu)}
                                 title="Klik untuk ubah ketersediaan"
-                                className={`px-3 py-1 text-[10px] rounded-full font-extrabold shadow-sm backdrop-blur-md transition cursor-pointer flex items-center gap-1.5 ${
+                                className={`px-3 py-1.5 text-[10px] rounded-full font-extrabold shadow-md backdrop-blur-md transition cursor-pointer flex items-center gap-1.5 ${
                                   menu.isAvailable
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
-                                    : "bg-neutral-200 text-neutral-600 border border-neutral-300 hover:bg-neutral-300"
+                                    ? "bg-emerald-500/90 text-white border border-emerald-400 hover:bg-emerald-600"
+                                    : "bg-slate-800/90 text-slate-300 border border-slate-700 hover:bg-slate-900"
                                 }`}
                               >
                                 <span
                                   className={`w-1.5 h-1.5 rounded-full ${
                                     menu.isAvailable
-                                      ? "bg-emerald-500"
-                                      : "bg-neutral-400"
+                                      ? "bg-emerald-300 animate-pulse"
+                                      : "bg-slate-400"
                                   }`}
                                 ></span>
                                 {menu.isAvailable ? "TERSEDIA" : "HABIS"}
@@ -582,77 +653,87 @@ export default function MenuManagement() {
 
                               {menu.bundleOptions &&
                                 menu.bundleOptions.length > 0 && (
-                                  <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                                    <Package className="w-3 h-3" /> Varian /
-                                    Add-On
+                                  <span className="px-2.5 py-1 text-[9px] rounded-full font-black bg-amber-500 text-white shadow-md flex items-center gap-1">
+                                    <Package className="w-3 h-3" /> Varian Aktif
+                                  </span>
+                                )}
+
+                              {menu.ingredients &&
+                                menu.ingredients.length > 0 && (
+                                  <span className="px-2.5 py-1 text-[9px] rounded-full font-black bg-indigo-600 text-white shadow-md flex items-center gap-1">
+                                    <ChefHat className="w-3 h-3" /> Resep Stok
                                   </span>
                                 )}
                             </div>
                           </div>
 
-                          <div className="p-4 space-y-2">
+                          <div className="p-5 space-y-3">
                             <div className="flex items-center justify-between">
-                              <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
+                              <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition">
                                 {menu.name}
                               </h3>
                               {menu.sku && (
-                                <span className="text-[10px] font-mono font-bold bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-lg border border-neutral-200 shrink-0">
-                                  SKU: {menu.sku}
+                                <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg border border-slate-200 shrink-0">
+                                  {menu.sku}
                                 </span>
                               )}
                             </div>
 
                             {menu.description ? (
-                              <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
+                              <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed font-normal">
                                 {menu.description}
                               </p>
                             ) : (
-                              <p className="text-xs text-neutral-300 italic">
-                                Tanpa deskripsi
+                              <p className="text-xs text-slate-300 italic font-normal">
+                                Tanpa deskripsi produk
                               </p>
                             )}
 
-                            {/* Pratinjau Opsi Varian / Kepedasan / Add-On */}
-                            {menu.bundleOptions &&
-                              menu.bundleOptions.length > 0 && (
-                                <div className="pt-1 flex flex-wrap gap-1">
-                                  {menu.bundleOptions.map((opt, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="text-[9px] bg-neutral-100 text-neutral-600 border border-neutral-200 px-2 py-0.5 rounded-md font-semibold"
-                                    >
-                                      {opt.title}: {opt.choices?.length || 0}{" "}
-                                      opsi
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
+                            {/* Pratinjau Opsi Varian / Kepedasan / Add-On & Resep */}
+                            <div className="pt-1 flex flex-wrap gap-1.5">
+                              {menu.bundleOptions &&
+                                menu.bundleOptions.map((opt, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="text-[9px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-md font-semibold"
+                                  >
+                                    {opt.title}: {opt.choices?.length || 0} opsi
+                                  </span>
+                                ))}
+                              {menu.ingredients &&
+                                menu.ingredients.length > 0 && (
+                                  <span className="text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
+                                    <Scale className="w-3 h-3" />{" "}
+                                    {menu.ingredients.length} bahan terhubung
+                                  </span>
+                                )}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="p-4 pt-0 flex justify-between items-center">
+                        <div className="p-5 pt-0 flex justify-between items-center">
                           <div className="flex flex-col">
-                            <span className="text-xs font-mono font-black text-emerald-600">
+                            <span className="text-sm font-mono font-black text-emerald-600">
                               Rp {menu.price.toLocaleString("id-ID")}
                             </span>
                             {menu.originalPrice > menu.price && (
-                              <span className="text-[10px] font-mono text-neutral-400 line-through">
+                              <span className="text-[10px] font-mono text-slate-400 line-through">
                                 Rp {menu.originalPrice.toLocaleString("id-ID")}
                               </span>
                             )}
                           </div>
 
-                          <div className="flex gap-1.5">
+                          <div className="flex gap-2">
                             <button
                               onClick={() => handleOpenEditModal(menu)}
-                              className="bg-neutral-100 hover:bg-neutral-900 hover:text-white text-neutral-700 p-2 rounded-xl text-xs font-semibold transition border border-neutral-200 shadow-2xs cursor-pointer"
+                              className="bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 p-2.5 rounded-xl text-xs font-semibold transition border border-slate-200 shadow-2xs cursor-pointer active:scale-95"
                               title="Edit Menu"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => setDeleteTarget(menu)}
-                              className="bg-neutral-100 hover:bg-red-600 hover:text-white text-neutral-700 p-2 rounded-xl text-xs font-semibold transition border border-neutral-200 shadow-2xs cursor-pointer"
+                              className="bg-slate-100 hover:bg-red-600 hover:text-white text-slate-700 p-2.5 rounded-xl text-xs font-semibold transition border border-slate-200 shadow-2xs cursor-pointer active:scale-95"
                               title="Hapus Menu"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -666,7 +747,7 @@ export default function MenuManagement() {
               );
             })}
 
-            {/* Sekat untuk Kategori Lain (jika ada) */}
+            {/* Sekat untuk Kategori Lain */}
             {otherMenus.length > 0 &&
               (selectedCategoryTab === "Semua" ||
                 otherMenus.some(
@@ -675,38 +756,42 @@ export default function MenuManagement() {
                     selectedCategoryTab.toLowerCase(),
                 )) && (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 pb-2 border-b border-neutral-200">
-                    <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-2xs font-bold text-xs">
-                      <Flame className="w-4 h-4 text-amber-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-extrabold text-neutral-900 uppercase tracking-wider">
-                        Lainnya
-                      </h3>
-                      <p className="text-[11px] text-neutral-400">
-                        {otherMenus.length} produk dalam kategori tambahan
-                      </p>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-md font-bold text-xs">
+                        <Flame className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                          Lainnya
+                        </h3>
+                        <p className="text-[11px] text-slate-400 font-medium">
+                          {otherMenus.length} produk dalam kategori tambahan
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {otherMenus.map((menu) => (
                       <div
                         key={menu._id}
-                        className="bg-white border border-neutral-200/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-md transition group relative"
+                        className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-xs hover:shadow-xl transition-all duration-300 group relative"
                       >
                         <div>
-                          <div className="relative h-40 w-full bg-neutral-100 overflow-hidden">
+                          <div className="relative h-44 w-full bg-slate-100 overflow-hidden">
                             {menu.image ? (
                               <img
                                 src={menu.image}
                                 alt={menu.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                               />
                             ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 text-xs gap-1">
-                                <ImageIcon className="w-5 h-5 text-neutral-300" />
-                                <span>Tidak ada foto</span>
+                              <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs gap-1.5 bg-slate-50">
+                                <ImageIcon className="w-6 h-6 text-slate-300" />
+                                <span className="font-medium text-[11px]">
+                                  Tidak ada foto
+                                </span>
                               </div>
                             )}
 
@@ -714,81 +799,73 @@ export default function MenuManagement() {
                               <button
                                 onClick={() => handleToggleAvailability(menu)}
                                 title="Klik untuk ubah ketersediaan"
-                                className={`px-3 py-1 text-[10px] rounded-full font-extrabold shadow-sm backdrop-blur-md transition cursor-pointer flex items-center gap-1.5 ${
+                                className={`px-3 py-1.5 text-[10px] rounded-full font-extrabold shadow-md backdrop-blur-md transition cursor-pointer flex items-center gap-1.5 ${
                                   menu.isAvailable
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
-                                    : "bg-neutral-200 text-neutral-600 border border-neutral-300 hover:bg-neutral-300"
+                                    ? "bg-emerald-500/90 text-white border border-emerald-400 hover:bg-emerald-600"
+                                    : "bg-slate-800/90 text-slate-300 border border-slate-700 hover:bg-slate-900"
                                 }`}
                               >
                                 <span
                                   className={`w-1.5 h-1.5 rounded-full ${
                                     menu.isAvailable
-                                      ? "bg-emerald-500"
-                                      : "bg-neutral-400"
+                                      ? "bg-emerald-300 animate-pulse"
+                                      : "bg-slate-400"
                                   }`}
                                 ></span>
                                 {menu.isAvailable ? "TERSEDIA" : "HABIS"}
                               </button>
-
-                              {menu.bundleOptions &&
-                                menu.bundleOptions.length > 0 && (
-                                  <span className="px-2.5 py-0.5 text-[9px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                                    <Package className="w-3 h-3" /> Varian /
-                                    Add-On
-                                  </span>
-                                )}
                             </div>
                           </div>
 
-                          <div className="p-4 space-y-2">
+                          <div className="p-5 space-y-3">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
+                              <span className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
                                 {menu.category}
                               </span>
                               {menu.sku && (
-                                <span className="text-[10px] font-mono font-bold bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-lg border border-neutral-200">
-                                  SKU: {menu.sku}
+                                <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg border border-slate-200">
+                                  {menu.sku}
                                 </span>
                               )}
                             </div>
-                            <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
+                            <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1">
                               {menu.name}
                             </h3>
                             {menu.description ? (
-                              <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
+                              <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
                                 {menu.description}
                               </p>
                             ) : (
-                              <p className="text-xs text-neutral-300 italic">
-                                Tanpa deskripsi
+                              <p className="text-xs text-slate-300 italic">
+                                Tanpa deskripsi produk
                               </p>
                             )}
                           </div>
                         </div>
 
-                        <div className="p-4 pt-0 flex justify-between items-center">
+                        <div className="p-5 pt-0 flex justify-between items-center">
                           <div className="flex flex-col">
-                            <span className="text-xs font-mono font-black text-emerald-600">
+                            <span className="text-sm font-mono font-black text-emerald-600">
                               Rp {menu.price.toLocaleString("id-ID")}
                             </span>
                             {menu.originalPrice > menu.price && (
-                              <span className="text-[10px] font-mono text-neutral-400 line-through">
+                              <span className="text-[10px] font-mono text-slate-400 line-through">
                                 Rp {menu.originalPrice.toLocaleString("id-ID")}
                               </span>
                             )}
                           </div>
 
-                          <div className="flex gap-1.5">
+                          <div className="flex gap-2">
                             <button
                               onClick={() => handleOpenEditModal(menu)}
-                              className="bg-neutral-100 hover:bg-neutral-900 hover:text-white text-neutral-700 p-2 rounded-xl text-xs font-semibold transition border border-neutral-200 shadow-2xs cursor-pointer"
+                              className="bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 p-2.5 rounded-xl text-xs font-semibold transition border border-slate-200 shadow-2xs cursor-pointer active:scale-95"
                               title="Edit Menu"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => setDeleteTarget(menu)}
-                              className="bg-neutral-100 hover:bg-red-600 hover:text-white text-neutral-700 p-2 rounded-xl text-xs font-semibold transition border border-neutral-200 shadow-2xs cursor-pointer"
+                              className="bg-slate-100 hover:bg-red-600 hover:text-white text-slate-700 p-2.5 rounded-xl text-xs font-semibold transition border border-slate-200 shadow-2xs cursor-pointer active:scale-95"
                               title="Hapus Menu"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -803,19 +880,20 @@ export default function MenuManagement() {
           </div>
         )}
 
+        {/* MODAL KONFIRMASI HAPUS MENU */}
         {deleteTarget && (
-          <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
-              <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl mx-auto flex items-center justify-center">
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
+              <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl mx-auto flex items-center justify-center shadow-inner">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-900">
+                <h3 className="text-base font-bold text-slate-900">
                   Hapus Menu Ini?
                 </h3>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-slate-500">
                   Tindakan ini akan menghapus{" "}
-                  <span className="font-bold text-neutral-800">
+                  <span className="font-bold text-slate-800">
                     "{deleteTarget.name}"
                   </span>{" "}
                   secara permanen.
@@ -825,14 +903,14 @@ export default function MenuManagement() {
                 <button
                   type="button"
                   onClick={() => setDeleteTarget(null)}
-                  className="flex-1 bg-neutral-100 text-neutral-700 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition"
                 >
                   Batal
                 </button>
                 <button
                   type="button"
                   onClick={confirmDeleteMenu}
-                  className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-lg shadow-red-600/20"
                 >
                   Ya, Hapus
                 </button>
@@ -841,16 +919,17 @@ export default function MenuManagement() {
           </div>
         )}
 
+        {/* MODAL KELOLA KATEGORI */}
         {showCategoryModal && (
-          <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-md space-y-6 shadow-xl">
-              <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
-                <h3 className="text-base font-bold text-neutral-900">
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-md space-y-6 shadow-2xl">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                <h3 className="text-base font-black text-slate-900">
                   Kelola Kategori Menu
                 </h3>
                 <button
                   onClick={() => setShowCategoryModal(false)}
-                  className="text-neutral-400 p-2 cursor-pointer"
+                  className="text-slate-400 hover:text-slate-700 p-2 cursor-pointer transition"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -861,26 +940,27 @@ export default function MenuManagement() {
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder="Nama kategori baru..."
-                  className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-indigo-500"
                 />
                 <button
                   type="submit"
-                  className="bg-neutral-900 text-white px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-md shadow-indigo-600/20"
                 >
                   Tambah
                 </button>
               </form>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                 {categories.map((cat, idx) => (
                   <div
                     key={idx}
-                    className="flex justify-between items-center p-3 bg-neutral-50 rounded-xl text-xs font-bold"
+                    className="flex justify-between items-center p-3 bg-slate-50 rounded-xl text-xs font-bold border border-slate-200/60"
                   >
-                    <span>{cat}</span>
+                    <span className="text-slate-800">{cat}</span>
                     <button
                       type="button"
                       onClick={() => setDeleteCategoryTarget(cat)}
-                      className="text-red-500 cursor-pointer"
+                      className="text-red-500 hover:text-red-700 p-1 cursor-pointer transition"
+                      title="Hapus Kategori"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -891,36 +971,37 @@ export default function MenuManagement() {
           </div>
         )}
 
+        {/* MODAL FORM TAMBAH / EDIT MENU + INTEGRASI RESEP BOM */}
         {showModal && (
-          <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-xl space-y-6 my-8 shadow-xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 w-full max-w-2xl space-y-6 my-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                 <div>
-                  <h3 className="text-base font-bold text-neutral-900">
+                  <h3 className="text-lg font-black text-slate-900">
                     {editingId
-                      ? "Edit Menu & Varian"
-                      : "Tambah Menu & Varian Baru"}
+                      ? "Edit Menu & Resep Inventaris"
+                      : "Tambah Menu & Resep Inventaris Baru"}
                   </h3>
-                  <p className="text-xs text-neutral-500 mt-0.5">
-                    Lengkapi informasi produk dan atur pilihan varian seperti
-                    level pedas atau add-on.
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Lengkapi informasi produk, atur pilihan varian, dan tautkan
+                    bahan baku gudang untuk pemotongan stok otomatis.
                   </p>
                 </div>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-neutral-400 p-2 cursor-pointer"
+                  className="text-slate-400 hover:text-slate-700 p-2 cursor-pointer transition rounded-full hover:bg-slate-100"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-xs font-bold text-neutral-700 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 mb-2">
                     Foto Produk
                   </label>
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shadow-inner shrink-0">
                       {imagePreview ? (
                         <img
                           src={imagePreview}
@@ -928,21 +1009,21 @@ export default function MenuManagement() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <ImageIcon className="w-6 h-6 text-neutral-300" />
+                        <ImageIcon className="w-7 h-7 text-slate-300" />
                       )}
                     </div>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
-                      className="w-full text-xs text-neutral-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-neutral-100 file:text-neutral-700 cursor-pointer"
+                      className="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer transition"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       Nama Menu *
                     </label>
                     <input
@@ -950,40 +1031,40 @@ export default function MenuManagement() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-indigo-500"
                       placeholder="Contoh: Nasi Goreng Spesial"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       SKU (Stock Keeping Unit)
                     </label>
                     <input
                       type="text"
                       value={sku}
                       onChange={(e) => setSku(e.target.value)}
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium uppercase"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium uppercase focus:outline-none focus:border-indigo-500"
                       placeholder="Contoh: MKN-NSG-SPC"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-neutral-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
                     Deskripsi Menu
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows="2"
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs resize-none font-medium"
-                    placeholder="Deskripsi produk..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs resize-none font-medium focus:outline-none focus:border-indigo-500"
+                    placeholder="Deskripsi produk kuliner..."
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       Harga Jual (Rp) *
                     </label>
                     <input
@@ -991,32 +1072,32 @@ export default function MenuManagement() {
                       value={price}
                       onChange={handlePriceChange}
                       required
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500"
                       placeholder="25.000"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       Harga Coret (Opsional)
                     </label>
                     <input
                       type="text"
                       value={originalPrice}
                       onChange={handleOriginalPriceChange}
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500"
                       placeholder="35.000"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-neutral-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
                     Kategori
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium cursor-pointer focus:outline-none focus:border-indigo-500"
                   >
                     {categories.map((cat, idx) => (
                       <option key={idx} value={cat}>
@@ -1026,45 +1107,130 @@ export default function MenuManagement() {
                   </select>
                 </div>
 
-                {/* TOGGLE & BUILDER VARIAN / LEVEL KEPEDASAN & ADD-ON */}
-                <div className="space-y-4 pt-2 border-t border-neutral-100">
-                  <div className="flex items-center justify-between bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80">
+                {/* --- BAGIAN INTEGRASI RESEP GUDANG (BOM / BILL OF MATERIALS) --- */}
+                <div className="space-y-3 pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-neutral-900">
+                      <h4 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                        <ChefHat className="w-4 h-4 text-indigo-600" />
+                        <span>Resep Bahan Baku (Bill of Materials / BOM)</span>
+                      </h4>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Tentukan bahan baku dari gudang yang akan otomatis
+                        terpotong saat menu ini terjual.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddIngredientRow}
+                      className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-xl text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" /> Tambah Bahan
+                    </button>
+                  </div>
+
+                  {ingredients.length === 0 ? (
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-center">
+                      <p className="text-xs text-slate-400 italic">
+                        Belum ada bahan baku yang ditautkan ke menu ini.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200">
+                      {ingredients.map((ing, idx) => (
+                        <div
+                          key={idx}
+                          className="flex gap-2 items-center bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs"
+                        >
+                          <select
+                            value={ing.inventoryItem}
+                            onChange={(e) =>
+                              handleIngredientChange(
+                                idx,
+                                "inventoryItem",
+                                e.target.value,
+                              )
+                            }
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium cursor-pointer focus:outline-none focus:border-indigo-500"
+                          >
+                            {inventoryItems.map((inv) => (
+                              <option key={inv._id} value={inv._id}>
+                                {inv.itemName} ({inv.unit})
+                              </option>
+                            ))}
+                          </select>
+                          <div className="flex items-center gap-1 w-32">
+                            <input
+                              type="number"
+                              step="any"
+                              value={ing.qtyNeeded}
+                              onChange={(e) =>
+                                handleIngredientChange(
+                                  idx,
+                                  "qtyNeeded",
+                                  Number(e.target.value),
+                                )
+                              }
+                              placeholder="Takaran"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500"
+                            />
+                            <span className="text-[10px] font-bold text-slate-400 shrink-0">
+                              Porsi
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveIngredientRow(idx)}
+                            className="text-slate-400 hover:text-red-600 p-1.5 cursor-pointer transition"
+                            title="Hapus Bahan"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* TOGGLE & BUILDER VARIAN / LEVEL KEPEDASAN & ADD-ON */}
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">
                         Aktifkan Varian / Level Kepedasan & Add-On
                       </p>
-                      <p className="text-[10px] text-neutral-500">
-                        Memungkinkan pelanggan memilih level pedas atau tambahan
-                        item.
+                      <p className="text-[10px] text-slate-500">
+                        Memungkinkan pelanggan memilih opsi tambahan berbayar
+                        atau level pedas saat pemesanan.
                       </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={isBundle}
                       onChange={(e) => setIsBundle(e.target.checked)}
-                      className="w-4 h-4 rounded cursor-pointer"
+                      className="w-4 h-4 rounded cursor-pointer accent-indigo-600"
                     />
                   </div>
 
                   {isBundle && (
-                    <div className="space-y-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80">
+                    <div className="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                       <div className="flex justify-between items-center mb-2">
-                        <label className="text-[11px] font-extrabold uppercase tracking-wider text-neutral-700">
+                        <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">
                           Pengaturan Pilihan Varian & Add-On
                         </label>
                         <button
                           type="button"
                           onClick={handleAddBundleOption}
-                          className="bg-neutral-900 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer"
+                          className="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer transition shadow-md"
                         >
-                          + Tambah Kategori Pilihan Baru
+                          + Tambah Kategori Pilihan
                         </button>
                       </div>
 
                       {bundleOptions.map((opt, optIdx) => (
                         <div
                           key={optIdx}
-                          className="bg-white p-3.5 rounded-xl border border-neutral-200 space-y-2.5"
+                          className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2.5 shadow-2xs"
                         >
                           <div className="flex gap-2 items-center">
                             <input
@@ -1076,20 +1242,20 @@ export default function MenuManagement() {
                                   e.target.value,
                                 )
                               }
-                              placeholder="Judul Pilihan (Misal: LEVEL KEPEDASAN)"
-                              className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs font-semibold"
+                              placeholder="Judul Pilihan (Contoh: LEVEL KEPEDASAN)"
+                              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-indigo-500"
                             />
                             <button
                               type="button"
                               onClick={() => handleRemoveBundleOption(optIdx)}
-                              className="text-red-500 text-xs font-bold cursor-pointer"
+                              className="text-red-500 hover:text-red-700 text-xs font-bold cursor-pointer transition px-2"
                             >
                               Hapus
                             </button>
                           </div>
 
                           <div className="space-y-2 pl-2">
-                            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                               Pilihan & Harga Tambahan:
                             </span>
                             {opt.choices.map((choice, cIdx) => (
@@ -1108,8 +1274,8 @@ export default function MenuManagement() {
                                       e.target.value,
                                     )
                                   }
-                                  placeholder="Nama Pilihan (Misal: Level 1 / Extra Keju)"
-                                  className="flex-1 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs font-medium"
+                                  placeholder="Nama Pilihan (Contoh: Level 1 / Keju)"
+                                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-indigo-500"
                                 />
                                 <input
                                   type="number"
@@ -1123,14 +1289,14 @@ export default function MenuManagement() {
                                     )
                                   }
                                   placeholder="Harga (Rp)"
-                                  className="w-28 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium"
+                                  className="w-28 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500"
                                 />
                                 <button
                                   type="button"
                                   onClick={() =>
                                     handleRemoveChoice(optIdx, cIdx)
                                   }
-                                  className="text-neutral-400 hover:text-red-600 text-xs font-bold px-1 cursor-pointer"
+                                  className="text-slate-400 hover:text-red-600 text-xs font-bold px-1.5 cursor-pointer transition"
                                 >
                                   ✕
                                 </button>
@@ -1139,7 +1305,7 @@ export default function MenuManagement() {
                             <button
                               type="button"
                               onClick={() => handleAddChoice(optIdx)}
-                              className="text-[10px] font-bold text-neutral-700 hover:underline pt-1 block cursor-pointer"
+                              className="text-[10px] font-extrabold text-indigo-600 hover:underline pt-1 block cursor-pointer"
                             >
                               + Tambah Pilihan Lain
                             </button>
@@ -1150,40 +1316,43 @@ export default function MenuManagement() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 bg-neutral-50 p-3 rounded-xl border border-neutral-200/80">
+                <div className="flex items-center gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                   <input
                     type="checkbox"
                     id="isAvailable"
                     checked={isAvailable}
                     onChange={(e) => setIsAvailable(e.target.checked)}
-                    className="w-4 h-4 rounded cursor-pointer"
+                    className="w-4 h-4 rounded cursor-pointer accent-indigo-600"
                   />
                   <label
                     htmlFor="isAvailable"
-                    className="text-xs text-neutral-700 font-semibold cursor-pointer"
+                    className="text-xs text-slate-700 font-semibold cursor-pointer"
                   >
-                    Menu Tersedia (Ready to Order)
+                    Menu Tersedia{" "}
+                    <span className="text-slate-400 font-normal">
+                      (Ready to Order di POS & Pelanggan)
+                    </span>
                   </label>
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-neutral-100">
+                <div className="flex gap-3 pt-4 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-neutral-100 text-neutral-700 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-xs font-bold cursor-pointer transition"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 bg-neutral-900 text-white py-2.5 rounded-xl text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-lg shadow-indigo-600/20"
                   >
                     {submitting
                       ? "Menyimpan..."
                       : editingId
                         ? "Simpan Perubahan"
-                        : "Simpan Menu"}
+                        : "Simpan Menu Baru"}
                   </button>
                 </div>
               </form>
@@ -1191,19 +1360,20 @@ export default function MenuManagement() {
           </div>
         )}
 
+        {/* MODAL KONFIRMASI HAPUS KATEGORI */}
         {deleteCategoryTarget && (
-          <div className="fixed inset-0 bg-neutral-950/75 backdrop-blur-md z-[99] flex items-center justify-center p-4">
-            <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
-              <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl mx-auto flex items-center justify-center">
+          <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-[99] flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
+              <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl mx-auto flex items-center justify-center shadow-inner">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-900">
+                <h3 className="text-base font-bold text-slate-900">
                   Hapus Kategori Ini?
                 </h3>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-slate-500">
                   Tindakan ini akan menghapus kategori{" "}
-                  <span className="font-bold text-neutral-800">
+                  <span className="font-bold text-slate-800">
                     "{deleteCategoryTarget}"
                   </span>
                   .
@@ -1213,14 +1383,14 @@ export default function MenuManagement() {
                 <button
                   type="button"
                   onClick={() => setDeleteCategoryTarget(null)}
-                  className="flex-1 bg-neutral-100 text-neutral-700 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition"
                 >
                   Batal
                 </button>
                 <button
                   type="button"
                   onClick={confirmDeleteCategory}
-                  className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-lg shadow-red-600/20"
                 >
                   Ya, Hapus
                 </button>

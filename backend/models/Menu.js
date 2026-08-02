@@ -17,7 +17,7 @@ const menuSchema = new mongoose.Schema(
         quantity: { type: Number, default: 1 },
       },
     ],
-    // Diubah agar mendukung Add-On dengan harga masing-masing
+    // Add-On dengan harga masing-masing
     bundleOptions: [
       {
         title: { type: String }, // Contoh: "ADD ON"
@@ -27,6 +27,22 @@ const menuSchema = new mongoose.Schema(
             price: { type: Number, default: 0 }, // Contoh: 5000
           },
         ],
+      },
+    ],
+
+    // --- INTEGRASI INVENTARIS: Resep / Takaran Bahan Baku (BOM) ---
+    ingredients: [
+      {
+        inventoryItem: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Inventory",
+          required: true,
+        },
+        qtyNeeded: {
+          type: Number,
+          required: true,
+          default: 0,
+        }, // Jumlah takaran bahan yang dihabiskan untuk 1 porsi menu ini (misal: 0.2 kg beras)
       },
     ],
   },

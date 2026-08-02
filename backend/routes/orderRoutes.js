@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
 const Table = require("../models/Table"); // Tambahkan import model Table untuk update status meja
+const Menu = require("../models/Menu"); // <-- Import model Menu untuk mengambil data resep (ingredients)
+const Inventory = require("../models/Inventory"); // <-- Import model Inventory untuk update stok gudang
 const { verifyToken } = require("../middleware/auth");
 
 // Helper function untuk mengirim WhatsApp via Fonnte
@@ -224,7 +226,7 @@ router.patch("/:id/pay-cash", async (req, res) => {
   }
 });
 
-// 4. Update Status Pesanan oleh Kasir (Dilengkapi Safe Fallback untuk toLocaleString)
+// 4. Update Status Pesanan oleh Kasir (Dilengkapi Otomatisasi Pemotongan Stok Inventaris via BOM)
 router.patch("/:id/status", verifyToken, async (req, res) => {
   try {
     const identifier = req.params.id;
@@ -245,6 +247,8 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
       return res.status(404).json({ error: "Pesanan tidak ditemukan" });
     }
 
+    // Cegah pemotongan stok ganda jika status sebelumnya sudah completed lalu di-update lagi
+    const wasAlreadyCompleted = order.orderStatus === "completed";
     order.orderStatus = status;
 
     if (status === "completed") {
@@ -253,6 +257,35 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
         { tableNumber: order.tableNumber },
         { isOccupied: false, currentOrder: null },
       );
+
+      // --- LOGIKA PEMOTONGAN STOK INVENTARIS (BOM) ---
+      if (!wasAlreadyCompleted && order.items && order.items.length > 0) {
+        for (let item of order.items) {
+          // Ambil dokumen Menu berdasarkan ID untuk membaca resep (ingredients)
+          const menuDoc = await Menu.findById(item.menu).populate(
+            "ingredients.inventoryItem",
+          );
+
+          if (
+            menuDoc &&
+            menuDoc.ingredients &&
+            menuDoc.ingredients.length > 0
+          ) {
+            for (let ing of menuDoc.ingredients) {
+              if (ing.inventoryItem) {
+                const totalDeduction = ing.qtyNeeded * (item.quantity || 1);
+
+                // Kurangi stok di koleksi Inventory secara atomik ($inc dengan nilai minus)
+                await Inventory.findByIdAndUpdate(ing.inventoryItem._id, {
+                  $inc: { stock: -totalDeduction },
+                  updatedAt: new Date(),
+                });
+              }
+            }
+          }
+        }
+      }
+      // ----------------------------------------------
 
       if (order.customerPhone) {
         let itemsList = (order.items || [])

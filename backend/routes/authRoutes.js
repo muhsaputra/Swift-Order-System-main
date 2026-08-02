@@ -10,7 +10,7 @@ const JWT_SECRET =
   authMiddleware.JWT_SECRET || process.env.JWT_SECRET || "fallback_secret_key";
 const verifyToken = authMiddleware.verifyToken || authMiddleware;
 
-// 1. Register User (Mendukung role dinamis: 'cashier', 'owner', dll.)
+// 1. Register User (Mendukung role dinamis: 'cashier', 'owner', 'kitchen', dll.)
 router.post("/register", async (req, res) => {
   try {
     const { username, password, name, role } = req.body;
@@ -167,6 +167,122 @@ router.put("/profile", verifyToken, async (req, res) => {
     });
   } catch (err) {
     console.error("Error PUT /profile:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// 6. RUTE MANAJEMEN STAFF & AKUN (KHUSUS OWNER)
+// ==========================================
+
+// A. Ambil Semua Daftar Pengguna Restoran
+router.get("/users", verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== "owner") {
+      return res.status(403).json({ error: "Akses ditolak. Khusus Owner." });
+    }
+
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    return res.status(200).json(users);
+  } catch (err) {
+    console.error("Error GET /users:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// B. Tambah Staff Baru oleh Owner
+router.post("/users", verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== "owner") {
+      return res.status(403).json({ error: "Akses ditolak. Khusus Owner." });
+    }
+
+    const { username, password, name, role } = req.body;
+    if (!username || !password || !role) {
+      return res
+        .status(400)
+        .json({ error: "Username, password, dan role wajib diisi" });
+    }
+
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: "Username sudah terdaftar" });
+    }
+
+    const newStaff = new User({
+      username,
+      password, // Akan otomatis di-hash oleh model Mongoose
+      name: name || username,
+      role,
+    });
+
+    await newStaff.save();
+    return res.status(201).json({ message: "Staff baru berhasil ditambahkan" });
+  } catch (err) {
+    console.error("Error POST /users:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// C. Update Data atau Reset Sandi Staff Berdasarkan ID
+router.put("/users/:id", verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== "owner") {
+      return res.status(403).json({ error: "Akses ditolak. Khusus Owner." });
+    }
+
+    const { name, username, password, role } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+    }
+
+    if (name) user.name = name;
+    if (username) user.username = username;
+    if (role) user.role = role;
+
+    // Jika password diisi, perbarui password (akan otomatis ter-hash)
+    if (password && password.trim() !== "") {
+      user.password = password;
+    }
+
+    await user.save();
+    return res.status(200).json({ message: "Data staff berhasil diperbarui" });
+  } catch (err) {
+    console.error("Error PUT /users/:id:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// D. Hapus Akun Staff Berdasarkan ID
+router.delete("/users/:id", verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== "owner") {
+      return res.status(403).json({ error: "Akses ditolak. Khusus Owner." });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+    }
+
+    // Mencegah owner menghapus akunnya sendiri
+    const currentUserId = req.user.id || req.user._id;
+    if (user._id.toString() === currentUserId.toString()) {
+      return res
+        .status(400)
+        .json({
+          error: "Anda tidak dapat menghapus akun owner yang sedang aktif",
+        });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    return res
+      .status(200)
+      .json({ message: "Staff berhasil dihapus dari sistem" });
+  } catch (err) {
+    console.error("Error DELETE /users/:id:", err);
     return res.status(500).json({ error: err.message });
   }
 });

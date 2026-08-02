@@ -16,6 +16,7 @@ import {
   Minimize2,
   ShieldCheck,
   Percent,
+  Users,
 } from "lucide-react";
 
 export default function OwnerLayout() {
@@ -124,6 +125,34 @@ export default function OwnerLayout() {
               <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
                 Pengaturan Restoran
               </div>
+
+              <button
+                onClick={() => navigate("/owner/settings")}
+                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
+                  isActive("/owner/settings")
+                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
+                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                }`}
+              >
+                <Percent
+                  className={`w-4 h-4 ${isActive("/owner/settings") ? "text-amber-600" : "text-amber-400"}`}
+                />
+                <span>Pengaturan Service Fee</span>
+              </button>
+
+              <button
+                onClick={() => navigate("/owner/staff")}
+                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
+                  isActive("/owner/staff")
+                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
+                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                }`}
+              >
+                <Users
+                  className={`w-4 h-4 ${isActive("/owner/staff") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                />
+                <span>Kelola Staff & Akun</span>
+              </button>
 
               <button
                 onClick={() => navigate("/owner/menu")}

@@ -18,6 +18,7 @@ import {
   Percent,
   Users,
   Wallet,
+  ReceiptText,
 } from "lucide-react";
 
 export default function OwnerLayout() {
@@ -74,7 +75,7 @@ export default function OwnerLayout() {
 
   return (
     <div className="min-h-screen bg-neutral-100 flex overflow-hidden font-sans">
-      {/* Sidebar Khusus Owner (Desain Identik & Konsisten) */}
+      {/* Sidebar Khusus Owner */}
       <aside className="w-68 bg-neutral-950 border-r border-neutral-800/80 flex flex-col justify-between p-5 shrink-0 h-screen sticky top-0 shadow-2xl overflow-y-auto scrollbar-none">
         <div className="space-y-6">
           {/* Logo & Brand Header */}
@@ -99,9 +100,9 @@ export default function OwnerLayout() {
             </div>
           </div>
 
-          {/* Navigasi Menu Owner */}
+          {/* Navigasi Menu Owner dengan Pemisah Kategori yang Jelas */}
           <nav className="space-y-6 pt-2">
-            {/* Kategori: Analitik & Performa */}
+            {/* 1. Kategori: Analitik Bisnis */}
             <div className="space-y-1.5">
               <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
                 Analitik Bisnis
@@ -121,10 +122,10 @@ export default function OwnerLayout() {
               </button>
             </div>
 
-            {/* Kategori: Pengaturan Operasional Restoran */}
+            {/* 2. Kategori: Keuangan & Transaksi */}
             <div className="space-y-1.5">
               <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
-                Pengaturan Restoran
+                Keuangan & Transaksi
               </div>
 
               <button
@@ -136,38 +137,31 @@ export default function OwnerLayout() {
                 }`}
               >
                 <Wallet
-                  className={`w-4 h-4 ${isActive("/owner/finance") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                  className={`w-4 h-4 ${isActive("/owner/finance") ? "text-emerald-500" : "text-neutral-400 group-hover:text-emerald-400"}`}
                 />
                 <span>Laporan Keuangan</span>
               </button>
 
               <button
-                onClick={() => navigate("/owner/settings")}
+                onClick={() => navigate("/owner/history")}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/settings")
+                  isActive("/owner/history")
                     ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
                     : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
                 }`}
               >
-                <Percent
-                  className={`w-4 h-4 ${isActive("/owner/settings") ? "text-amber-600" : "text-amber-400"}`}
+                <History
+                  className={`w-4 h-4 ${isActive("/owner/history") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
                 />
-                <span>Pengaturan Service Fee</span>
+                <span>Audit Arsip Transaksi</span>
               </button>
+            </div>
 
-              <button
-                onClick={() => navigate("/owner/staff")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/staff")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <Users
-                  className={`w-4 h-4 ${isActive("/owner/staff") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
-                />
-                <span>Kelola Staff & Akun</span>
-              </button>
+            {/* 3. Kategori: Manajemen Katalog & Outlet */}
+            <div className="space-y-1.5">
+              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
+                Manajemen Outlet
+              </div>
 
               <button
                 onClick={() => navigate("/owner/menu")}
@@ -198,6 +192,20 @@ export default function OwnerLayout() {
               </button>
 
               <button
+                onClick={() => navigate("/owner/staff")}
+                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
+                  isActive("/owner/staff")
+                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
+                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                }`}
+              >
+                <Users
+                  className={`w-4 h-4 ${isActive("/owner/staff") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                />
+                <span>Kelola Staff & Akun</span>
+              </button>
+
+              <button
                 onClick={() => navigate("/owner/coupons")}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
                   isActive("/owner/coupons")
@@ -212,21 +220,21 @@ export default function OwnerLayout() {
               </button>
 
               <button
-                onClick={() => navigate("/owner/history")}
+                onClick={() => navigate("/owner/settings")}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/history")
+                  isActive("/owner/settings")
                     ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
                     : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
                 }`}
               >
-                <History
-                  className={`w-4 h-4 ${isActive("/owner/history") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                <Percent
+                  className={`w-4 h-4 ${isActive("/owner/settings") ? "text-amber-600" : "text-amber-400"}`}
                 />
-                <span>Audit Arsip Transaksi</span>
+                <span>Pengaturan Service Fee</span>
               </button>
             </div>
 
-            {/* Kategori: Akun */}
+            {/* 4. Kategori: Sistem & Akun */}
             <div className="space-y-1.5">
               <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
                 Sistem & Akun

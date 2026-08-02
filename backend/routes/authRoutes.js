@@ -323,4 +323,74 @@ router.delete("/users/:id", verifyToken, async (req, res) => {
   }
 });
 
+// E. Catat / Update Absensi Pegawai
+router.post("/users/:id/attendance", verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== "owner") {
+      return res.status(403).json({ error: "Akses ditolak. Khusus Owner." });
+    }
+    const { status, checkIn, checkOut } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: "Pegawai tidak ditemukan." });
+    }
+
+    user.attendance.push({
+      date: new Date(),
+      status: status || "Hadir",
+      checkIn:
+        checkIn ||
+        new Date().toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      checkOut: checkOut || "-",
+    });
+
+    await user.save();
+    return res
+      .status(200)
+      .json({ message: "Absensi berhasil dicatat", data: user });
+  } catch (err) {
+    console.error("Error POST /users/:id/attendance:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// F. Proses Pembayaran Gaji (Payroll)
+router.post("/users/:id/payroll", verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== "owner") {
+      return res.status(403).json({ error: "Akses ditolak. Khusus Owner." });
+    }
+    const { month, baseSalary, bonus, deduction } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: "Pegawai tidak ditemukan." });
+    }
+
+    const totalPaid =
+      (Number(baseSalary) || user.baseSalary || 0) +
+      (Number(bonus) || 0) -
+      (Number(deduction) || 0);
+
+    user.payrollHistory.push({
+      month: month || new Date().toISOString().slice(0, 7),
+      baseSalary: Number(baseSalary) || user.baseSalary || 0,
+      bonus: Number(bonus) || 0,
+      deduction: Number(deduction) || 0,
+      totalPaid,
+      status: "Lunas",
+    });
+
+    await user.save();
+    return res
+      .status(200)
+      .json({ message: "Penggajian berhasil dicatat", data: user });
+  } catch (err) {
+    console.error("Error POST /users/:id/payroll:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

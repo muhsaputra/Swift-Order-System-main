@@ -8,6 +8,7 @@ import {
 import { GooeyToaster } from "goey-toast";
 import "goey-toast/styles.css";
 
+// --- Import Pages (Umum & Kasir) ---
 import Login from "./pages/Login";
 import CashierDashboard from "./pages/CashierDashboard";
 import MenuManagement from "./pages/MenuManagement";
@@ -16,16 +17,22 @@ import CashierPOS from "./pages/CashierPOS";
 import TransactionHistory from "./pages/TransactionHistory";
 import AdminProfile from "./pages/AdminProfile";
 import CouponManagementPage from "./pages/CouponManagementPage";
+import ComprehensiveHistoryPage from "./pages/ComprehensiveHistoryPage";
+
+// --- Import Pages (Pelanggan / Client) ---
 import ClientOrderPage from "./pages/ClientOrderPage";
 import ClientPaymentPage from "./pages/ClientPaymentPage";
 import ClientWaitingPage from "./pages/ClientWaitingPage";
 import ClientHistoryPage from "./pages/ClientHistoryPage";
-import DashboardLayout from "./components/DashboardLayout";
-import OwnerLayout from "./layouts/OwnerLayout"; // <-- Import Layout Khusus Owner
-import StaffManagement from "./pages/owner/StaffManagement"; // <-- Import Halaman Manajemen Staff Owner
-import FinanceManagement from "./pages/owner/FinanceManagement"; // <-- Import Halaman Laporan Keuangan Owner
 import ClientOrderHistory from "./pages/ClientOrderHistory";
-import ComprehensiveHistoryPage from "./pages/ComprehensiveHistoryPage";
+
+// --- Import Layouts ---
+import DashboardLayout from "./components/DashboardLayout"; // Layout Kasir
+import OwnerLayout from "./layouts/OwnerLayout"; // Layout Khusus Owner
+
+// --- Import Pages Khusus Owner ---
+import StaffManagement from "./pages/owner/StaffManagement";
+import FinanceManagement from "./pages/owner/FinanceManagement";
 
 export default function App() {
   return (
@@ -34,50 +41,57 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
 
-        {/* Rute Pemesanan Pelanggan (Scan QR Meja) */}
+        {/* ==========================================
+            RUTE PELANGGAN (CLIENT / SCAN QR)
+        ========================================== */}
         <Route path="/order/:tableNumber" element={<ClientOrderPage />} />
         <Route path="/menu/:tableNumber" element={<ClientOrderPage />} />
-
-        {/* Rute Riwayat Pesanan Pelanggan */}
-        <Route path="/history" element={<ClientHistoryPage />} />
-
-        {/* Rute Pembayaran QRIS */}
         <Route path="/payment/:id" element={<ClientPaymentPage />} />
-
-        {/* Rute Halaman Menunggu */}
         <Route path="/waiting/:id" element={<ClientWaitingPage />} />
+        <Route path="/history" element={<ClientHistoryPage />} />
+        <Route path="/order-history" element={<ClientOrderHistory />} />
 
-        {/* Rute Bersarang Dashboard Kasir */}
+        {/* ==========================================
+            RUTE KASIR / STAFF (Dashboard Layout)
+        ========================================== */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<CashierDashboard />} />
           <Route path="pos" element={<CashierPOS />} />
           <Route path="menu" element={<MenuManagement />} />
           <Route path="tables" element={<TableManagement />} />
           <Route path="coupons" element={<CouponManagementPage />} />
+          <Route path="history" element={<TransactionHistory />} />
           <Route
             path="comprehensive-history"
             element={<ComprehensiveHistoryPage />}
           />
-          <Route path="history" element={<TransactionHistory />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>
 
-        {/* Rute Bersarang Dashboard Owner / Pemilik Restoran */}
+        {/* ==========================================
+            RUTE OWNER (Owner Layout)
+        ========================================== */}
         <Route path="/owner" element={<OwnerLayout />}>
           <Route index element={<CashierDashboard />} />
           <Route path="dashboard" element={<CashierDashboard />} />
-          <Route path="finance" element={<FinanceManagement />} />{" "}
-          {/* <--- Rute Laporan Keuangan Owner */}
+          {/* Menu Keuangan & Transaksi */}
+          <Route path="finance" element={<FinanceManagement />} />
+          <Route path="history" element={<TransactionHistory />} />
+          <Route
+            path="comprehensive-history"
+            element={<ComprehensiveHistoryPage />}
+          />{" "}
+          {/* <-- Ditambahkan agar Owner bisa akses Audit Arsip */}
+          {/* Menu Manajemen Outlet */}
           <Route path="staff" element={<StaffManagement />} />
           <Route path="menu" element={<MenuManagement />} />
           <Route path="tables" element={<TableManagement />} />
           <Route path="coupons" element={<CouponManagementPage />} />
-          <Route path="history" element={<TransactionHistory />} />
+          {/* Menu Sistem & Akun */}
           <Route path="profile" element={<AdminProfile />} />
         </Route>
 
-        <Route path="/order-history" element={<ClientOrderHistory />} />
-
+        {/* Fallback Route: Arahkan ke Login jika rute tidak ditemukan */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

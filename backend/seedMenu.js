@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 // Import Model
-const Inventory = require("../models/Inventory");
-const Menu = require("../models/Menu");
+const Inventory = require("./models/Inventory");
+const Menu = require("./models/Menu");
 
 async function seedMenus() {
   try {

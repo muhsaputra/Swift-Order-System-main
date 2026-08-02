@@ -391,7 +391,6 @@ router.post("/users/:id/payroll", verifyToken, async (req, res) => {
 
     // 2. Catat otomatis sebagai pengeluaran ke model Expense (Laporan Keuangan)
     try {
-      const Expense = require("../models/Expense");
       await Expense.create({
         title: `Gaji Staf - ${user.name} (${month || new Date().toISOString().slice(0, 7)})`,
         category: "Gaji & Upah",

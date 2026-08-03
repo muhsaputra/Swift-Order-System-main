@@ -8,32 +8,34 @@ import {
 import { GooeyToaster } from "goey-toast";
 import "goey-toast/styles.css";
 
-// --- Import Pages (Umum & Kasir) ---
-import Login from "./pages/Login";
-import CashierDashboard from "./pages/CashierDashboard";
+// --- Import Pages (Autentikasi & Kasir) ---
+import Login from "./pages/auth/Login";
+import CashierDashboard from "./pages/cashier/CashierDashboard";
+import CashierPOS from "./pages/cashier/CashierPOS";
+
+// --- Import Pages (Owner) ---
 import MenuManagement from "./pages/owner/MenuManagement";
 import TableManagement from "./pages/owner/TableManagement";
-import CashierPOS from "./pages/CashierPOS";
+import TableMapping from "./pages/owner/TableMapping";
 import TransactionHistory from "./pages/owner/TransactionHistory";
-import AdminProfile from "./pages/AdminProfile";
+import AdminProfile from "./pages/owner/AdminProfile";
 import CouponManagementPage from "./pages/owner/CouponManagementPage";
 import ComprehensiveHistoryPage from "./pages/owner/ComprehensiveHistoryPage";
+import ExecutiveDashboard from "./pages/owner/ExecutiveDashboard";
+import StaffManagement from "./pages/owner/StaffManagement";
+import FinanceManagement from "./pages/owner/FinanceManagement";
+import InventoryManagement from "./pages/owner/InventoryManagement";
 
 // --- Import Pages (Pelanggan / Client) ---
-import ClientOrderPage from "./pages/ClientOrderPage";
-import ClientPaymentPage from "./pages/ClientPaymentPage";
-import ClientWaitingPage from "./pages/ClientWaitingPage";
+import ClientOrderPage from "./pages/client/ClientOrderPage";
+import ClientPaymentPage from "./pages/client/ClientPaymentPage";
+import ClientWaitingPage from "./pages/client/ClientWaitingPage";
 import ClientHistoryPage from "./pages/client/ClientHistoryPage";
-import ClientOrderHistory from "./pages/ClientOrderHistory";
+import ClientOrderHistory from "./pages/client/ClientOrderHistory";
 
 // --- Import Layouts ---
 import DashboardLayout from "./components/DashboardLayout"; // Layout Kasir
 import OwnerLayout from "./layouts/OwnerLayout"; // Layout Khusus Owner
-
-// --- Import Pages Khusus Owner ---
-import StaffManagement from "./pages/owner/StaffManagement";
-import FinanceManagement from "./pages/owner/FinanceManagement";
-import InventoryManagement from "./pages/owner/InventoryManagement"; // <-- Import Halaman Inventaris Gudang
 
 export default function App() {
   return (
@@ -73,8 +75,8 @@ export default function App() {
             RUTE OWNER (Owner Layout)
         ========================================== */}
         <Route path="/owner" element={<OwnerLayout />}>
-          <Route index element={<CashierDashboard />} />
-          <Route path="dashboard" element={<CashierDashboard />} />
+          <Route index element={<ExecutiveDashboard />} />
+          <Route path="dashboard" element={<ExecutiveDashboard />} />
           {/* Menu Keuangan & Transaksi */}
           <Route path="finance" element={<FinanceManagement />} />
           <Route path="history" element={<TransactionHistory />} />
@@ -85,9 +87,9 @@ export default function App() {
           {/* Menu Manajemen Outlet */}
           <Route path="staff" element={<StaffManagement />} />
           <Route path="menu" element={<MenuManagement />} />
-          <Route path="inventory" element={<InventoryManagement />} />{" "}
-          {/* <-- Rute Stok & Gudang */}
+          <Route path="inventory" element={<InventoryManagement />} />
           <Route path="tables" element={<TableManagement />} />
+          <Route path="table-mapping" element={<TableMapping />} />
           <Route path="coupons" element={<CouponManagementPage />} />
           {/* Menu Sistem & Akun */}
           <Route path="profile" element={<AdminProfile />} />

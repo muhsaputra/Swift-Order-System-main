@@ -224,7 +224,7 @@ export default function OwnerLayout() {
                             : "text-neutral-400 hover:text-white hover:bg-neutral-900"
                         }`}
                       >
-                        <Wallet className="w-3.5 h-3.5 text-emerald-600" />
+                        <Wallet className="w-3.5 h-3.5" />
                         <span>Laporan Keuangan</span>
                       </button>
 
@@ -298,7 +298,7 @@ export default function OwnerLayout() {
                             : "text-neutral-400 hover:text-white hover:bg-neutral-900"
                         }`}
                       >
-                        <Package className="w-3.5 h-3.5 text-emerald-500" />
+                        <Package className="w-3.5 h-3.5" />
                         <span>Kelola Stok & Gudang</span>
                       </button>
 
@@ -334,7 +334,7 @@ export default function OwnerLayout() {
                             : "text-neutral-400 hover:text-white hover:bg-neutral-900"
                         }`}
                       >
-                        <Tag className="w-3.5 h-3.5 text-amber-500" />
+                        <Tag className="w-3.5 h-3.5" />
                         <span>Kupon Promo & Fee</span>
                       </button>
                     </div>

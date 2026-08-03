@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { gooeyToast } from "goey-toast";
-import API from "../services/api";
+import API from "../../services/api";
 import {
   UtensilsCrossed,
   Lock,

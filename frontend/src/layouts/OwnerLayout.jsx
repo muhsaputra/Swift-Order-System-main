@@ -18,14 +18,45 @@ import {
   Users,
   Wallet,
   Package,
+  ChevronDown,
+  BarChart3,
+  Boxes,
+  Settings2,
 } from "lucide-react";
 
 export default function OwnerLayout() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [ownerName, setOwnerName] = useState("Owner Restoran");
-  const navigate = useNavigate();
+
+  // State untuk mengontrol dropdown menu yang sedang terbuka
+  // Secara default kita buka kategori yang aktif berdasarkan path saat ini
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const checkActiveGroup = () => {
+    if (["/owner/dashboard"].includes(location.pathname)) return "analytics";
+    if (["/owner/finance", "/owner/history"].includes(location.pathname))
+      return "finance";
+    if (
+      [
+        "/owner/menu",
+        "/owner/inventory",
+        "/owner/tables",
+        "/owner/staff",
+        "/owner/coupons",
+      ].includes(location.pathname)
+    )
+      return "outlet";
+    if (["/owner/profile"].includes(location.pathname)) return "system";
+    return "analytics";
+  };
+
+  const [openDropdown, setOpenDropdown] = useState(checkActiveGroup());
+
+  const toggleDropdown = (groupKey) => {
+    setOpenDropdown(openDropdown === groupKey ? null : groupKey);
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -99,160 +130,230 @@ export default function OwnerLayout() {
             </div>
           </div>
 
-          {/* Navigasi Menu Owner dengan Pemisah Kategori yang Jelas */}
-          <nav className="space-y-6 pt-2">
+          {/* Navigasi Menu Owner dengan Sistem Dropdown */}
+          <nav className="space-y-3 pt-2">
             {/* 1. Kategori: Analitik Bisnis */}
-            <div className="space-y-1.5">
-              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
-                Analitik Bisnis
-              </div>
+            <div className="space-y-1">
               <button
-                onClick={() => navigate("/owner/dashboard")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/dashboard")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                onClick={() => toggleDropdown("analytics")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer ${
+                  openDropdown === "analytics"
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
-                <LayoutDashboard
-                  className={`w-4 h-4 ${isActive("/owner/dashboard") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                <div className="flex items-center gap-2.5">
+                  <BarChart3 className="w-4 h-4 text-amber-400" />
+                  <span>Analitik Bisnis</span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ${
+                    openDropdown === "analytics"
+                      ? "rotate-180 text-amber-400"
+                      : "text-neutral-500"
+                  }`}
                 />
-                <span>Executive Dashboard</span>
               </button>
+
+              {/* Sub-menu */}
+              {openDropdown === "analytics" && (
+                <div className="pl-3.5 space-y-1 pt-1 border-l border-neutral-800 ml-3.5">
+                  <button
+                    onClick={() => navigate("/owner/dashboard")}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isActive("/owner/dashboard")
+                        ? "bg-white text-neutral-950 shadow-md"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                    }`}
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>Executive Dashboard</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* 2. Kategori: Keuangan & Transaksi */}
-            <div className="space-y-1.5">
-              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
-                Keuangan & Transaksi
-              </div>
-
+            <div className="space-y-1">
               <button
-                onClick={() => navigate("/owner/finance")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/finance")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                onClick={() => toggleDropdown("finance")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer ${
+                  openDropdown === "finance"
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
-                <Wallet
-                  className={`w-4 h-4 ${isActive("/owner/finance") ? "text-emerald-500" : "text-neutral-400 group-hover:text-emerald-400"}`}
+                <div className="flex items-center gap-2.5">
+                  <Wallet className="w-4 h-4 text-emerald-400" />
+                  <span>Keuangan & Transaksi</span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ${
+                    openDropdown === "finance"
+                      ? "rotate-180 text-emerald-400"
+                      : "text-neutral-500"
+                  }`}
                 />
-                <span>Laporan Keuangan</span>
               </button>
 
-              <button
-                onClick={() => navigate("/owner/history")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/history")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <History
-                  className={`w-4 h-4 ${isActive("/owner/history") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
-                />
-                <span>Audit Arsip Transaksi</span>
-              </button>
+              {/* Sub-menu */}
+              {openDropdown === "finance" && (
+                <div className="pl-3.5 space-y-1 pt-1 border-l border-neutral-800 ml-3.5">
+                  <button
+                    onClick={() => navigate("/owner/finance")}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isActive("/owner/finance")
+                        ? "bg-white text-neutral-950 shadow-md"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                    }`}
+                  >
+                    <Wallet className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Laporan Keuangan</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/owner/history")}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isActive("/owner/history")
+                        ? "bg-white text-neutral-950 shadow-md"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                    }`}
+                  >
+                    <History className="w-3.5 h-3.5" />
+                    <span>Audit Arsip Transaksi</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* 3. Kategori: Manajemen Katalog & Outlet */}
-            <div className="space-y-1.5">
-              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
-                Manajemen Outlet
-              </div>
-
+            <div className="space-y-1">
               <button
-                onClick={() => navigate("/owner/menu")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/menu")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                onClick={() => toggleDropdown("outlet")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer ${
+                  openDropdown === "outlet"
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
-                <UtensilsCrossed
-                  className={`w-4 h-4 ${isActive("/owner/menu") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                <div className="flex items-center gap-2.5">
+                  <Boxes className="w-4 h-4 text-sky-400" />
+                  <span>Manajemen Outlet</span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ${
+                    openDropdown === "outlet"
+                      ? "rotate-180 text-sky-400"
+                      : "text-neutral-500"
+                  }`}
                 />
-                <span>Kelola Menu Pusat</span>
               </button>
 
-              {/* Menu Baru: Inventory / Stok Gudang */}
-              <button
-                onClick={() => navigate("/owner/inventory")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/inventory")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <Package
-                  className={`w-4 h-4 ${isActive("/owner/inventory") ? "text-emerald-600" : "text-emerald-400"}`}
-                />
-                <span>Kelola Stok & Gudang</span>
-              </button>
+              {/* Sub-menu */}
+              {openDropdown === "outlet" && (
+                <div className="pl-3.5 space-y-1 pt-1 border-l border-neutral-800 ml-3.5">
+                  <button
+                    onClick={() => navigate("/owner/menu")}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isActive("/owner/menu")
+                        ? "bg-white text-neutral-950 shadow-md"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                    }`}
+                  >
+                    <UtensilsCrossed className="w-3.5 h-3.5" />
+                    <span>Kelola Menu Pusat</span>
+                  </button>
 
-              <button
-                onClick={() => navigate("/owner/tables")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/tables")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <TableProperties
-                  className={`w-4 h-4 ${isActive("/owner/tables") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
-                />
-                <span>Kelola Meja Resto</span>
-              </button>
+                  <button
+                    onClick={() => navigate("/owner/inventory")}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isActive("/owner/inventory")
+                        ? "bg-white text-neutral-950 shadow-md"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                    }`}
+                  >
+                    <Package className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Kelola Stok & Gudang</span>
+                  </button>
 
-              <button
-                onClick={() => navigate("/owner/staff")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/staff")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <Users
-                  className={`w-4 h-4 ${isActive("/owner/staff") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
-                />
-                <span>Kelola Staff & Akun</span>
-              </button>
+                  <button
+                    onClick={() => navigate("/owner/tables")}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isActive("/owner/tables")
+                        ? "bg-white text-neutral-950 shadow-md"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                    }`}
+                  >
+                    <TableProperties className="w-3.5 h-3.5" />
+                    <span>Kelola Meja Resto</span>
+                  </button>
 
-              <button
-                onClick={() => navigate("/owner/coupons")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/coupons")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <Tag
-                  className={`w-4 h-4 ${isActive("/owner/coupons") ? "text-amber-600" : "text-amber-400"}`}
-                />
-                <span>Kelola Kupon Promo & Fee</span>
-              </button>
+                  <button
+                    onClick={() => navigate("/owner/staff")}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isActive("/owner/staff")
+                        ? "bg-white text-neutral-950 shadow-md"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                    }`}
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Kelola Staff & Akun</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/owner/coupons")}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isActive("/owner/coupons")
+                        ? "bg-white text-neutral-950 shadow-md"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                    }`}
+                  >
+                    <Tag className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Kupon Promo & Fee</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* 4. Kategori: Sistem & Akun */}
-            <div className="space-y-1.5">
-              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
-                Sistem & Akun
-              </div>
-
+            <div className="space-y-1">
               <button
-                onClick={() => navigate("/owner/profile")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/owner/profile")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                onClick={() => toggleDropdown("system")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer ${
+                  openDropdown === "system"
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
-                <UserCheck
-                  className={`w-4 h-4 ${isActive("/owner/profile") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                <div className="flex items-center gap-2.5">
+                  <Settings2 className="w-4 h-4 text-purple-400" />
+                  <span>Sistem & Akun</span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ${
+                    openDropdown === "system"
+                      ? "rotate-180 text-purple-400"
+                      : "text-neutral-500"
+                  }`}
                 />
-                <span>Profil Owner</span>
               </button>
+
+              {/* Sub-menu */}
+              {openDropdown === "system" && (
+                <div className="pl-3.5 space-y-1 pt-1 border-l border-neutral-800 ml-3.5">
+                  <button
+                    onClick={() => navigate("/owner/profile")}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isActive("/owner/profile")
+                        ? "bg-white text-neutral-950 shadow-md"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                    }`}
+                  >
+                    <UserCheck className="w-3.5 h-3.5" />
+                    <span>Profil Owner</span>
+                  </button>
+                </div>
+              )}
             </div>
           </nav>
         </div>

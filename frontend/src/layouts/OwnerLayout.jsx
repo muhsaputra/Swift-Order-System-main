@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   UtensilsCrossed,
@@ -29,33 +30,33 @@ export default function OwnerLayout() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [ownerName, setOwnerName] = useState("Owner Restoran");
 
-  // State untuk mengontrol dropdown menu yang sedang terbuka
-  // Secara default kita buka kategori yang aktif berdasarkan path saat ini
   const location = useLocation();
   const navigate = useNavigate();
 
-  const checkActiveGroup = () => {
-    if (["/owner/dashboard"].includes(location.pathname)) return "analytics";
-    if (["/owner/finance", "/owner/history"].includes(location.pathname))
-      return "finance";
-    if (
-      [
-        "/owner/menu",
-        "/owner/inventory",
-        "/owner/tables",
-        "/owner/staff",
-        "/owner/coupons",
-      ].includes(location.pathname)
-    )
-      return "outlet";
-    if (["/owner/profile"].includes(location.pathname)) return "system";
-    return "analytics";
+  // Inisialisasi state multi-dropdown berdasarkan rute aktif
+  const getInitialDropdowns = () => {
+    const path = location.pathname;
+    return {
+      analytics: path.includes("/dashboard"),
+      finance: path.includes("/finance") || path.includes("/history"),
+      outlet:
+        path.includes("/menu") ||
+        path.includes("/inventory") ||
+        path.includes("/tables") ||
+        path.includes("/staff") ||
+        path.includes("/coupons"),
+      system: path.includes("/profile"),
+    };
   };
 
-  const [openDropdown, setOpenDropdown] = useState(checkActiveGroup());
+  const [openDropdowns, setOpenDropdowns] = useState(getInitialDropdowns());
 
+  // Fungsi toggle independen agar menu lain tidak tertutup saat menu baru dibuka
   const toggleDropdown = (groupKey) => {
-    setOpenDropdown(openDropdown === groupKey ? null : groupKey);
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [groupKey]: !prev[groupKey],
+    }));
   };
 
   useEffect(() => {
@@ -130,15 +131,15 @@ export default function OwnerLayout() {
             </div>
           </div>
 
-          {/* Navigasi Menu Owner dengan Sistem Dropdown */}
+          {/* Navigasi Menu Owner dengan Framer Motion & Multi-Open Dropdown */}
           <nav className="space-y-3 pt-2">
             {/* 1. Kategori: Analitik Bisnis */}
             <div className="space-y-1">
               <button
                 onClick={() => toggleDropdown("analytics")}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer ${
-                  openDropdown === "analytics"
-                    ? "bg-neutral-900 text-white"
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
+                  openDropdowns.analytics
+                    ? "bg-neutral-900 text-white shadow-sm"
                     : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
@@ -147,39 +148,48 @@ export default function OwnerLayout() {
                   <span>Analitik Bisnis</span>
                 </div>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${
-                    openDropdown === "analytics"
+                  className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                    openDropdowns.analytics
                       ? "rotate-180 text-amber-400"
                       : "text-neutral-500"
                   }`}
                 />
               </button>
 
-              {/* Sub-menu */}
-              {openDropdown === "analytics" && (
-                <div className="pl-3.5 space-y-1 pt-1 border-l border-neutral-800 ml-3.5">
-                  <button
-                    onClick={() => navigate("/owner/dashboard")}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      isActive("/owner/dashboard")
-                        ? "bg-white text-neutral-950 shadow-md"
-                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                    }`}
+              <AnimatePresence>
+                {openDropdowns.analytics && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
                   >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
-                    <span>Executive Dashboard</span>
-                  </button>
-                </div>
-              )}
+                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                      <button
+                        onClick={() => navigate("/owner/dashboard")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/owner/dashboard")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <LayoutDashboard className="w-3.5 h-3.5" />
+                        <span>Executive Dashboard</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* 2. Kategori: Keuangan & Transaksi */}
             <div className="space-y-1">
               <button
                 onClick={() => toggleDropdown("finance")}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer ${
-                  openDropdown === "finance"
-                    ? "bg-neutral-900 text-white"
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
+                  openDropdowns.finance
+                    ? "bg-neutral-900 text-white shadow-sm"
                     : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
@@ -188,51 +198,60 @@ export default function OwnerLayout() {
                   <span>Keuangan & Transaksi</span>
                 </div>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${
-                    openDropdown === "finance"
+                  className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                    openDropdowns.finance
                       ? "rotate-180 text-emerald-400"
                       : "text-neutral-500"
                   }`}
                 />
               </button>
 
-              {/* Sub-menu */}
-              {openDropdown === "finance" && (
-                <div className="pl-3.5 space-y-1 pt-1 border-l border-neutral-800 ml-3.5">
-                  <button
-                    onClick={() => navigate("/owner/finance")}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      isActive("/owner/finance")
-                        ? "bg-white text-neutral-950 shadow-md"
-                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                    }`}
+              <AnimatePresence>
+                {openDropdowns.finance && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
                   >
-                    <Wallet className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Laporan Keuangan</span>
-                  </button>
+                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                      <button
+                        onClick={() => navigate("/owner/finance")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/owner/finance")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <Wallet className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Laporan Keuangan</span>
+                      </button>
 
-                  <button
-                    onClick={() => navigate("/owner/history")}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      isActive("/owner/history")
-                        ? "bg-white text-neutral-950 shadow-md"
-                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                    }`}
-                  >
-                    <History className="w-3.5 h-3.5" />
-                    <span>Audit Arsip Transaksi</span>
-                  </button>
-                </div>
-              )}
+                      <button
+                        onClick={() => navigate("/owner/history")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/owner/history")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <History className="w-3.5 h-3.5" />
+                        <span>Audit Arsip Transaksi</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* 3. Kategori: Manajemen Katalog & Outlet */}
             <div className="space-y-1">
               <button
                 onClick={() => toggleDropdown("outlet")}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer ${
-                  openDropdown === "outlet"
-                    ? "bg-neutral-900 text-white"
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
+                  openDropdowns.outlet
+                    ? "bg-neutral-900 text-white shadow-sm"
                     : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
@@ -241,87 +260,96 @@ export default function OwnerLayout() {
                   <span>Manajemen Outlet</span>
                 </div>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${
-                    openDropdown === "outlet"
+                  className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                    openDropdowns.outlet
                       ? "rotate-180 text-sky-400"
                       : "text-neutral-500"
                   }`}
                 />
               </button>
 
-              {/* Sub-menu */}
-              {openDropdown === "outlet" && (
-                <div className="pl-3.5 space-y-1 pt-1 border-l border-neutral-800 ml-3.5">
-                  <button
-                    onClick={() => navigate("/owner/menu")}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      isActive("/owner/menu")
-                        ? "bg-white text-neutral-950 shadow-md"
-                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                    }`}
+              <AnimatePresence>
+                {openDropdowns.outlet && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
                   >
-                    <UtensilsCrossed className="w-3.5 h-3.5" />
-                    <span>Kelola Menu Pusat</span>
-                  </button>
+                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                      <button
+                        onClick={() => navigate("/owner/menu")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/owner/menu")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <UtensilsCrossed className="w-3.5 h-3.5" />
+                        <span>Kelola Menu Pusat</span>
+                      </button>
 
-                  <button
-                    onClick={() => navigate("/owner/inventory")}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      isActive("/owner/inventory")
-                        ? "bg-white text-neutral-950 shadow-md"
-                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                    }`}
-                  >
-                    <Package className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Kelola Stok & Gudang</span>
-                  </button>
+                      <button
+                        onClick={() => navigate("/owner/inventory")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/owner/inventory")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <Package className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Kelola Stok & Gudang</span>
+                      </button>
 
-                  <button
-                    onClick={() => navigate("/owner/tables")}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      isActive("/owner/tables")
-                        ? "bg-white text-neutral-950 shadow-md"
-                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                    }`}
-                  >
-                    <TableProperties className="w-3.5 h-3.5" />
-                    <span>Kelola Meja Resto</span>
-                  </button>
+                      <button
+                        onClick={() => navigate("/owner/tables")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/owner/tables")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <TableProperties className="w-3.5 h-3.5" />
+                        <span>Kelola Meja Resto</span>
+                      </button>
 
-                  <button
-                    onClick={() => navigate("/owner/staff")}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      isActive("/owner/staff")
-                        ? "bg-white text-neutral-950 shadow-md"
-                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                    }`}
-                  >
-                    <Users className="w-3.5 h-3.5" />
-                    <span>Kelola Staff & Akun</span>
-                  </button>
+                      <button
+                        onClick={() => navigate("/owner/staff")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/owner/staff")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Kelola Staff & Akun</span>
+                      </button>
 
-                  <button
-                    onClick={() => navigate("/owner/coupons")}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      isActive("/owner/coupons")
-                        ? "bg-white text-neutral-950 shadow-md"
-                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                    }`}
-                  >
-                    <Tag className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Kupon Promo & Fee</span>
-                  </button>
-                </div>
-              )}
+                      <button
+                        onClick={() => navigate("/owner/coupons")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/owner/coupons")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <Tag className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Kupon Promo & Fee</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* 4. Kategori: Sistem & Akun */}
             <div className="space-y-1">
               <button
                 onClick={() => toggleDropdown("system")}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer ${
-                  openDropdown === "system"
-                    ? "bg-neutral-900 text-white"
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
+                  openDropdowns.system
+                    ? "bg-neutral-900 text-white shadow-sm"
                     : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
@@ -330,30 +358,39 @@ export default function OwnerLayout() {
                   <span>Sistem & Akun</span>
                 </div>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${
-                    openDropdown === "system"
+                  className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                    openDropdowns.system
                       ? "rotate-180 text-purple-400"
                       : "text-neutral-500"
                   }`}
                 />
               </button>
 
-              {/* Sub-menu */}
-              {openDropdown === "system" && (
-                <div className="pl-3.5 space-y-1 pt-1 border-l border-neutral-800 ml-3.5">
-                  <button
-                    onClick={() => navigate("/owner/profile")}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      isActive("/owner/profile")
-                        ? "bg-white text-neutral-950 shadow-md"
-                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                    }`}
+              <AnimatePresence>
+                {openDropdowns.system && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
                   >
-                    <UserCheck className="w-3.5 h-3.5" />
-                    <span>Profil Owner</span>
-                  </button>
-                </div>
-              )}
+                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                      <button
+                        onClick={() => navigate("/owner/profile")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/owner/profile")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>Profil Owner</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </nav>
         </div>

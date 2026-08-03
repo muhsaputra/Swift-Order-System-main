@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { gooeyToast } from "goey-toast";
-import API from "../services/api";
+import API from "../../services/api";
 import {
   Plus,
   Edit3,

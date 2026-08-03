@@ -11,19 +11,19 @@ import "goey-toast/styles.css";
 // --- Import Pages (Umum & Kasir) ---
 import Login from "./pages/Login";
 import CashierDashboard from "./pages/CashierDashboard";
-import MenuManagement from "./pages/MenuManagement";
-import TableManagement from "./pages/TableManagement";
+import MenuManagement from "./pages/owner/MenuManagement";
+import TableManagement from "./pages/owner/TableManagement";
 import CashierPOS from "./pages/CashierPOS";
-import TransactionHistory from "./pages/TransactionHistory";
+import TransactionHistory from "./pages/owner/TransactionHistory";
 import AdminProfile from "./pages/AdminProfile";
-import CouponManagementPage from "./pages/CouponManagementPage";
-import ComprehensiveHistoryPage from "./pages/ComprehensiveHistoryPage";
+import CouponManagementPage from "./pages/owner/CouponManagementPage";
+import ComprehensiveHistoryPage from "./pages/owner/ComprehensiveHistoryPage";
 
 // --- Import Pages (Pelanggan / Client) ---
 import ClientOrderPage from "./pages/ClientOrderPage";
 import ClientPaymentPage from "./pages/ClientPaymentPage";
 import ClientWaitingPage from "./pages/ClientWaitingPage";
-import ClientHistoryPage from "./pages/ClientHistoryPage";
+import ClientHistoryPage from "./pages/client/ClientHistoryPage";
 import ClientOrderHistory from "./pages/ClientOrderHistory";
 
 // --- Import Layouts ---

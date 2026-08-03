@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import API from "../services/api";
+import API from "../../services/api";
 import { QRCodeSVG } from "qrcode.react";
 import { io } from "socket.io-client";
 import { gooeyToast } from "goey-toast";

@@ -82,12 +82,12 @@ export default function ClientOrderPage() {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const promoBanners = [
     {
-      title: "Diskon Spesial Akhir Pekan! 🎉",
+      title: "Diskon Spesial & Promo Hari Ini! 🎉",
       subtitle:
-        "Nikmati potongan harga hingga 25% untuk semua menu bundling kopi pilihan.",
+        "Nikmati potongan harga spesial untuk menu pilihan yang sedang aktif berpromo.",
       image:
         "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=80",
-      badge: "PROMO HARI INI",
+      badge: "PROMO SPESIAL",
       code: "HEMAT50",
     },
     {
@@ -1083,9 +1083,9 @@ export default function ClientOrderPage() {
                                 >
                                   {menu.isAvailable ? "Tersedia" : "Habis"}
                                 </span>
-                                {menu.isBundle && (
-                                  <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                                    <Package className="w-3 h-3" /> Add-On
+                                {isPromoItem && (
+                                  <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-purple-600 text-white shadow-xs flex items-center gap-1">
+                                    <Tag className="w-3 h-3" /> PROMO
                                   </span>
                                 )}
                               </div>
@@ -1156,6 +1156,10 @@ export default function ClientOrderPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {filteredMenus.map((menu) => {
                 const qty = getCartQuantity(menu._id);
+                const isPromoItem =
+                  menu.isBundle ||
+                  (menu.originalPrice && menu.originalPrice > menu.price);
+
                 return (
                   <div
                     key={menu._id}
@@ -1190,9 +1194,9 @@ export default function ClientOrderPage() {
                           >
                             {menu.isAvailable ? "Tersedia" : "Habis"}
                           </span>
-                          {menu.isBundle && (
-                            <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-xs flex items-center gap-1">
-                              <Package className="w-3 h-3" /> Add-On
+                          {isPromoItem && (
+                            <span className="px-2 py-0.5 text-[8px] rounded-full font-black bg-purple-600 text-white shadow-xs flex items-center gap-1">
+                              <Tag className="w-3 h-3" /> PROMO
                             </span>
                           )}
                         </div>

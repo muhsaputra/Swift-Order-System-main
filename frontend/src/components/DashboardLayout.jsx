@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   UtensilsCrossed,
@@ -16,6 +17,10 @@ import {
   Maximize2,
   Minimize2,
   ShieldCheck,
+  ChevronDown,
+  BarChart3,
+  Boxes,
+  Settings2,
 } from "lucide-react";
 import { io } from "socket.io-client";
 
@@ -26,8 +31,34 @@ export default function DashboardLayout() {
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [adminName, setAdminName] = useState("Kasir Utama");
+
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Inisialisasi state multi-dropdown berdasarkan rute aktif kasir
+  const getInitialDropdowns = () => {
+    const path = location.pathname;
+    return {
+      main: path === "/dashboard",
+      operational: path.includes("/dashboard/pos"),
+      management:
+        path.includes("/dashboard/menu") ||
+        path.includes("/dashboard/tables") ||
+        path.includes("/dashboard/coupons") ||
+        path.includes("/dashboard/history"),
+      system: path.includes("/dashboard/profile"),
+    };
+  };
+
+  const [openDropdowns, setOpenDropdowns] = useState(getInitialDropdowns());
+
+  // Fungsi toggle independen agar menu lain tidak tertutup saat menu baru dibuka
+  const toggleDropdown = (groupKey) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [groupKey]: !prev[groupKey],
+    }));
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -113,7 +144,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-neutral-100 flex overflow-hidden font-['Plus_Jakarta_Sans',sans-serif]">
-      {/* Sidebar Berpola Kategori Rapi */}
+      {/* Sidebar Berpola Dropdown & Framer Motion */}
       <aside className="w-68 bg-neutral-950 border-r border-neutral-800/80 flex flex-col justify-between p-5 shrink-0 h-screen sticky top-0 shadow-2xl overflow-y-auto scrollbar-none">
         <div className="space-y-6">
           {/* Logo & Brand Header */}
@@ -138,140 +169,235 @@ export default function DashboardLayout() {
             </div>
           </div>
 
-          {/* Navigasi Menu Berdasarkan Kategori */}
-          <nav className="space-y-6 pt-2">
-            {/* Kategori: Utama */}
-            <div className="space-y-1.5">
-              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
-                Menu Utama
-              </div>
+          {/* Navigasi Menu Berdasarkan Kategori dengan Dropdown */}
+          <nav className="space-y-3 pt-2">
+            {/* 1. Kategori: Utama */}
+            <div className="space-y-1">
               <button
-                onClick={() => {
-                  setNewOrdersCount(0);
-                  navigate("/dashboard");
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/dashboard")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                onClick={() => toggleDropdown("main")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
+                  openDropdowns.main
+                    ? "bg-neutral-900 text-white shadow-sm"
+                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <LayoutDashboard
-                    className={`w-4 h-4 ${isActive("/dashboard") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
-                  />
-                  <span>Dashboard Utama</span>
+                <div className="flex items-center gap-2.5">
+                  <BarChart3 className="w-4 h-4 text-amber-400" />
+                  <span>Menu Utama</span>
                 </div>
-                {newOrdersCount > 0 && (
-                  <span className="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse shadow-sm">
-                    {newOrdersCount}
-                  </span>
+                <div className="flex items-center gap-2">
+                  {newOrdersCount > 0 && (
+                    <span className="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse shadow-sm">
+                      {newOrdersCount}
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                      openDropdowns.main
+                        ? "rotate-180 text-amber-400"
+                        : "text-neutral-500"
+                    }`}
+                  />
+                </div>
+              </button>
+
+              <AnimatePresence>
+                {openDropdowns.main && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                      <button
+                        onClick={() => {
+                          setNewOrdersCount(0);
+                          navigate("/dashboard");
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/dashboard")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <LayoutDashboard className="w-3.5 h-3.5" />
+                          <span>Dashboard Utama</span>
+                        </div>
+                        {newOrdersCount > 0 && (
+                          <span className="bg-red-600 text-white px-2 py-0.5 rounded-full text-[9px] font-black">
+                            {newOrdersCount}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
                 )}
-              </button>
+              </AnimatePresence>
             </div>
 
-            {/* Kategori: Operasional & Transaksi */}
-            <div className="space-y-1.5">
-              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
-                Operasional Kasir
-              </div>
+            {/* 2. Kategori: Operasional & Transaksi */}
+            <div className="space-y-1">
               <button
-                onClick={() => navigate("/dashboard/pos")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/dashboard/pos")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                onClick={() => toggleDropdown("operational")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
+                  openDropdowns.operational
+                    ? "bg-neutral-900 text-white shadow-sm"
+                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
-                <PlusCircle
-                  className={`w-4 h-4 ${isActive("/dashboard/pos") ? "text-emerald-600" : "text-emerald-400"}`}
+                <div className="flex items-center gap-2.5">
+                  <PlusCircle className="w-4 h-4 text-emerald-400" />
+                  <span>Operasional Kasir</span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                    openDropdowns.operational
+                      ? "rotate-180 text-emerald-400"
+                      : "text-neutral-500"
+                  }`}
                 />
-                <span>Input Pesanan (POS)</span>
               </button>
+
+              <AnimatePresence>
+                {openDropdowns.operational && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                      <button
+                        onClick={() => navigate("/dashboard/pos")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/dashboard/pos")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <PlusCircle className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Input Pesanan (POS)</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Kategori: Manajemen Restoran & Sistem */}
-            <div className="space-y-1.5">
-              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
-                Manajemen Restoran
-              </div>
-
+            {/* 3. Kategori: Manajemen Restoran & Sistem */}
+            <div className="space-y-1">
               <button
-                onClick={() => navigate("/dashboard/menu")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/dashboard/menu")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                onClick={() => toggleDropdown("management")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
+                  openDropdowns.management
+                    ? "bg-neutral-900 text-white shadow-sm"
+                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
-                <UtensilsCrossed
-                  className={`w-4 h-4 ${isActive("/dashboard/menu") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                <div className="flex items-center gap-2.5">
+                  <Boxes className="w-4 h-4 text-sky-400" />
+                  <span>Manajemen Restoran</span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                    openDropdowns.management
+                      ? "rotate-180 text-sky-400"
+                      : "text-neutral-500"
+                  }`}
                 />
-                <span>Manajemen Menu</span>
               </button>
 
-              <button
-                onClick={() => navigate("/dashboard/tables")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/dashboard/tables")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <TableProperties
-                  className={`w-4 h-4 ${isActive("/dashboard/tables") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
-                />
-                <span>Manajemen Meja</span>
-              </button>
+              <AnimatePresence>
+                {openDropdowns.management && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                      <button
+                        onClick={() => navigate("/dashboard/menu")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/dashboard/menu")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <UtensilsCrossed className="w-3.5 h-3.5" />
+                        <span>Manajemen Menu</span>
+                      </button>
 
-              {/* <button
-                onClick={() => navigate("/dashboard/coupons")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/dashboard/coupons")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <Tag
-                  className={`w-4 h-4 ${isActive("/dashboard/coupons") ? "text-amber-600" : "text-amber-400"}`}
-                />
-                <span>Manajemen Kupon</span>
-              </button> */}
-
-              {/* <button
-                onClick={() => navigate("/dashboard/history")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/dashboard/history")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                }`}
-              >
-                <History
-                  className={`w-4 h-4 ${isActive("/dashboard/history") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
-                />
-                <span>Arsip Transaksi</span>
-              </button> */}
+                      <button
+                        onClick={() => navigate("/dashboard/tables")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/dashboard/tables")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <TableProperties className="w-3.5 h-3.5" />
+                        <span>Manajemen Meja</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Kategori: Akun & Konfigurasi */}
-            <div className="space-y-1.5">
-              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
-                Sistem & Akun
-              </div>
-
+            {/* 4. Kategori: Akun & Konfigurasi */}
+            <div className="space-y-1">
               <button
-                onClick={() => navigate("/dashboard/profile")}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer group ${
-                  isActive("/dashboard/profile")
-                    ? "bg-white text-neutral-950 shadow-lg shadow-white/5"
-                    : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                onClick={() => toggleDropdown("system")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
+                  openDropdowns.system
+                    ? "bg-neutral-900 text-white shadow-sm"
+                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
                 }`}
               >
-                <UserCheck
-                  className={`w-4 h-4 ${isActive("/dashboard/profile") ? "text-neutral-950" : "text-neutral-400 group-hover:text-white"}`}
+                <div className="flex items-center gap-2.5">
+                  <Settings2 className="w-4 h-4 text-purple-400" />
+                  <span>Sistem & Akun</span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                    openDropdowns.system
+                      ? "rotate-180 text-purple-400"
+                      : "text-neutral-500"
+                  }`}
                 />
-                <span>Profil Akun</span>
               </button>
+
+              <AnimatePresence>
+                {openDropdowns.system && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                      <button
+                        onClick={() => navigate("/dashboard/profile")}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isActive("/dashboard/profile")
+                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                        }`}
+                      >
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>Profil Akun</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </nav>
         </div>

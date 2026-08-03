@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import API from "../services/api";
+import API from "../../services/api";
 import { toast } from "react-toastify";
 import {
   ShoppingBag,

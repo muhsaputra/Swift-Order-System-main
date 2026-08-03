@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import API from "../services/api";
+import API from "../../services/api";
 import { QrCode, Clock, ShieldCheck, ArrowRight, Wallet } from "lucide-react";
 import { gooeyToast } from "goey-toast";
 

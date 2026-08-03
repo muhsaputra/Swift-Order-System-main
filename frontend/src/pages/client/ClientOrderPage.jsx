@@ -15,6 +15,7 @@ import {
   Flame,
   Search,
   ChevronRight,
+  ChevronLeft,
   Wallet,
   QrCode,
   Tag,
@@ -33,6 +34,8 @@ import {
   HelpCircle,
   ArrowRight,
   History,
+  CheckCircle2,
+  FlameKindling,
 } from "lucide-react";
 
 export default function ClientOrderPage() {
@@ -75,6 +78,45 @@ export default function ClientOrderPage() {
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // State untuk Banner Carousel Otomatis
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const promoBanners = [
+    {
+      title: "Diskon Spesial Akhir Pekan! 🎉",
+      subtitle:
+        "Nikmati potongan harga hingga 25% untuk semua menu bundling kopi pilihan.",
+      image:
+        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=80",
+      badge: "PROMO HARI INI",
+      code: "HEMAT50",
+    },
+    {
+      title: "Gratis Topping & Add-On 🧊",
+      subtitle:
+        "Setiap pemesanan makanan berat minimal Rp 50.000 gratis ekstra pilihan topping favoritmu.",
+      image:
+        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80",
+      badge: "LIMITED DEALS",
+      code: "FREETOAST",
+    },
+    {
+      title: "Cashback QRIS 10% 📱",
+      subtitle:
+        "Bayar lebih praktis menggunakan metode QRIS Midtrans dan dapatkan keuntungan instan.",
+      image:
+        "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1920&q=80",
+      badge: "KASIR DIGITAL",
+      code: "QRISFAST",
+    },
+  ];
+
+  useEffect(() => {
+    const bannerInterval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % promoBanners.length);
+    }, 5000);
+    return () => clearInterval(bannerInterval);
+  }, [promoBanners.length]);
+
   useEffect(() => {
     const savedCustomer = localStorage.getItem("swift_customer_info");
 
@@ -98,7 +140,6 @@ export default function ClientOrderPage() {
     scriptTag.async = true;
     document.body.appendChild(scriptTag);
 
-    // Perbaikan URL Socket agar otomatis memotong /api jika ada di env
     const SOCKET_URL = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace(/\/api$/, "")
       : "http://localhost:5001";
@@ -510,7 +551,7 @@ export default function ClientOrderPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 pb-28">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-stone-50 to-neutral-100 text-neutral-900 pb-28">
       {/* MODAL PANDUAN CARA PESAN */}
       {isGuideModalOpen && (
         <div className="fixed inset-0 bg-neutral-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -815,56 +856,81 @@ export default function ClientOrderPage() {
         </div>
       )}
 
-      {/* HERO BANNER ATTRACTION */}
-      <div className="relative bg-neutral-900 text-white py-12 px-6 md:px-12 overflow-hidden mb-8 shadow-md">
+      {/* IMPROVED HERO BANNER & PROMO CAROUSEL */}
+      <div className="relative bg-neutral-950 text-white py-12 px-6 md:px-16 overflow-hidden mb-8 shadow-2xl border-b border-neutral-800">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-30 filter brightness-50 scale-105 pointer-events-none"
+          className="absolute inset-0 bg-cover bg-center opacity-35 filter brightness-50 scale-105 transition-all duration-1000 pointer-events-none"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=80')`,
+            backgroundImage: `url('${promoBanners[currentBannerIndex].image}')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/85 to-transparent pointer-events-none" />
 
-        <div className="relative z-10 max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-2">
+        <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+          <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-white/10">
+              <div className="inline-flex items-center gap-1.5 bg-amber-500/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[11px] font-black text-amber-300 border border-amber-500/30 animate-pulse">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Self-Ordering Digital Experience</span>
+                <span>{promoBanners[currentBannerIndex].badge}</span>
               </div>
               <Link
                 to={`/order-history?table=${tableNumber}`}
-                className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-white border border-white/20 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[11px] font-bold text-white border border-white/15 transition cursor-pointer"
               >
                 <Clock className="w-3.5 h-3.5" />
                 <span>Riwayat Pesanan</span>
               </Link>
               <button
                 onClick={() => setIsGuideModalOpen(true)}
-                className="inline-flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-amber-500/30 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[11px] font-bold text-white border border-white/15 transition cursor-pointer"
               >
                 <HelpCircle className="w-3.5 h-3.5" />
                 <span>Panduan Pesan 📖</span>
               </button>
             </div>
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
-              Nikmati Hidangan Terbaik Kami
-            </h1>
-            <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
-              Pesan makanan dan minuman favorit langsung dari meja Anda dengan
-              mudah, cepat, dan transparan.
-            </p>
+
+            <div className="space-y-2">
+              <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white leading-tight">
+                {promoBanners[currentBannerIndex].title}
+              </h1>
+              <p className="text-xs md:text-sm text-neutral-300 leading-relaxed font-medium">
+                {promoBanners[currentBannerIndex].subtitle}
+              </p>
+            </div>
+
+            {/* Banner Dots & Code Action */}
+            <div className="flex items-center gap-4 pt-2">
+              <div className="flex items-center gap-1.5">
+                {promoBanners.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentBannerIndex(idx)}
+                    className={`h-2 rounded-full transition-all cursor-pointer ${
+                      currentBannerIndex === idx
+                        ? "w-8 bg-amber-400"
+                        : "w-2 bg-white/30 hover:bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-[10px] text-neutral-400 font-mono font-bold tracking-wider bg-white/10 px-2.5 py-1 rounded-lg border border-white/10">
+                Gunakan Kode:{" "}
+                <span className="text-amber-300 font-black">
+                  {promoBanners[currentBannerIndex].code}
+                </span>
+              </span>
+            </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl flex items-center gap-4 shadow-xl">
-            <div className="w-12 h-12 rounded-2xl bg-white text-neutral-900 flex items-center justify-center font-black text-lg shadow-inner">
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-3xl flex items-center gap-4 shadow-2xl shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500 text-neutral-950 flex items-center justify-center font-black text-xl shadow-inner">
               #{tableNumber}
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">
-                Status Meja
+              <p className="text-[10px] uppercase tracking-wider text-amber-300 font-black">
+                Meja Aktif Pelanggan
               </p>
-              <p className="text-sm font-extrabold text-white">
+              <p className="text-sm md:text-base font-extrabold text-white">
                 {customerInfo.name
                   ? `Halo, ${customerInfo.name}`
                   : "Tamu Terhormat"}
@@ -874,17 +940,17 @@ export default function ClientOrderPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 md:px-6 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 space-y-6">
         {/* SEARCH & CATEGORY BAR */}
         <div className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-4 top-3.5 w-4 h-4 text-neutral-400" />
+            <Search className="absolute left-4 top-4 w-4 h-4 text-neutral-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari makanan atau minuman favorit..."
-              className="w-full bg-white border border-neutral-200/80 rounded-2xl pl-11 pr-4 py-3 text-xs md:text-sm text-neutral-900 focus:outline-none focus:border-neutral-400 shadow-2xs font-medium"
+              className="w-full bg-white border border-neutral-200/90 rounded-2xl pl-12 pr-4 py-3.5 text-xs md:text-sm text-neutral-900 focus:outline-none focus:border-neutral-900 shadow-sm font-medium transition"
             />
           </div>
 
@@ -903,9 +969,9 @@ export default function ClientOrderPage() {
                 <button
                   key={cat.name}
                   onClick={() => setSelectedCategory(cat.name)}
-                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition cursor-pointer shadow-2xs flex items-center gap-2 ${
+                  className={`px-4.5 py-3 rounded-2xl text-xs font-bold whitespace-nowrap transition cursor-pointer shadow-2xs flex items-center gap-2 ${
                     selectedCategory === cat.name
-                      ? "bg-neutral-900 text-white shadow-sm"
+                      ? "bg-neutral-900 text-white shadow-md scale-105"
                       : "bg-white text-neutral-600 border border-neutral-200/80 hover:text-neutral-900 hover:border-neutral-300"
                   }`}
                 >
@@ -985,7 +1051,7 @@ export default function ClientOrderPage() {
                         <div
                           key={menu._id}
                           onClick={() => handleCardClick(menu)}
-                          className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition group relative shadow-2xs hover:shadow-md ${
+                          className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition group relative shadow-2xs hover:shadow-xl ${
                             menu.isAvailable
                               ? isPromoItem
                                 ? "border-amber-300 ring-1 ring-amber-200 hover:border-amber-400 cursor-pointer bg-gradient-to-b from-amber-50/20 to-white"
@@ -994,13 +1060,13 @@ export default function ClientOrderPage() {
                           }`}
                         >
                           <div>
-                            <div className="relative h-32 w-full bg-neutral-100 overflow-hidden">
+                            <div className="relative h-36 w-full bg-neutral-100 overflow-hidden">
                               {menu.image ? (
                                 <img
                                   src={menu.image}
                                   alt={menu.name}
                                   loading="lazy"
-                                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                  className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-neutral-400 text-[10px] font-medium">
@@ -1094,20 +1160,20 @@ export default function ClientOrderPage() {
                   <div
                     key={menu._id}
                     onClick={() => handleCardClick(menu)}
-                    className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition group relative shadow-2xs hover:shadow-md ${
+                    className={`bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition group relative shadow-2xs hover:shadow-xl ${
                       menu.isAvailable
                         ? "border-neutral-200/80 hover:border-neutral-400 cursor-pointer"
                         : "border-neutral-200/50 opacity-60 cursor-not-allowed bg-neutral-100/50"
                     }`}
                   >
                     <div>
-                      <div className="relative h-32 w-full bg-neutral-100 overflow-hidden">
+                      <div className="relative h-36 w-full bg-neutral-100 overflow-hidden">
                         {menu.image ? (
                           <img
                             src={menu.image}
                             alt={menu.name}
                             loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                            className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-neutral-400 text-[10px] font-medium">

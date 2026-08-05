@@ -105,26 +105,26 @@ export default function OwnerLayout() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex overflow-hidden font-sans">
-      {/* Sidebar Khusus Owner */}
-      <aside className="w-68 bg-neutral-950 border-r border-neutral-800/80 flex flex-col justify-between p-5 shrink-0 h-screen sticky top-0 shadow-2xl overflow-y-auto scrollbar-none">
+    <div className="min-h-screen bg-slate-50 flex overflow-hidden font-sans">
+      {/* Sidebar Khusus Owner - Nuansa Biru & Putih */}
+      <aside className="w-68 bg-blue-900 border-r border-blue-800 flex flex-col justify-between p-5 shrink-0 h-screen sticky top-0 shadow-xl overflow-y-auto scrollbar-none">
         <div className="space-y-6">
           {/* Logo & Brand Header */}
           <div className="px-3 pt-2 space-y-3">
-            <div className="inline-flex items-center gap-1.5 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full text-[10px] font-extrabold text-amber-300 tracking-wide">
-              <Sparkles className="w-3 h-3 text-amber-400" />
+            <div className="inline-flex items-center gap-1.5 bg-blue-800/80 border border-blue-700/50 px-3 py-1 rounded-full text-[10px] font-extrabold text-blue-200 tracking-wide">
+              <Sparkles className="w-3 h-3 text-blue-300" />
               <span>Owner Control Center</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white font-black shadow-inner">
-                <Store className="w-5 h-5 text-amber-400" />
+              <div className="w-10 h-10 rounded-2xl bg-blue-950 border border-blue-700/60 flex items-center justify-center text-white font-black shadow-inner">
+                <Store className="w-5 h-5 text-blue-300" />
               </div>
               <div>
                 <h1 className="text-sm font-black tracking-tight text-white">
                   Swift Ordering
                 </h1>
-                <p className="text-[11px] text-neutral-400 font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <p className="text-[11px] text-blue-200 font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                   Owner Mode Active
                 </p>
               </div>
@@ -139,19 +139,19 @@ export default function OwnerLayout() {
                 onClick={() => toggleDropdown("analytics")}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
                   openDropdowns.analytics
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
+                    ? "bg-blue-800 text-white shadow-sm"
+                    : "text-blue-100 hover:bg-blue-800/50 hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <BarChart3 className="w-4 h-4 text-amber-400" />
+                  <BarChart3 className="w-4 h-4 text-blue-200" />
                   <span>Analitik Bisnis</span>
                 </div>
                 <ChevronDown
                   className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
                     openDropdowns.analytics
-                      ? "rotate-180 text-amber-400"
-                      : "text-neutral-500"
+                      ? "rotate-180 text-blue-200"
+                      : "text-blue-300"
                   }`}
                 />
               </button>
@@ -165,13 +165,13 @@ export default function OwnerLayout() {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                    <div className="pl-3.5 ml-3.5 border-l border-blue-700 space-y-1 pt-1">
                       <button
                         onClick={() => navigate("/owner/dashboard")}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive("/owner/dashboard")
-                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                            ? "bg-white text-blue-950 shadow-md scale-[0.98]"
+                            : "text-blue-200 hover:text-white hover:bg-blue-800"
                         }`}
                       >
                         <LayoutDashboard className="w-3.5 h-3.5" />
@@ -189,19 +189,19 @@ export default function OwnerLayout() {
                 onClick={() => toggleDropdown("finance")}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
                   openDropdowns.finance
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
+                    ? "bg-blue-800 text-white shadow-sm"
+                    : "text-blue-100 hover:bg-blue-800/50 hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Wallet className="w-4 h-4 text-emerald-400" />
+                  <Wallet className="w-4 h-4 text-blue-200" />
                   <span>Keuangan & Transaksi</span>
                 </div>
                 <ChevronDown
                   className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
                     openDropdowns.finance
-                      ? "rotate-180 text-emerald-400"
-                      : "text-neutral-500"
+                      ? "rotate-180 text-blue-200"
+                      : "text-blue-300"
                   }`}
                 />
               </button>
@@ -215,13 +215,13 @@ export default function OwnerLayout() {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                    <div className="pl-3.5 ml-3.5 border-l border-blue-700 space-y-1 pt-1">
                       <button
                         onClick={() => navigate("/owner/finance")}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive("/owner/finance")
-                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                            ? "bg-white text-blue-950 shadow-md scale-[0.98]"
+                            : "text-blue-200 hover:text-white hover:bg-blue-800"
                         }`}
                       >
                         <Wallet className="w-3.5 h-3.5" />
@@ -232,8 +232,8 @@ export default function OwnerLayout() {
                         onClick={() => navigate("/owner/history")}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive("/owner/history")
-                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                            ? "bg-white text-blue-950 shadow-md scale-[0.98]"
+                            : "text-blue-200 hover:text-white hover:bg-blue-800"
                         }`}
                       >
                         <History className="w-3.5 h-3.5" />
@@ -251,19 +251,19 @@ export default function OwnerLayout() {
                 onClick={() => toggleDropdown("outlet")}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
                   openDropdowns.outlet
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
+                    ? "bg-blue-800 text-white shadow-sm"
+                    : "text-blue-100 hover:bg-blue-800/50 hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Boxes className="w-4 h-4 text-sky-400" />
+                  <Boxes className="w-4 h-4 text-blue-200" />
                   <span>Manajemen Outlet</span>
                 </div>
                 <ChevronDown
                   className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
                     openDropdowns.outlet
-                      ? "rotate-180 text-sky-400"
-                      : "text-neutral-500"
+                      ? "rotate-180 text-blue-200"
+                      : "text-blue-300"
                   }`}
                 />
               </button>
@@ -277,13 +277,13 @@ export default function OwnerLayout() {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                    <div className="pl-3.5 ml-3.5 border-l border-blue-700 space-y-1 pt-1">
                       <button
                         onClick={() => navigate("/owner/menu")}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive("/owner/menu")
-                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                            ? "bg-white text-blue-950 shadow-md scale-[0.98]"
+                            : "text-blue-200 hover:text-white hover:bg-blue-800"
                         }`}
                       >
                         <UtensilsCrossed className="w-3.5 h-3.5" />
@@ -294,8 +294,8 @@ export default function OwnerLayout() {
                         onClick={() => navigate("/owner/inventory")}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive("/owner/inventory")
-                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                            ? "bg-white text-blue-950 shadow-md scale-[0.98]"
+                            : "text-blue-200 hover:text-white hover:bg-blue-800"
                         }`}
                       >
                         <Package className="w-3.5 h-3.5" />
@@ -306,8 +306,8 @@ export default function OwnerLayout() {
                         onClick={() => navigate("/owner/tables")}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive("/owner/tables")
-                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                            ? "bg-white text-blue-950 shadow-md scale-[0.98]"
+                            : "text-blue-200 hover:text-white hover:bg-blue-800"
                         }`}
                       >
                         <TableProperties className="w-3.5 h-3.5" />
@@ -318,8 +318,8 @@ export default function OwnerLayout() {
                         onClick={() => navigate("/owner/staff")}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive("/owner/staff")
-                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                            ? "bg-white text-blue-950 shadow-md scale-[0.98]"
+                            : "text-blue-200 hover:text-white hover:bg-blue-800"
                         }`}
                       >
                         <Users className="w-3.5 h-3.5" />
@@ -330,8 +330,8 @@ export default function OwnerLayout() {
                         onClick={() => navigate("/owner/coupons")}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive("/owner/coupons")
-                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                            ? "bg-white text-blue-950 shadow-md scale-[0.98]"
+                            : "text-blue-200 hover:text-white hover:bg-blue-800"
                         }`}
                       >
                         <Tag className="w-3.5 h-3.5" />
@@ -349,19 +349,19 @@ export default function OwnerLayout() {
                 onClick={() => toggleDropdown("system")}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
                   openDropdowns.system
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
+                    ? "bg-blue-800 text-white shadow-sm"
+                    : "text-blue-100 hover:bg-blue-800/50 hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Settings2 className="w-4 h-4 text-purple-400" />
+                  <Settings2 className="w-4 h-4 text-blue-200" />
                   <span>Sistem & Akun</span>
                 </div>
                 <ChevronDown
                   className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
                     openDropdowns.system
-                      ? "rotate-180 text-purple-400"
-                      : "text-neutral-500"
+                      ? "rotate-180 text-blue-200"
+                      : "text-blue-300"
                   }`}
                 />
               </button>
@@ -375,13 +375,13 @@ export default function OwnerLayout() {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="pl-3.5 ml-3.5 border-l border-neutral-800 space-y-1 pt-1">
+                    <div className="pl-3.5 ml-3.5 border-l border-blue-700 space-y-1 pt-1">
                       <button
                         onClick={() => navigate("/owner/profile")}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive("/owner/profile")
-                            ? "bg-white text-neutral-950 shadow-md scale-[0.98]"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+                            ? "bg-white text-blue-950 shadow-md scale-[0.98]"
+                            : "text-blue-200 hover:text-white hover:bg-blue-800"
                         }`}
                       >
                         <UserCheck className="w-3.5 h-3.5" />
@@ -396,17 +396,17 @@ export default function OwnerLayout() {
         </div>
 
         {/* Bagian Bawah Sidebar */}
-        <div className="pt-4 border-t border-neutral-900 space-y-2">
-          <div className="px-3 py-2 bg-neutral-900/60 rounded-2xl border border-neutral-800/60 flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-xl bg-amber-400 text-neutral-950 flex items-center justify-center font-black text-xs shrink-0">
+        <div className="pt-4 border-t border-blue-800 space-y-2">
+          <div className="px-3 py-2 bg-blue-950/60 rounded-2xl border border-blue-800/60 flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-white text-blue-900 flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
               {ownerName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
               <p className="text-xs font-extrabold text-white truncate">
                 {ownerName}
               </p>
-              <p className="text-[10px] text-amber-400 font-medium truncate flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-amber-400 inline" /> Owner
+              <p className="text-[10px] text-blue-200 font-medium truncate flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-blue-300 inline" /> Owner
                 Access
               </p>
             </div>
@@ -414,16 +414,16 @@ export default function OwnerLayout() {
 
           <button
             onClick={toggleFullscreen}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-neutral-400 hover:bg-neutral-900 hover:text-white transition cursor-pointer"
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-blue-100 hover:bg-blue-800 hover:text-white transition cursor-pointer"
           >
             {isFullscreen ? (
               <>
-                <Minimize2 className="w-4 h-4 text-amber-400" />
+                <Minimize2 className="w-4 h-4 text-blue-300" />
                 <span>Keluar Fullscreen</span>
               </>
             ) : (
               <>
-                <Maximize2 className="w-4 h-4 text-amber-400" />
+                <Maximize2 className="w-4 h-4 text-blue-300" />
                 <span>Layar Penuh</span>
               </>
             )}
@@ -431,31 +431,31 @@ export default function OwnerLayout() {
 
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition cursor-pointer"
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-red-200 hover:bg-red-500/20 hover:text-red-100 transition cursor-pointer"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 text-red-300" />
             <span>Keluar Sistem</span>
           </button>
         </div>
       </aside>
 
       {/* Konten Utama Halaman Owner */}
-      <main className="flex-1 h-screen overflow-y-auto bg-neutral-100">
+      <main className="flex-1 h-screen overflow-y-auto bg-slate-50">
         <Outlet />
       </main>
 
       {/* MODAL KONFIRMASI LOGOUT */}
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl mx-auto flex items-center justify-center">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-neutral-900">
+              <h3 className="text-base font-bold text-slate-900">
                 Keluar dari Sesi Owner?
               </h3>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-slate-500">
                 Anda harus memasukkan kredensial owner kembali untuk mengakses
                 panel kontrol bisnis.
               </p>
@@ -464,14 +464,14 @@ export default function OwnerLayout() {
               <button
                 type="button"
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={handleLogoutConfirmed}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
               >
                 Ya, Keluar
               </button>

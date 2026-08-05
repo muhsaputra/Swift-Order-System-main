@@ -449,32 +449,29 @@ export default function CashierPOS() {
   const totalAmount = subtotalAfterDiscount + serviceFee;
 
   return (
-    <div className="min-h-screen bg-neutral-100 p-6 md:p-10 space-y-8 pb-20 relative">
-      {/* HEADER BANNER */}
-      <div className="bg-neutral-900 text-white p-8 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=80')`,
-          }}
-        />
-        <div className="relative z-10 space-y-2">
-          <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-white/10">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Point of Sales (POS Mode)</span>
+    <div className="min-h-screen bg-sky-50/40 p-6 lg:p-10 space-y-8 pb-20 relative font-sans antialiased text-slate-900">
+      {/* HEADER BANNER - Disesuaikan persis dengan gaya visual biru terang */}
+      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 rounded-[2.5rem] p-8 lg:p-10 text-white shadow-xl overflow-hidden border border-blue-600/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10 space-y-3">
+          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 px-3.5 py-1.5 rounded-full text-[11px] font-black text-sky-100 tracking-wider shadow-2xs">
+            <Sparkles className="w-3.5 h-3.5 animate-pulse text-sky-200" />
+            <span>POINT OF SALES (POS MODE)</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+          <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white">
             Panel Kasir & Input Pesanan Walk-In
           </h1>
-          <p className="text-xs md:text-sm text-neutral-300">
+          <p className="text-xs lg:text-sm text-sky-100 font-medium max-w-2xl leading-relaxed">
             Pilih menu dari katalog untuk langsung dimasukkan ke keranjang
             pesanan pelanggan.
           </p>
         </div>
 
-        <div className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10">
+        <div className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-xl border border-white/20 px-4 py-3 rounded-2xl shadow-xl shrink-0">
           <Radio
-            className={`w-4 h-4 ${socketConnected ? "text-emerald-400 animate-pulse" : "text-red-400"}`}
+            className={`w-4 h-4 ${socketConnected ? "text-emerald-300 animate-pulse" : "text-red-300"}`}
           />
           <span className="text-xs font-bold text-white">
             {socketConnected ? "Live Socket Connected" : "Socket Disconnected"}
@@ -483,31 +480,31 @@ export default function CashierPOS() {
       </div>
 
       {/* KONTEN UTAMA: KATALOG & KERANJANG */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* KATALOG MENU KASIR (2 Kolom) */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-2xs">
-            <h2 className="text-sm font-extrabold text-neutral-900">
+          <div className="flex justify-between items-center bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+            <h2 className="text-sm font-extrabold text-slate-900">
               Katalog Menu Tersedia ({filteredMenus.length})
             </h2>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari menu makanan..."
-                className="bg-neutral-50 border border-neutral-200 rounded-xl pl-9 pr-4 py-2 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition w-52 font-medium"
+                className="bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 transition w-56 font-medium"
               />
             </div>
           </div>
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
             </div>
           ) : filteredMenus.length === 0 ? (
-            <div className="bg-white border border-neutral-200 rounded-3xl p-12 text-center text-xs text-neutral-500">
+            <div className="bg-white border border-slate-200/80 rounded-3xl p-12 text-center text-xs text-slate-500 shadow-xs">
               Tidak ada menu yang ditemukan.
             </div>
           ) : (
@@ -516,7 +513,7 @@ export default function CashierPOS() {
                 <div
                   key={menu._id}
                   onClick={() => handleMenuClick(menu)}
-                  className="bg-white border border-neutral-200/80 p-4 rounded-3xl shadow-2xs hover:shadow-md transition cursor-pointer flex gap-4 items-center group relative overflow-hidden"
+                  className="bg-white border border-slate-200/80 p-5 rounded-3xl shadow-xs hover:shadow-md transition cursor-pointer flex gap-4 items-center group relative overflow-hidden"
                 >
                   <img
                     src={
@@ -524,20 +521,20 @@ export default function CashierPOS() {
                       "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80"
                     }
                     alt={menu.name}
-                    className="w-20 h-20 rounded-2xl object-cover shrink-0 group-hover:scale-105 transition"
+                    className="w-20 h-20 rounded-2xl object-cover shrink-0 group-hover:scale-105 transition border border-slate-100"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                         {menu.category || "Makanan"}
                       </span>
                       {menu.sku && (
-                        <span className="text-[9px] font-mono font-bold bg-neutral-100 text-neutral-500 px-1.5 py-0.2 rounded border border-neutral-200">
+                        <span className="text-[9px] font-mono font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
                           {menu.sku}
                         </span>
                       )}
                     </div>
-                    <h3 className="text-sm font-extrabold text-neutral-900 truncate">
+                    <h3 className="text-sm font-extrabold text-slate-900 truncate mt-0.5">
                       {menu.name}
                     </h3>
 
@@ -546,19 +543,19 @@ export default function CashierPOS() {
                         Rp {menu.price.toLocaleString("id-ID")}
                       </span>
                       {menu.originalPrice > menu.price && (
-                        <span className="text-[10px] font-mono text-neutral-400 line-through">
+                        <span className="text-[10px] font-mono text-slate-400 line-through">
                           Rp {menu.originalPrice.toLocaleString("id-ID")}
                         </span>
                       )}
                     </div>
 
                     {menu.bundleOptions && menu.bundleOptions.length > 0 && (
-                      <span className="inline-block mt-1 text-[9px] font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md border border-amber-200">
+                      <span className="inline-block mt-1.5 text-[9px] font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md border border-amber-200">
                         Ada Varian/Add-On
                       </span>
                     )}
                   </div>
-                  <div className="w-9 h-9 rounded-2xl bg-neutral-900 text-white flex items-center justify-center shrink-0 group-hover:bg-amber-400 group-hover:text-neutral-950 transition">
+                  <div className="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 group-hover:bg-blue-700 transition shadow-sm shadow-blue-600/20">
                     <Plus className="w-4 h-4" />
                   </div>
                 </div>
@@ -568,29 +565,29 @@ export default function CashierPOS() {
         </div>
 
         {/* KERANJANG PESANAN KASIR (1 Kolom Sticky) */}
-        <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-xl space-y-6 sticky top-6">
-          <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 bg-neutral-900 text-white rounded-2xl flex items-center justify-center font-black">
-                <ShoppingCart className="w-5 h-5" />
+        <div className="bg-white border border-slate-200/80 p-6 lg:p-8 rounded-3xl shadow-xl space-y-6 sticky top-6">
+          <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black shadow-md shadow-blue-600/20">
+                <ShoppingCart className="w-5 h-5 text-sky-200" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-neutral-900">
+                <h3 className="text-base font-bold text-slate-900">
                   Keranjang Kasir
                 </h3>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-slate-500">
                   Rincian pesanan pelanggan.
                 </p>
               </div>
             </div>
-            <span className="bg-neutral-100 px-3 py-1 rounded-full text-xs font-extrabold text-neutral-800">
+            <span className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-full text-xs font-extrabold">
               {cart.reduce((a, c) => a + c.quantity, 0)} Item
             </span>
           </div>
 
           <form onSubmit={handleCheckoutSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-neutral-700">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">
                 Nama Pelanggan
               </label>
               <input
@@ -599,12 +596,12 @@ export default function CashierPOS() {
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder="Contoh: Budi Santoso"
                 required
-                className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-medium transition"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-medium transition"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-neutral-700">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">
                 Nomor Meja
               </label>
               <input
@@ -614,23 +611,23 @@ export default function CashierPOS() {
                 placeholder="Contoh: 5"
                 min={1}
                 required
-                className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 font-medium transition"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-medium transition"
               />
             </div>
 
             {/* PILIHAN METODE PEMBAYARAN (CASH / QRIS) */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-neutral-700">
+              <label className="text-xs font-bold text-slate-700">
                 Metode Pembayaran
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("cash")}
-                  className={`py-2.5 px-3 rounded-2xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer ${
+                  className={`py-3 px-3 rounded-2xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs ${
                     paymentMethod === "cash"
-                      ? "bg-neutral-900 text-white border-neutral-900 shadow-md"
-                      : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
                   <Banknote className="w-4 h-4" />
@@ -639,10 +636,10 @@ export default function CashierPOS() {
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("qris")}
-                  className={`py-2.5 px-3 rounded-2xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer ${
+                  className={`py-3 px-3 rounded-2xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs ${
                     paymentMethod === "qris"
-                      ? "bg-neutral-900 text-white border-neutral-900 shadow-md"
-                      : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
                   <QrCode className="w-4 h-4" />
@@ -652,27 +649,27 @@ export default function CashierPOS() {
             </div>
 
             {/* DAFTAR ITEM DIPILIH */}
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
               {cart.length === 0 ? (
-                <div className="py-8 text-center border-2 border-dashed border-neutral-200 rounded-2xl text-xs text-neutral-400">
+                <div className="py-8 text-center border-2 border-dashed border-slate-200 rounded-2xl text-xs text-slate-400">
                   Belum ada menu dipilih.
                 </div>
               ) : (
                 cart.map((item, idx) => (
                   <div
                     key={idx}
-                    className="bg-neutral-50 border border-neutral-200/60 p-3 rounded-2xl flex justify-between items-center gap-2"
+                    className="bg-slate-50 border border-slate-200/60 p-3 rounded-2xl flex justify-between items-center gap-2"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-neutral-900 truncate">
+                      <p className="text-xs font-bold text-slate-900 truncate">
                         {item.name}
                       </p>
                       {item.chosenOptions && item.chosenOptions.length > 0 && (
-                        <p className="text-[10px] text-neutral-500 truncate">
+                        <p className="text-[10px] text-slate-500 truncate">
                           {item.chosenOptions.map((o) => o.name).join(", ")}
                         </p>
                       )}
-                      <p className="text-[11px] text-emerald-600 font-semibold">
+                      <p className="text-[11px] text-emerald-600 font-semibold font-mono">
                         Rp{" "}
                         {(item.price * item.quantity).toLocaleString("id-ID")}
                       </p>
@@ -681,24 +678,24 @@ export default function CashierPOS() {
                       <button
                         type="button"
                         onClick={() => updateQuantity(idx, -1)}
-                        className="w-7 h-7 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 cursor-pointer"
+                        className="w-7 h-7 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span className="text-xs font-bold w-5 text-center">
+                      <span className="text-xs font-bold font-mono w-5 text-center">
                         {item.quantity}
                       </span>
                       <button
                         type="button"
                         onClick={() => updateQuantity(idx, 1)}
-                        className="w-7 h-7 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 cursor-pointer"
+                        className="w-7 h-7 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
                       <button
                         type="button"
                         onClick={() => removeFromCart(idx)}
-                        className="w-7 h-7 rounded-xl bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 cursor-pointer ml-1"
+                        className="w-7 h-7 rounded-xl bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 cursor-pointer ml-1 border border-red-200 shadow-2xs"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -709,22 +706,22 @@ export default function CashierPOS() {
             </div>
 
             {/* FITUR KUPON / PROMO */}
-            <div className="space-y-2 pt-2 border-t border-neutral-100">
-              <label className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-amber-500" />
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-blue-600" />
                 <span>Kupon / Voucher Promo</span>
               </label>
               {appliedCoupon ? (
-                <div className="bg-amber-50 border border-amber-200 p-2.5 rounded-2xl flex justify-between items-center">
+                <div className="bg-blue-50 border border-blue-200 p-2.5 rounded-2xl flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 bg-amber-500 text-white rounded-xl flex items-center justify-center font-black text-xs">
+                    <div className="w-7 h-7 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-xs shadow-2xs">
                       %
                     </div>
                     <div>
-                      <p className="text-xs font-extrabold text-amber-900">
+                      <p className="text-xs font-extrabold text-blue-900">
                         {appliedCoupon.code}
                       </p>
-                      <p className="text-[10px] text-amber-700">
+                      <p className="text-[10px] text-blue-700">
                         {appliedCoupon.discountType === "percentage"
                           ? `Diskon ${appliedCoupon.discountValue}%`
                           : `Potongan Rp ${appliedCoupon.discountValue.toLocaleString("id-ID")}`}
@@ -734,7 +731,7 @@ export default function CashierPOS() {
                   <button
                     type="button"
                     onClick={handleRemoveCoupon}
-                    className="text-amber-800 hover:text-red-600 p-1 text-xs font-bold cursor-pointer"
+                    className="text-blue-800 hover:text-red-600 p-1 text-xs font-bold cursor-pointer"
                   >
                     ✕
                   </button>
@@ -746,12 +743,12 @@ export default function CashierPOS() {
                     value={couponCodeInput}
                     onChange={(e) => setCouponCodeInput(e.target.value)}
                     placeholder="Masukkan kode kupon..."
-                    className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-xs uppercase font-medium focus:outline-none focus:border-neutral-400"
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs uppercase font-medium focus:outline-none focus:border-blue-600"
                   />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
-                    className="bg-neutral-900 hover:bg-neutral-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer shadow-sm shadow-blue-600/20"
                   >
                     Pakai
                   </button>
@@ -760,28 +757,30 @@ export default function CashierPOS() {
             </div>
 
             {/* RINCIAN BIAYA */}
-            <div className="space-y-1.5 pt-3 border-t border-neutral-100 text-xs">
-              <div className="flex justify-between text-neutral-500">
+            <div className="space-y-2 pt-3 border-t border-slate-100 text-xs">
+              <div className="flex justify-between text-slate-500">
                 <span>Subtotal</span>
-                <span className="font-semibold">
+                <span className="font-mono font-semibold text-slate-800">
                   Rp {subtotal.toLocaleString("id-ID")}
                 </span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between text-amber-600 font-semibold">
+                <div className="flex justify-between text-purple-700 font-semibold">
                   <span>Diskon Kupon</span>
-                  <span>-Rp {discount.toLocaleString("id-ID")}</span>
+                  <span className="font-mono">
+                    -Rp {discount.toLocaleString("id-ID")}
+                  </span>
                 </div>
               )}
-              <div className="flex justify-between text-neutral-500">
+              <div className="flex justify-between text-slate-500">
                 <span>Biaya Layanan ({serviceFeePercentage}%)</span>
-                <span className="font-semibold">
+                <span className="font-mono font-semibold text-slate-800">
                   Rp {serviceFee.toLocaleString("id-ID")}
                 </span>
               </div>
-              <div className="flex justify-between text-base font-black text-neutral-900 pt-2 border-t border-neutral-100">
+              <div className="flex justify-between text-base font-black text-slate-900 pt-2 border-t border-dashed border-slate-200">
                 <span>Total Tagihan</span>
-                <span className="text-emerald-600">
+                <span className="font-mono text-emerald-600 font-black">
                   Rp {totalAmount.toLocaleString("id-ID")}
                 </span>
               </div>
@@ -790,9 +789,9 @@ export default function CashierPOS() {
             <button
               type="submit"
               disabled={submitting || cart.length === 0}
-              className="w-full bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-300 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-md flex items-center justify-center gap-2 cursor-pointer mt-2"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer mt-2"
             >
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle2 className="w-4 h-4 text-sky-200" />
               <span>
                 {submitting
                   ? "Memproses..."
@@ -805,20 +804,20 @@ export default function CashierPOS() {
 
       {/* MODAL PILIHAN VARIAN / LEVEL KEPEDASAN / ADD-ON */}
       {selectedMenuForOptions && (
-        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-md space-y-6 shadow-2xl my-auto animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center pb-3 border-b border-neutral-100">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl my-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-base font-bold text-neutral-900">
+                <h3 className="text-base font-bold text-slate-900">
                   Pilih Varian: {selectedMenuForOptions.name}
                 </h3>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-slate-500">
                   Sesuaikan level kepedasan atau tambahan add-on.
                 </p>
               </div>
               <button
                 onClick={() => setSelectedMenuForOptions(null)}
-                className="text-neutral-400 p-2 cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -828,9 +827,9 @@ export default function CashierPOS() {
               {selectedMenuForOptions.bundleOptions.map((opt, optIdx) => (
                 <div
                   key={optIdx}
-                  className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-2.5"
+                  className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2.5"
                 >
-                  <label className="text-xs font-extrabold uppercase tracking-wider text-neutral-800 block">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-800 block">
                     {opt.title}
                   </label>
                   <div className="grid grid-cols-1 gap-2">
@@ -847,15 +846,15 @@ export default function CashierPOS() {
                               [optIdx]: choice,
                             })
                           }
-                          className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold border transition flex justify-between items-center cursor-pointer ${
+                          className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold border transition flex justify-between items-center cursor-pointer shadow-2xs ${
                             isSelected
-                              ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
-                              : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-100"
+                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                              : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                           }`}
                         >
                           <span>{choice.name}</span>
                           <span
-                            className={`font-mono text-[11px] ${isSelected ? "text-amber-300" : "text-emerald-600"}`}
+                            className={`font-mono text-[11px] ${isSelected ? "text-sky-200" : "text-emerald-600"}`}
                           >
                             {choice.price > 0
                               ? `+Rp ${choice.price.toLocaleString("id-ID")}`
@@ -869,18 +868,18 @@ export default function CashierPOS() {
               ))}
             </div>
 
-            <div className="flex gap-3 pt-2 border-t border-neutral-100">
+            <div className="flex gap-3 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setSelectedMenuForOptions(null)}
-                className="flex-1 bg-neutral-100 text-neutral-700 py-3 rounded-2xl text-xs font-bold cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-2xl text-xs font-bold transition cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={handleConfirmWithOptions}
-                className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold shadow-md cursor-pointer"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 cursor-pointer"
               >
                 Masukkan ke Keranjang
               </button>
@@ -891,32 +890,32 @@ export default function CashierPOS() {
 
       {/* MODAL QRIS DINAMIS PEMBAYARAN */}
       {isQrisModalOpen && (
-        <div className="fixed inset-0 w-screen h-screen bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden border border-neutral-200 animate-in fade-in zoom-in-95 duration-200 my-auto">
-            <div className="bg-red-700 text-white px-6 pt-5 pb-4 relative flex flex-col items-center text-center shadow-md">
+        <div className="fixed inset-0 w-screen h-screen bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 my-auto">
+            <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white px-6 pt-5 pb-4 relative flex flex-col items-center text-center shadow-md">
               <button
                 onClick={() => setIsQrisModalOpen(false)}
-                className="absolute right-4 top-4 w-7 h-7 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center text-white transition cursor-pointer"
+                className="absolute right-4 top-4 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
 
               <div className="flex items-center gap-1.5 mb-1">
-                <span className="text-lg font-black tracking-wider uppercase italic bg-white text-red-700 px-3 py-0.5 rounded-lg shadow-sm">
+                <span className="text-lg font-black tracking-wider uppercase italic bg-white text-blue-900 px-3 py-0.5 rounded-lg shadow-sm">
                   QRIS
                 </span>
               </div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-red-100 opacity-90">
+              <p className="text-[10px] font-bold tracking-widest uppercase text-sky-100 opacity-90">
                 QUICK RESPONSE CODE INDONESIA STANDARD
               </p>
             </div>
 
-            <div className="px-6 py-5 space-y-4 text-center bg-gradient-to-b from-neutral-50 to-white">
-              <div className="space-y-0.5 border-b border-neutral-200/60 pb-3">
-                <h3 className="text-xs font-black uppercase text-neutral-900 tracking-wide">
+            <div className="px-6 py-5 space-y-4 text-center bg-gradient-to-b from-slate-50 to-white">
+              <div className="space-y-0.5 border-b border-slate-200/60 pb-3">
+                <h3 className="text-xs font-black uppercase text-slate-900 tracking-wide">
                   MUHAMAD TRI SAPUTRA
                 </h3>
-                <div className="flex justify-center items-center gap-2 text-[10px] text-neutral-500 font-mono">
+                <div className="flex justify-center items-center gap-2 text-[10px] text-slate-500 font-mono">
                   <span>NMID: ID1026561973821</span>
                   <span>•</span>
                   <span className="text-emerald-700 font-bold uppercase">
@@ -925,23 +924,21 @@ export default function CashierPOS() {
                 </div>
               </div>
 
-              <div className="bg-red-50/60 border border-red-100 rounded-2xl py-2 px-4 flex justify-between items-center text-xs">
-                <span className="text-neutral-600 font-bold">
-                  Total Tagihan:
-                </span>
-                <span className="font-black text-red-700 text-sm font-mono">
+              <div className="bg-blue-50/60 border border-blue-100 rounded-2xl py-2 px-4 flex justify-between items-center text-xs">
+                <span className="text-slate-600 font-bold">Total Tagihan:</span>
+                <span className="font-black text-blue-700 text-sm font-mono">
                   Rp {totalAmount.toLocaleString("id-ID")}
                 </span>
               </div>
 
-              <div className="bg-white border-2 border-neutral-200 p-4 rounded-3xl shadow-sm flex flex-col items-center justify-center relative">
-                <div className="absolute -top-3 bg-neutral-900 text-white text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
+              <div className="bg-white border-2 border-slate-200 p-4 rounded-3xl shadow-sm flex flex-col items-center justify-center relative">
+                <div className="absolute -top-3 bg-blue-600 text-white text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
                   Scan Dengan Semua E-Wallet & M-Banking
                 </div>
 
                 <div className="w-44 h-44 flex items-center justify-center mt-1">
                   {generatingQris ? (
-                    <div className="w-8 h-8 border-4 border-neutral-200 border-t-red-600 rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
                   ) : qrisImageUrl ? (
                     <img
                       src={qrisImageUrl}
@@ -949,20 +946,20 @@ export default function CashierPOS() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <span className="text-xs text-neutral-400">
+                    <span className="text-xs text-slate-400">
                       Gagal memuat QR
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="text-[11px] text-neutral-500 space-y-0.5">
+              <div className="text-[11px] text-slate-500 space-y-0.5">
                 <p>
                   Pelanggan:{" "}
-                  <strong className="text-neutral-800">{customerName}</strong>{" "}
+                  <strong className="text-slate-800">{customerName}</strong>{" "}
                   (Meja #{tableNumber})
                 </p>
-                <p className="text-[10px] text-neutral-400 italic">
+                <p className="text-[10px] text-slate-400 italic">
                   Nominal pembayaran telah terkunci otomatis pada sistem QRIS.
                 </p>
               </div>
@@ -971,7 +968,7 @@ export default function CashierPOS() {
                 <button
                   type="button"
                   onClick={() => setIsQrisModalOpen(false)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3 rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Batal
                 </button>
@@ -979,12 +976,12 @@ export default function CashierPOS() {
                   type="button"
                   disabled={submitting || generatingQris}
                   onClick={() => executeOrderCreation(pendingOrderData)}
-                  className="flex-1 bg-red-700 hover:bg-red-800 disabled:bg-neutral-300 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>
                     {submitting ? "Menyimpan..." : "Konfirmasi Lunas"}
                   </span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 text-sky-200" />
                 </button>
               </div>
             </div>
@@ -994,9 +991,9 @@ export default function CashierPOS() {
 
       {/* MODAL SCAN QR WAITING PAGE (MUNCUL SETELAH PEMBAYARAN KONFIRMASI / SUKSES) */}
       {isWaitingQrModalOpen && successOrderData && (
-        <div className="fixed inset-0 w-screen h-screen bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden border border-neutral-200 animate-in fade-in zoom-in-95 duration-200 my-auto text-center">
-            <div className="bg-neutral-900 text-white px-6 pt-6 pb-5 relative flex flex-col items-center shadow-md">
+        <div className="fixed inset-0 w-screen h-screen bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 my-auto text-center">
+            <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white px-6 pt-6 pb-5 relative flex flex-col items-center shadow-md">
               <button
                 onClick={() => setIsWaitingQrModalOpen(false)}
                 className="absolute right-4 top-4 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
@@ -1004,18 +1001,18 @@ export default function CashierPOS() {
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mb-2 font-bold">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 text-emerald-300 border border-white/30 flex items-center justify-center mb-2 font-bold shadow-sm">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <h3 className="text-base font-black tracking-tight text-white">
                 Pembayaran Berhasil! 🎉
               </h3>
-              <p className="text-xs text-neutral-300 mt-0.5">
+              <p className="text-xs text-sky-100 mt-0.5">
                 Silakan arahkan kamera pelanggan ke QR Code di bawah ini.
               </p>
             </div>
 
-            <div className="px-6 py-5 space-y-4 bg-gradient-to-b from-neutral-50 to-white">
+            <div className="px-6 py-5 space-y-4 bg-gradient-to-b from-slate-50 to-white">
               <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs">
                 <p className="font-extrabold text-emerald-900">
                   {successOrderData.customerName} (Meja #
@@ -1027,8 +1024,8 @@ export default function CashierPOS() {
                 </p>
               </div>
 
-              <div className="bg-white border-2 border-neutral-200 p-4 rounded-3xl shadow-sm flex flex-col items-center justify-center relative">
-                <div className="absolute -top-3 bg-neutral-900 text-white text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
+              <div className="bg-white border-2 border-slate-200 p-4 rounded-3xl shadow-sm flex flex-col items-center justify-center relative">
+                <div className="absolute -top-3 bg-blue-600 text-white text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
                   Scan untuk Halaman Antrean (Waiting Page)
                 </div>
 
@@ -1040,12 +1037,12 @@ export default function CashierPOS() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
                   )}
                 </div>
               </div>
 
-              <p className="text-[11px] text-neutral-500 italic">
+              <p className="text-[11px] text-slate-500 italic">
                 Pelanggan dapat memantau status pesanan (Pending → Processing →
                 Ready) secara langsung dari HP mereka.
               </p>
@@ -1054,7 +1051,7 @@ export default function CashierPOS() {
                 <button
                   type="button"
                   onClick={() => setIsWaitingQrModalOpen(false)}
-                  className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>Selesai / Tutup</span>
                 </button>

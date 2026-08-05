@@ -289,20 +289,22 @@ export default function FinanceManagement() {
   }, [currentTableData, currentPage]);
 
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans">
-      {/* BANNER HEADER ESTETIK & BRANDING */}
-      <div className="relative bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 rounded-3xl p-6 lg:p-8 text-white shadow-2xl overflow-hidden border border-neutral-800">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans antialiased text-slate-900 bg-sky-50/40 min-h-screen">
+      {/* BANNER HEADER ESTETIK & BRANDING - Nuansa Biru Terang */}
+      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 rounded-[2.5rem] p-6 lg:p-8 text-white shadow-xl overflow-hidden border border-blue-600/40">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 px-3 py-1 rounded-full text-[11px] font-black text-emerald-400 tracking-wide">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 px-3 py-1 rounded-full text-[11px] font-black text-sky-100 tracking-wide shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-sky-200" />
               <span>SWIFT ORDERING ENTERPRISE FINANCE</span>
             </div>
             <h1 className="text-2xl lg:text-3xl font-black tracking-tight text-white">
               Pusat Kontrol Finansial & Laba Rugi
             </h1>
-            <p className="text-xs text-neutral-400 font-medium max-w-xl">
+            <p className="text-xs text-sky-100 font-medium max-w-xl leading-relaxed">
               Kelola seluruh aliran kas masuk dari transaksi pelanggan dan
               pencatatan biaya operasional restoran secara akurat dan
               transparan.
@@ -312,16 +314,16 @@ export default function FinanceManagement() {
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={exportToExcel}
-              className="flex items-center gap-2 px-5 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-2xl text-xs font-black shadow-md border border-neutral-700 transition cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-2xl text-xs font-black shadow-md border border-white/25 transition cursor-pointer"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+              <FileSpreadsheet className="w-4 h-4 text-sky-200" />
               <span>Unduh Laporan Excel</span>
             </button>
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-5 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 rounded-2xl text-xs font-black shadow-lg transition cursor-pointer active:scale-95"
+              className="flex items-center gap-2 px-5 py-3.5 bg-white hover:bg-sky-50 text-blue-900 rounded-2xl text-xs font-black shadow-lg transition cursor-pointer active:scale-95"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="w-4 h-4 text-blue-600" />
               <span>Catat Pengeluaran</span>
             </button>
           </div>
@@ -329,9 +331,9 @@ export default function FinanceManagement() {
       </div>
 
       {/* Filter Rentang Tanggal Kustom */}
-      <div className="bg-white border border-neutral-200/80 p-4 rounded-3xl shadow-sm flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2 text-xs font-bold text-neutral-700">
-          <Calendar className="w-4 h-4 text-neutral-500" />
+      <div className="bg-white border border-slate-200/80 p-4 rounded-3xl shadow-xs flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+          <Calendar className="w-4 h-4 text-blue-600" />
           <span>Filter Periode:</span>
         </div>
         <div className="flex items-center gap-2">
@@ -339,14 +341,14 @@ export default function FinanceManagement() {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-neutral-900"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
           />
-          <span className="text-xs text-neutral-400 font-bold">s/d</span>
+          <span className="text-xs text-slate-400 font-bold">s/d</span>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-neutral-900"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
           />
           {(startDate || endDate) && (
             <button
@@ -364,78 +366,78 @@ export default function FinanceManagement() {
 
       {/* Kartu Metrik Keuangan Utama */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-sm space-y-3 relative overflow-hidden">
+        <div className="bg-white border border-slate-200/80 p-6 rounded-3xl shadow-xs space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-neutral-400">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
               Total Omzet (Revenue)
             </span>
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <h2 className="text-xl lg:text-2xl font-black tracking-tight text-neutral-900">
+            <h2 className="text-xl lg:text-2xl font-black tracking-tight text-slate-900 font-mono">
               {formatRupiah(summary.totalRevenue)}
             </h2>
-            <p className="text-[11px] text-neutral-500 font-medium mt-1">
+            <p className="text-[11px] text-slate-500 font-medium mt-1">
               Dari {summary.totalTransactions} pesanan selesai.
             </p>
           </div>
         </div>
 
-        <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-sm space-y-3 relative overflow-hidden">
+        <div className="bg-white border border-slate-200/80 p-6 rounded-3xl shadow-xs space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-neutral-400">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
               Total Pengeluaran
             </span>
-            <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center font-bold border border-red-100">
               <TrendingDown className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <h2 className="text-xl lg:text-2xl font-black tracking-tight text-red-600">
+            <h2 className="text-xl lg:text-2xl font-black tracking-tight text-red-600 font-mono">
               {formatRupiah(summary.totalExpenses)}
             </h2>
-            <p className="text-[11px] text-neutral-500 font-medium mt-1">
+            <p className="text-[11px] text-slate-500 font-medium mt-1">
               Biaya operasional & pengeluaran lain.
             </p>
           </div>
         </div>
 
-        <div className="bg-white border border-neutral-200/80 p-6 rounded-3xl shadow-sm space-y-3 relative overflow-hidden">
+        <div className="bg-white border border-slate-200/80 p-6 rounded-3xl shadow-xs space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-neutral-400">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
               Perkiraan Laba Kotor
             </span>
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <h2 className="text-xl lg:text-2xl font-black tracking-tight text-neutral-900">
+            <h2 className="text-xl lg:text-2xl font-black tracking-tight text-slate-900 font-mono">
               {formatRupiah(summary.grossProfit)}
             </h2>
-            <p className="text-[11px] text-neutral-500 font-medium mt-1">
+            <p className="text-[11px] text-slate-500 font-medium mt-1">
               Omzet dikurangi estimasi HPP (40%).
             </p>
           </div>
         </div>
 
-        <div className="bg-neutral-950 text-white border border-neutral-800 p-6 rounded-3xl shadow-xl space-y-3 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="bg-gradient-to-br from-blue-700 to-blue-900 text-white border border-blue-600/40 p-6 rounded-3xl shadow-lg space-y-3 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400">
+            <span className="text-[11px] font-black uppercase tracking-wider text-sky-200">
               Laba Bersih (Net Profit)
             </span>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-neutral-950 flex items-center justify-center font-bold shadow-md">
+            <div className="w-10 h-10 rounded-2xl bg-white text-blue-900 flex items-center justify-center font-bold shadow-sm">
               <Wallet className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <h2 className="text-xl lg:text-2xl font-black tracking-tight text-emerald-400">
+            <h2 className="text-xl lg:text-2xl font-black tracking-tight text-emerald-300 font-mono">
               {formatRupiah(summary.netProfit)}
             </h2>
-            <p className="text-[11px] text-neutral-400 font-medium mt-1">
+            <p className="text-[11px] text-sky-100 font-medium mt-1">
               Pendapatan bersih setelah dikurangi operasional.
             </p>
           </div>
@@ -445,15 +447,15 @@ export default function FinanceManagement() {
       {/* GRAFIK VISUALISASI (AREA TREN & KOMPARASI BATANG) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Grafik Area Tren Pendapatan */}
-        <div className="lg:col-span-2 bg-white border border-neutral-200/80 rounded-3xl shadow-sm p-6 space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+        <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-3xl shadow-xs p-6 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-neutral-900" />
-              <h3 className="text-base font-black text-neutral-900">
+              <BarChart3 className="w-5 h-5 text-blue-600" />
+              <h3 className="text-base font-black text-slate-900">
                 Grafik Tren Pendapatan Harian
               </h3>
             </div>
-            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Visualisasi Omzet
             </span>
           </div>
@@ -472,42 +474,49 @@ export default function FinanceManagement() {
                       x2="0"
                       y2="1"
                     >
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
-                    stroke="#f0f0f0"
+                    stroke="#f1f5f9"
                   />
                   <XAxis
                     dataKey="date"
-                    stroke="#888888"
+                    stroke="#94a3b8"
                     fontSize={11}
                     tickLine={false}
                   />
                   <YAxis
-                    stroke="#888888"
+                    stroke="#94a3b8"
                     fontSize={11}
                     tickLine={false}
                     tickFormatter={(val) => `Rp ${val / 1000}k`}
                   />
                   <Tooltip
                     formatter={(value) => [formatRupiah(value), "Omzet"]}
+                    contentStyle={{
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e2e8f0",
+                      borderRadius: "16px",
+                      fontSize: "12px",
+                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)",
+                    }}
                   />
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#10b981"
-                    strokeWidth={3}
+                    stroke="#2563eb"
+                    strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#colorRevenue)"
                   />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-xs font-bold text-neutral-400">
+              <div className="h-full flex items-center justify-center text-xs font-bold text-slate-400">
                 Belum cukup data untuk menampilkan grafik tren.
               </div>
             )}
@@ -515,15 +524,15 @@ export default function FinanceManagement() {
         </div>
 
         {/* Grafik Komparasi Bar Chart (Pemasukan vs Pengeluaran) */}
-        <div className="bg-white border border-neutral-200/80 rounded-3xl shadow-sm p-6 space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+        <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs p-6 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-neutral-900" />
-              <h3 className="text-base font-black text-neutral-900">
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+              <h3 className="text-base font-black text-slate-900">
                 Komparasi Kas
               </h3>
             </div>
-            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Masuk vs Keluar
             </span>
           </div>
@@ -537,40 +546,49 @@ export default function FinanceManagement() {
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
-                    stroke="#f0f0f0"
+                    stroke="#f1f5f9"
                   />
                   <XAxis
                     dataKey="date"
-                    stroke="#888888"
+                    stroke="#94a3b8"
                     fontSize={10}
                     tickLine={false}
                   />
                   <YAxis
-                    stroke="#888888"
+                    stroke="#94a3b8"
                     fontSize={10}
                     tickLine={false}
                     tickFormatter={(val) => `${val / 1000}k`}
                   />
-                  <Tooltip formatter={(value) => [formatRupiah(value)]} />
+                  <Tooltip
+                    formatter={(value) => [formatRupiah(value)]}
+                    contentStyle={{
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e2e8f0",
+                      borderRadius: "16px",
+                      fontSize: "12px",
+                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)",
+                    }}
+                  />
                   <Legend
                     wrapperStyle={{ fontSize: "10px", paddingTop: "5px" }}
                   />
                   <Bar
                     dataKey="revenue"
                     name="Pemasukan"
-                    fill="#10b981"
-                    radius={[4, 4, 0, 0]}
+                    fill="#2563eb"
+                    radius={[6, 6, 0, 0]}
                   />
                   <Bar
                     dataKey="expense"
                     name="Pengeluaran"
                     fill="#ef4444"
-                    radius={[4, 4, 0, 0]}
+                    radius={[6, 6, 0, 0]}
                   />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-xs font-bold text-neutral-400">
+              <div className="h-full flex items-center justify-center text-xs font-bold text-slate-400">
                 Belum ada data komparasi.
               </div>
             )}
@@ -583,15 +601,15 @@ export default function FinanceManagement() {
         {expenseCategoryBreakdown.map((cat, idx) => (
           <div
             key={idx}
-            className="bg-white border border-neutral-200/80 p-5 rounded-3xl shadow-sm space-y-1"
+            className="bg-white border border-slate-200/80 p-5 rounded-3xl shadow-xs space-y-1"
           >
-            <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
               Kategori: {cat.name}
             </span>
-            <h4 className="text-base font-black text-neutral-900">
+            <h4 className="text-base font-black text-slate-900 font-mono">
               {formatRupiah(cat.total)}
             </h4>
-            <p className="text-[10px] text-neutral-500 font-medium">
+            <p className="text-[10px] text-slate-500 font-medium">
               Total biaya pos {cat.name}
             </p>
           </div>
@@ -599,15 +617,15 @@ export default function FinanceManagement() {
       </div>
 
       {/* TAB PEMISAH: PENGELUARAN VS PEMASUKAN */}
-      <div className="bg-white border border-neutral-200/80 rounded-3xl shadow-sm overflow-hidden p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-100">
-          <div className="flex items-center gap-2 bg-neutral-100 p-1.5 rounded-2xl">
+      <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl">
             <button
               onClick={() => setActiveTab("pengeluaran")}
               className={`px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
                 activeTab === "pengeluaran"
-                  ? "bg-neutral-900 text-white shadow-md"
-                  : "text-neutral-600 hover:text-neutral-900"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Riwayat Pengeluaran ({expenses.length})
@@ -616,8 +634,8 @@ export default function FinanceManagement() {
               onClick={() => setActiveTab("pemasukan")}
               className={`px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
                 activeTab === "pemasukan"
-                  ? "bg-neutral-900 text-white shadow-md"
-                  : "text-neutral-600 hover:text-neutral-900"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Riwayat Pemasukan / Omzet ({summary.ordersList?.length || 0})
@@ -625,7 +643,7 @@ export default function FinanceManagement() {
           </div>
 
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               placeholder={
@@ -635,7 +653,7 @@ export default function FinanceManagement() {
               }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-neutral-900 transition"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 transition"
             />
           </div>
         </div>
@@ -644,7 +662,7 @@ export default function FinanceManagement() {
         {activeTab === "pengeluaran" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-neutral-500 font-medium">
+              <p className="text-xs text-slate-500 font-medium">
                 Daftar biaya operasional, bahan baku, atau pengeluaran lain
                 restoran.
               </p>
@@ -656,8 +674,8 @@ export default function FinanceManagement() {
                       onClick={() => setSelectedCategory(cat)}
                       className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition cursor-pointer whitespace-nowrap ${
                         selectedCategory === cat
-                          ? "bg-neutral-900 text-white shadow-sm"
-                          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                     >
                       {cat}
@@ -670,7 +688,7 @@ export default function FinanceManagement() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider">
                     <th className="py-3 px-4">Keterangan / Judul</th>
                     <th className="py-3 px-4">Kategori</th>
                     <th className="py-3 px-4">Nominal</th>
@@ -678,12 +696,12 @@ export default function FinanceManagement() {
                     <th className="py-3 px-4 text-center">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+                <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-800">
                   {loading ? (
                     <tr>
                       <td
                         colSpan="5"
-                        className="text-center py-12 text-neutral-400 font-bold"
+                        className="text-center py-12 text-slate-400 font-bold"
                       >
                         Memuat data pengeluaran...
                       </td>
@@ -692,27 +710,27 @@ export default function FinanceManagement() {
                     paginatedData.map((exp) => (
                       <tr
                         key={exp._id}
-                        className="hover:bg-neutral-50/60 transition group"
+                        className="hover:bg-slate-50/60 transition group"
                       >
                         <td className="py-3.5 px-4">
-                          <p className="font-extrabold text-neutral-900">
+                          <p className="font-extrabold text-slate-900">
                             {exp.title}
                           </p>
                           {exp.note && (
-                            <p className="text-[11px] text-neutral-400 font-normal mt-0.5">
+                            <p className="text-[11px] text-slate-400 font-normal mt-0.5">
                               {exp.note}
                             </p>
                           )}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-1 bg-neutral-100 border border-neutral-200 text-neutral-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                          <span className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
                             {exp.category}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-black text-red-600 text-sm">
+                        <td className="py-3.5 px-4 font-black text-red-600 text-sm font-mono">
                           {formatRupiah(exp.amount)}
                         </td>
-                        <td className="py-3.5 px-4 text-neutral-500 font-medium">
+                        <td className="py-3.5 px-4 text-slate-500 font-medium">
                           {new Date(exp.date).toLocaleDateString("id-ID", {
                             dateStyle: "medium",
                           })}
@@ -720,7 +738,7 @@ export default function FinanceManagement() {
                         <td className="py-3.5 px-4 text-center">
                           <button
                             onClick={() => handleDeleteExpense(exp._id)}
-                            className="p-2 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition cursor-pointer shadow-sm"
+                            className="p-2 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl transition cursor-pointer shadow-xs"
                             title="Hapus Catatan"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -732,7 +750,7 @@ export default function FinanceManagement() {
                     <tr>
                       <td
                         colSpan="5"
-                        className="text-center py-12 text-neutral-400 font-bold"
+                        className="text-center py-12 text-slate-400 font-bold"
                       >
                         Tidak ada catatan pengeluaran ditemukan.
                       </td>
@@ -747,13 +765,13 @@ export default function FinanceManagement() {
         {/* KONTEN TAB: PEMASUKAN */}
         {activeTab === "pemasukan" && (
           <div className="space-y-4">
-            <p className="text-xs text-neutral-500 font-medium">
+            <p className="text-xs text-slate-500 font-medium">
               Daftar transaksi pesanan masuk yang sukses dibayar oleh pelanggan.
             </p>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider">
                     <th className="py-3 px-4">ID Pesanan</th>
                     <th className="py-3 px-4">Meja</th>
                     <th className="py-3 px-4">Total Omzet</th>
@@ -761,12 +779,12 @@ export default function FinanceManagement() {
                     <th className="py-3 px-4">Waktu Transaksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+                <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-800">
                   {loading ? (
                     <tr>
                       <td
                         colSpan="5"
-                        className="text-center py-12 text-neutral-400 font-bold"
+                        className="text-center py-12 text-slate-400 font-bold"
                       >
                         Memuat data pemasukan...
                       </td>
@@ -775,9 +793,9 @@ export default function FinanceManagement() {
                     paginatedData.map((ord) => (
                       <tr
                         key={ord._id}
-                        className="hover:bg-neutral-50/60 transition"
+                        className="hover:bg-slate-50/60 transition"
                       >
-                        <td className="py-3.5 px-4 font-mono font-bold text-neutral-900">
+                        <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
                           #{ord._id.slice(-6).toUpperCase()}
                         </td>
                         <td className="py-3.5 px-4">
@@ -785,7 +803,7 @@ export default function FinanceManagement() {
                             Meja {ord.tableNumber || "Takeaway"}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-black text-emerald-600 text-sm">
+                        <td className="py-3.5 px-4 font-black text-emerald-600 text-sm font-mono">
                           {formatRupiah(ord.totalAmount || ord.grandTotal)}
                         </td>
                         <td className="py-3.5 px-4">
@@ -793,7 +811,7 @@ export default function FinanceManagement() {
                             {ord.paymentStatus || "Paid"}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 text-neutral-500 font-medium">
+                        <td className="py-3.5 px-4 text-slate-500 font-medium">
                           {new Date(ord.createdAt).toLocaleString("id-ID", {
                             dateStyle: "medium",
                             timeStyle: "short",
@@ -805,7 +823,7 @@ export default function FinanceManagement() {
                     <tr>
                       <td
                         colSpan="5"
-                        className="text-center py-12 text-neutral-400 font-bold"
+                        className="text-center py-12 text-slate-400 font-bold"
                       >
                         Tidak ada data pemasukan ditemukan.
                       </td>
@@ -819,7 +837,7 @@ export default function FinanceManagement() {
 
         {/* PAGINATION CONTROLS (NEXT / PREV) */}
         {!loading && currentTableData.length > itemsPerPage && (
-          <div className="flex items-center justify-between pt-4 border-t border-neutral-100 text-xs font-bold text-neutral-600">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs font-bold text-slate-600">
             <p>
               Menampilkan {(currentPage - 1) * itemsPerPage + 1} -{" "}
               {Math.min(currentPage * itemsPerPage, currentTableData.length)}{" "}
@@ -829,12 +847,12 @@ export default function FinanceManagement() {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl transition cursor-pointer"
+                className="flex items-center gap-1 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl transition cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Sebelumnya</span>
               </button>
-              <span className="px-3 py-2 bg-neutral-900 text-white rounded-xl">
+              <span className="px-3 py-2 bg-blue-600 text-white rounded-xl shadow-xs">
                 {currentPage} / {totalPages}
               </span>
               <button
@@ -842,7 +860,7 @@ export default function FinanceManagement() {
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl transition cursor-pointer"
+                className="flex items-center gap-1 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl transition cursor-pointer"
               >
                 <span>Berikutnya</span>
                 <ChevronRight className="w-4 h-4" />
@@ -854,20 +872,20 @@ export default function FinanceManagement() {
 
       {/* MODAL TAMBAH PENGELUARAN */}
       {showModal && (
-        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-neutral-200 rounded-3xl p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-black text-neutral-900">
+                <h3 className="text-lg font-black text-slate-900">
                   Catat Pengeluaran Baru
                 </h3>
-                <p className="text-xs text-neutral-500 font-medium">
+                <p className="text-xs text-slate-500 font-medium">
                   Masukkan detail biaya operasional restoran.
                 </p>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="w-9 h-9 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-600 transition cursor-pointer"
+                className="w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-600 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -875,7 +893,7 @@ export default function FinanceManagement() {
 
             <form onSubmit={handleAddExpense} className="space-y-4">
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Judul Pengeluaran
                 </label>
                 <input
@@ -886,12 +904,12 @@ export default function FinanceManagement() {
                     setFormData({ ...formData, title: e.target.value })
                   }
                   placeholder="Contoh: Beli Gas 12kg & Minyak Goreng"
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-neutral-900 transition"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Kategori
                 </label>
                 <select
@@ -899,7 +917,7 @@ export default function FinanceManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-neutral-900 transition cursor-pointer"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 transition cursor-pointer"
                 >
                   <option value="Operasional">Operasional</option>
                   <option value="Bahan Baku">Bahan Baku</option>
@@ -909,7 +927,7 @@ export default function FinanceManagement() {
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Nominal (Rupiah)
                 </label>
                 <div className="relative">
@@ -919,7 +937,7 @@ export default function FinanceManagement() {
                     value={formData.displayAmount}
                     onChange={handleAmountChange}
                     placeholder="Contoh: Rp 150.000"
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-neutral-900 transition"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 focus:outline-none focus:border-blue-600 transition"
                   />
                 </div>
                 {formData.amount > 0 && (
@@ -930,7 +948,7 @@ export default function FinanceManagement() {
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Catatan Tambahan (Opsional)
                 </label>
                 <textarea
@@ -940,7 +958,7 @@ export default function FinanceManagement() {
                     setFormData({ ...formData, note: e.target.value })
                   }
                   placeholder="Keterangan tambahan..."
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-neutral-900 transition"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 transition"
                 ></textarea>
               </div>
 
@@ -948,13 +966,13 @@ export default function FinanceManagement() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg cursor-pointer"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 cursor-pointer"
                 >
                   Simpan Catatan
                 </button>

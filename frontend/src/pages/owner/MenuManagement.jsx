@@ -512,7 +512,7 @@ export default function MenuManagement() {
 
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-sky-100 border border-white/25 shadow-2xs">
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3.5 py-1.5 text-xs font-bold text-sky-100 border border-white/25 shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-sky-200 animate-pulse" />
               <span>Sistem Manajemen Katalog, Resep & Promo Terpadu</span>
             </div>

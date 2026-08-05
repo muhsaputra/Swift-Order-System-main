@@ -590,27 +590,27 @@ export default function TransactionHistory() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 pb-20">
-      {/* HERO BANNER ATTRACTION */}
-      <div className="relative bg-neutral-900 text-white py-10 px-6 md:px-12 overflow-hidden mb-8 shadow-md">
+    <div className="min-h-screen bg-sky-50/40 text-slate-900 pb-20">
+      {/* HERO BANNER ATTRACTION - Nuansa Biru Terang */}
+      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 text-white py-10 px-6 md:px-12 overflow-hidden mb-8 shadow-xl rounded-[2.5rem]">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50 scale-105 pointer-events-none"
+          className="absolute inset-0 bg-cover bg-center opacity-20 filter brightness-50 scale-105 pointer-events-none"
           style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1920&q=80')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/80 via-blue-900/40 to-transparent pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-white/10">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[11px] font-bold text-sky-100 border border-white/25 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-sky-200" />
               <span>Arsip & Riwayat Keuangan</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
               Riwayat Transaksi & Analitik
             </h1>
-            <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
+            <p className="text-xs md:text-sm text-sky-100 max-w-lg leading-relaxed">
               Pantau seluruh daftar pesanan selesai, rekapitulasi biaya layanan,
               diskon, dan analitik omset restoran secara real-time.
             </p>
@@ -620,21 +620,21 @@ export default function TransactionHistory() {
             {/* Tombol Akses Fitur Rekap Shift Kasir */}
             <button
               onClick={() => setShowShiftModal(true)}
-              className="bg-amber-500 hover:bg-amber-600 text-neutral-950 px-5 py-3 rounded-2xl text-xs font-black transition shadow-lg flex items-center gap-2 cursor-pointer"
+              className="bg-white hover:bg-sky-50 text-blue-900 px-5 py-3 rounded-2xl text-xs font-black transition shadow-lg flex items-center gap-2 cursor-pointer"
             >
-              <Calculator className="w-4 h-4" />
+              <Calculator className="w-4 h-4 text-blue-600" />
               <span>Rekap Shift & Kas Fisik (Z-Report)</span>
             </button>
 
-            <div className="bg-white/15 backdrop-blur-xl border border-white/20 p-4 rounded-3xl flex items-center gap-4 shadow-xl">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center font-black">
+            <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl flex items-center gap-4 shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-white text-blue-900 flex items-center justify-center font-black shadow-sm">
                 <Receipt className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-neutral-300 font-bold">
+                <p className="text-[10px] uppercase tracking-wider text-sky-200 font-bold">
                   Total Omset Bersih
                 </p>
-                <p className="text-sm font-black font-mono text-emerald-400">
+                <p className="text-sm font-black font-mono text-emerald-300">
                   Rp {totalRevenue.toLocaleString("id-ID")}
                 </p>
               </div>
@@ -646,26 +646,26 @@ export default function TransactionHistory() {
       <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-8">
         {/* Metrik Finansial Tambahan (Service Fee & Diskon Kupon) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl shadow-2xs flex items-center gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+          <div className="bg-white border border-slate-200/80 p-5 rounded-3xl shadow-xs flex items-center gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100">
               <Percent className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
                 Akumulasi Service Fee ({serviceFeePercentage}%)
               </p>
-              <p className="text-sm font-black font-mono text-neutral-900">
+              <p className="text-sm font-black font-mono text-slate-900">
                 Rp {totalServiceFee.toLocaleString("id-ID")}
               </p>
             </div>
           </div>
 
-          <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl shadow-2xs flex items-center gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-bold">
+          <div className="bg-white border border-slate-200/80 p-5 rounded-3xl shadow-xs flex items-center gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center font-bold border border-red-100">
               <Tag className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
                 Total Diskon Kupon
               </p>
               <p className="text-sm font-black font-mono text-red-600">
@@ -674,15 +674,15 @@ export default function TransactionHistory() {
             </div>
           </div>
 
-          <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl shadow-2xs flex items-center gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+          <div className="bg-white border border-slate-200/80 p-5 rounded-3xl shadow-xs flex items-center gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
                 Total Transaksi Selesai
               </p>
-              <p className="text-sm font-black font-mono text-neutral-900">
+              <p className="text-sm font-black font-mono text-slate-900">
                 {filteredOrders.length} Pesanan
               </p>
             </div>
@@ -691,46 +691,46 @@ export default function TransactionHistory() {
 
         {/* --- SECTION ANALITIK GRAFIK KOMPREHENSIF --- */}
         <section className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 p-5 rounded-3xl shadow-xs">
             <div>
-              <h3 className="text-base font-black text-neutral-900 flex items-center gap-2">
-                <Activity className="w-5 h-5 text-neutral-900" />
+              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-blue-600" />
                 Dashboard Analitik & Performa Penjualan
               </h3>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-slate-500">
                 Grafik interaktif tren omset, kategori menu, dan komparasi
                 metode bayar QRIS vs Cash.
               </p>
             </div>
 
             {/* Tombol Filter Rentang Waktu Grafik */}
-            <div className="flex items-center gap-1.5 bg-white border border-neutral-200 p-1.5 rounded-2xl shadow-2xs">
+            <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 p-1.5 rounded-2xl shadow-2xs">
               <button
                 onClick={() => setChartTimeRange("week")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                   chartTimeRange === "week"
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-neutral-600 hover:bg-neutral-100"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-white"
                 }`}
               >
                 Seminggu
               </button>
               <button
                 onClick={() => setChartTimeRange("month")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                   chartTimeRange === "month"
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-neutral-600 hover:bg-neutral-100"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-white"
                 }`}
               >
                 Sebulan
               </button>
               <button
                 onClick={() => setChartTimeRange("all")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                   chartTimeRange === "all"
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-neutral-600 hover:bg-neutral-100"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-white"
                 }`}
               >
                 Semua
@@ -741,14 +741,14 @@ export default function TransactionHistory() {
           {/* Grid Grafik */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 1. Tren Omset Area Chart */}
-            <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
+            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
                     Grafik Tren Penjualan
                   </h4>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className="text-[11px] text-slate-400">
                     Kurva akumulasi pendapatan bersih.
                   </p>
                 </div>
@@ -766,20 +766,20 @@ export default function TransactionHistory() {
                       >
                         <stop
                           offset="5%"
-                          stopColor="#171717"
-                          stopOpacity={0.8}
+                          stopColor="#2563eb"
+                          stopOpacity={0.4}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#171717"
+                          stopColor="#2563eb"
                           stopOpacity={0.0}
                         />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="date" stroke="#737373" fontSize={11} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} />
                     <YAxis
-                      stroke="#737373"
+                      stroke="#94a3b8"
                       fontSize={11}
                       tickFormatter={(value) => `Rp ${value / 1000}k`}
                     />
@@ -790,16 +790,17 @@ export default function TransactionHistory() {
                       ]}
                       contentStyle={{
                         backgroundColor: "#ffffff",
-                        borderColor: "#e5e5e5",
-                        borderRadius: "12px",
+                        borderColor: "#e2e8f0",
+                        borderRadius: "16px",
                         fontSize: "12px",
+                        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)",
                       }}
                     />
                     <Area
                       type="monotone"
                       dataKey="sales"
-                      stroke="#171717"
-                      strokeWidth={2}
+                      stroke="#2563eb"
+                      strokeWidth={2.5}
                       fillOpacity={1}
                       fill="url(#colorSales)"
                     />
@@ -809,14 +810,14 @@ export default function TransactionHistory() {
             </div>
 
             {/* 2. Performa Omset Berdasarkan Kategori Menu (Bar Chart) */}
-            <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
+            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-neutral-900" />
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-blue-600" />
                     Omset Kategori Menu
                   </h4>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className="text-[11px] text-slate-400">
                     Kontribusi penjualan tiap produk.
                   </p>
                 </div>
@@ -824,10 +825,10 @@ export default function TransactionHistory() {
               <div className="h-72 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={categoryBarData} barSize={42}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="category" stroke="#737373" fontSize={11} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="category" stroke="#94a3b8" fontSize={11} />
                     <YAxis
-                      stroke="#737373"
+                      stroke="#94a3b8"
                       fontSize={11}
                       tickFormatter={(value) => `Rp ${value / 1000}k`}
                     />
@@ -838,15 +839,16 @@ export default function TransactionHistory() {
                       ]}
                       contentStyle={{
                         backgroundColor: "#ffffff",
-                        borderColor: "#e5e5e5",
-                        borderRadius: "12px",
+                        borderColor: "#e2e8f0",
+                        borderRadius: "16px",
                         fontSize: "12px",
+                        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)",
                       }}
                     />
                     <Bar
                       dataKey="revenue"
-                      fill="#262626"
-                      radius={[8, 8, 0, 0]}
+                      fill="#3b82f6"
+                      radius={[10, 10, 0, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -854,14 +856,14 @@ export default function TransactionHistory() {
             </div>
 
             {/* 3. Komparasi Metode Pembayaran (QRIS vs Cash Bar Chart) */}
-            <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
+            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                     <Wallet className="w-4 h-4 text-blue-600" />
                     Metode Bayar (QRIS vs Cash)
                   </h4>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className="text-[11px] text-slate-400">
                     Perbandingan digital & fisik.
                   </p>
                 </div>
@@ -869,10 +871,10 @@ export default function TransactionHistory() {
               <div className="h-72 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={paymentComparisonBarData} barSize={50}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="name" stroke="#737373" fontSize={11} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
                     <YAxis
-                      stroke="#737373"
+                      stroke="#94a3b8"
                       fontSize={11}
                       tickFormatter={(value) => `Rp ${value / 1000}k`}
                     />
@@ -883,9 +885,10 @@ export default function TransactionHistory() {
                       ]}
                       contentStyle={{
                         backgroundColor: "#ffffff",
-                        borderColor: "#e5e5e5",
-                        borderRadius: "12px",
+                        borderColor: "#e2e8f0",
+                        borderRadius: "16px",
                         fontSize: "12px",
+                        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)",
                       }}
                     />
                     <Bar dataKey="revenue" radius={[10, 10, 0, 0]}>
@@ -901,12 +904,12 @@ export default function TransactionHistory() {
         </section>
 
         {/* Header & Tombol Download */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-neutral-200/80 gap-4 pt-4">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200/80 gap-4 pt-4">
           <div>
-            <h2 className="text-xl font-extrabold tracking-tight text-neutral-900">
+            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
               Daftar Transaksi Selesai
             </h2>
-            <p className="text-xs text-neutral-500 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Kelola dan telusuri arsip pesanan berdasarkan filter pencarian dan
               tanggal.
             </p>
@@ -915,18 +918,18 @@ export default function TransactionHistory() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleDownloadReport}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-3 rounded-2xl text-xs font-bold transition shadow-2xs flex items-center gap-2 cursor-pointer"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl text-xs font-bold transition shadow-md shadow-blue-600/20 flex items-center gap-2 cursor-pointer"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 text-sky-200" />
               <span>Download Laporan CSV</span>
             </button>
           </div>
         </header>
 
         {/* Bar Filter Terpadu (Search, Kalender, Metode Pembayaran) */}
-        <div className="bg-white border border-neutral-200/80 p-5 rounded-3xl shadow-2xs flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-white border border-slate-200/80 p-5 rounded-3xl shadow-xs flex flex-wrap items-center justify-between gap-4">
           <div className="relative flex-1 min-w-[240px]">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               placeholder="Cari nama pelanggan atau nomor meja..."
@@ -935,20 +938,20 @@ export default function TransactionHistory() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-neutral-50 border border-neutral-200 pl-10 pr-4 py-2.5 rounded-2xl text-xs font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition"
+              className="w-full bg-slate-50 border border-slate-200 pl-10 pr-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 transition"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200 px-3 py-2 rounded-2xl">
-              <Filter className="w-3.5 h-3.5 text-neutral-500" />
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-2xl">
+              <Filter className="w-3.5 h-3.5 text-blue-600" />
               <select
                 value={selectedPaymentMethod}
                 onChange={(e) => {
                   setSelectedPaymentMethod(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="bg-transparent text-xs font-semibold text-neutral-800 focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
               >
                 <option value="all">Semua Metode</option>
                 <option value="qris">QRIS Midtrans</option>
@@ -959,9 +962,9 @@ export default function TransactionHistory() {
             <div className="relative" ref={calendarRef}>
               <button
                 onClick={() => setShowCalendarDropdown(!showCalendarDropdown)}
-                className="flex items-center gap-2.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 px-4 py-2.5 rounded-2xl text-xs font-semibold text-neutral-800 transition cursor-pointer shadow-2xs"
+                className="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-800 transition cursor-pointer shadow-2xs"
               >
-                <CalendarIcon className="w-4 h-4 text-neutral-500" />
+                <CalendarIcon className="w-4 h-4 text-blue-600" />
                 <span>
                   {selectedDate
                     ? selectedDate.toLocaleDateString("id-ID", {
@@ -974,7 +977,7 @@ export default function TransactionHistory() {
               </button>
 
               {showCalendarDropdown && (
-                <div className="absolute right-0 mt-2 bg-white border border-neutral-200 rounded-3xl p-4 shadow-xl z-50">
+                <div className="absolute right-0 mt-2 bg-white border border-slate-200 rounded-3xl p-4 shadow-xl z-50">
                   <DayPicker
                     mode="single"
                     selected={selectedDate}
@@ -985,7 +988,7 @@ export default function TransactionHistory() {
                     }}
                     modifiersStyles={{
                       selected: {
-                        backgroundColor: "#171717",
+                        backgroundColor: "#2563eb",
                         color: "white",
                         fontWeight: "bold",
                       },
@@ -993,7 +996,7 @@ export default function TransactionHistory() {
                     className="text-xs"
                   />
                   {selectedDate && (
-                    <div className="pt-3 mt-3 border-t border-neutral-100 text-center">
+                    <div className="pt-3 mt-3 border-t border-slate-100 text-center">
                       <button
                         onClick={() => {
                           setSelectedDate(undefined);
@@ -1015,26 +1018,26 @@ export default function TransactionHistory() {
         {/* Tabel Transaksi */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-3">
-            <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin"></div>
-            <p className="text-xs text-neutral-500 font-medium">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="text-xs text-slate-500 font-medium">
               Memuat riwayat transaksi...
             </p>
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-16 bg-white border border-neutral-200/80 rounded-3xl shadow-2xs space-y-2">
-            <p className="text-sm font-bold text-neutral-700">
+          <div className="text-center py-16 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-2">
+            <p className="text-sm font-bold text-slate-700">
               Tidak ada riwayat transaksi yang cocok dengan kriteria filter.
             </p>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-slate-400">
               Coba ubah kata kunci pencarian atau reset filter tanggal.
             </p>
           </div>
         ) : (
-          <div className="bg-white border border-neutral-200/80 rounded-3xl overflow-hidden shadow-2xs">
+          <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-neutral-100 text-[11px] font-bold text-neutral-400 uppercase tracking-wider bg-neutral-50/50">
+                  <tr className="border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider bg-slate-50">
                     <th className="py-4 px-6">ID Pesanan</th>
                     <th className="py-4 px-6">Waktu</th>
                     <th className="py-4 px-6">Meja</th>
@@ -1045,28 +1048,28 @@ export default function TransactionHistory() {
                     <th className="py-4 px-6 text-center">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 text-xs text-neutral-700 font-medium">
+                <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
                   {currentOrders.map((order) => (
                     <tr
                       key={order._id}
-                      className="hover:bg-neutral-50/60 transition"
+                      className="hover:bg-slate-50/60 transition"
                     >
-                      <td className="py-4 px-6 font-mono text-neutral-400 font-semibold">
+                      <td className="py-4 px-6 font-mono text-slate-400 font-semibold">
                         #{order._id.slice(-6).toUpperCase()}
                       </td>
-                      <td className="py-4 px-6 font-mono text-neutral-500 text-[11px]">
+                      <td className="py-4 px-6 font-mono text-slate-500 text-[11px]">
                         {formatDateTime(order.createdAt)}
                       </td>
                       <td className="py-4 px-6">
-                        <span className="bg-neutral-100 text-neutral-900 font-extrabold px-2.5 py-1 rounded-lg">
+                        <span className="bg-slate-100 text-slate-900 font-extrabold px-2.5 py-1 rounded-lg">
                           Meja #{order.tableNumber}
                         </span>
                       </td>
-                      <td className="py-4 px-6 font-bold text-neutral-900 truncate max-w-[150px]">
+                      <td className="py-4 px-6 font-bold text-slate-900 truncate max-w-[150px]">
                         {order.customerName}
                       </td>
                       <td className="py-4 px-6">
-                        <span className="uppercase text-[10px] font-bold bg-neutral-100 px-2 py-1 rounded-md text-neutral-600">
+                        <span className="uppercase text-[10px] font-bold bg-slate-100 px-2 py-1 rounded-md text-slate-600">
                           {order.paymentMethod || "QRIS"}
                         </span>
                       </td>
@@ -1083,14 +1086,14 @@ export default function TransactionHistory() {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleOpenModal(order)}
-                            className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer flex items-center gap-1"
+                            className="bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-slate-200/80 shadow-2xs cursor-pointer flex items-center gap-1"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             Detail
                           </button>
                           <button
                             onClick={() => handlePrintReceipt(order)}
-                            className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 p-2 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs cursor-pointer flex items-center justify-center"
+                            className="bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 p-2 rounded-xl text-xs font-semibold transition border border-slate-200/80 shadow-2xs cursor-pointer flex items-center justify-center"
                             title="Cetak Struk"
                           >
                             <Printer className="w-3.5 h-3.5" />
@@ -1104,18 +1107,18 @@ export default function TransactionHistory() {
             </div>
 
             {/* Pagination Footer */}
-            <div className="px-6 py-4 border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-neutral-50/30">
-              <p className="text-xs text-neutral-500">
+            <div className="px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50">
+              <p className="text-xs text-slate-500">
                 Menampilkan{" "}
-                <span className="font-bold text-neutral-800">
+                <span className="font-bold text-slate-800">
                   {filteredOrders.length > 0 ? indexOfFirstItem + 1 : 0}
                 </span>{" "}
                 hingga{" "}
-                <span className="font-bold text-neutral-800">
+                <span className="font-bold text-slate-800">
                   {Math.min(indexOfLastItem, filteredOrders.length)}
                 </span>{" "}
                 dari{" "}
-                <span className="font-bold text-neutral-800">
+                <span className="font-bold text-slate-800">
                   {filteredOrders.length}
                 </span>{" "}
                 transaksi
@@ -1125,18 +1128,18 @@ export default function TransactionHistory() {
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
-                  className="bg-white hover:bg-neutral-100 text-neutral-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+                  className="bg-white hover:bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-slate-200/80 shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Sebelumnya
                 </button>
-                <span className="text-xs font-bold font-mono px-3 py-2 text-neutral-700 bg-white border border-neutral-200/80 rounded-xl shadow-2xs">
+                <span className="text-xs font-bold font-mono px-3 py-2 text-white bg-blue-600 rounded-xl shadow-xs">
                   {currentPage} / {totalPages || 1}
                 </span>
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="bg-white hover:bg-neutral-100 text-neutral-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-neutral-200/80 shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+                  className="bg-white hover:bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-slate-200/80 shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
                 >
                   Selanjutnya
                   <ChevronRight className="w-4 h-4" />
@@ -1148,40 +1151,40 @@ export default function TransactionHistory() {
 
         {/* --- MODAL REKAP KASIR & KAS FISIK (SHIFT RECONCILIATION) --- */}
         {showShiftModal && (
-          <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white border border-neutral-200 rounded-3xl p-6 md:p-8 w-full max-w-2xl space-y-6 my-8 shadow-2xl">
-              <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 w-full max-w-2xl space-y-6 my-8 shadow-2xl">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
                     <Calculator className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-neutral-900">
+                    <h3 className="text-base font-extrabold text-slate-900">
                       Rekapitulasi Shift Kerja & Kas Fisik (Z-Report)
                     </h3>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-slate-500">
                       Hitung uang fisik di laci kasir vs target omset sistem.
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowShiftModal(false)}
-                  className="text-neutral-400 hover:text-neutral-700 p-2 rounded-xl hover:bg-neutral-100 transition cursor-pointer"
+                  className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Informasi Shift & Kasir */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-200/60">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/60">
                 <div>
-                  <label className="block text-[11px] font-bold text-neutral-600 uppercase mb-1">
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
                     Pilih Shift Kerja
                   </label>
                   <select
                     value={shiftName}
                     onChange={(e) => setShiftName(e.target.value)}
-                    className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs font-semibold text-neutral-800 focus:outline-none"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600"
                   >
                     <option value="Shift Pagi">
                       Shift Pagi (08:00 - 16:00)
@@ -1193,14 +1196,14 @@ export default function TransactionHistory() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-neutral-600 uppercase mb-1">
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
                     Nama Kasir
                   </label>
                   <input
                     type="text"
                     value={cashierNameInput}
                     onChange={(e) => setCashierNameInput(e.target.value)}
-                    className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs font-semibold text-neutral-800 focus:outline-none"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600"
                     placeholder="Nama petugas kasir"
                   />
                 </div>
@@ -1209,10 +1212,10 @@ export default function TransactionHistory() {
               {/* Form Input Lembar Pecahan Rupiah Fisik */}
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-neutral-700">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
                     Input Lembar / Keping Pecahan Rupiah di Laci
                   </span>
-                  <span className="text-[11px] text-neutral-400 font-medium">
+                  <span className="text-[11px] text-slate-400 font-medium">
                     Masukkan jumlah lembar per pecahan
                   </span>
                 </div>
@@ -1222,9 +1225,9 @@ export default function TransactionHistory() {
                     (nominal) => (
                       <div
                         key={nominal}
-                        className="bg-neutral-50/80 border border-neutral-200/80 p-3 rounded-2xl space-y-1"
+                        className="bg-slate-50 border border-slate-200/80 p-3 rounded-2xl space-y-1"
                       >
-                        <label className="block text-[11px] font-bold font-mono text-neutral-600">
+                        <label className="block text-[11px] font-bold font-mono text-slate-600">
                           Rp {nominal.toLocaleString("id-ID")}
                         </label>
                         <div className="flex items-center gap-1.5">
@@ -1236,9 +1239,9 @@ export default function TransactionHistory() {
                             onChange={(e) =>
                               handleDenominationChange(nominal, e.target.value)
                             }
-                            className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-neutral-900"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-blue-600"
                           />
-                          <span className="text-[10px] text-neutral-400 font-semibold">
+                          <span className="text-[10px] text-slate-400 font-semibold">
                             lbr
                           </span>
                         </div>
@@ -1247,8 +1250,8 @@ export default function TransactionHistory() {
                   )}
 
                   {/* Koin / Pecahan Kecil Total */}
-                  <div className="bg-neutral-50/80 border border-neutral-200/80 p-3 rounded-2xl space-y-1 col-span-2 sm:col-span-1">
-                    <label className="block text-[11px] font-bold text-neutral-600">
+                  <div className="bg-slate-50 border border-slate-200/80 p-3 rounded-2xl space-y-1 col-span-2 sm:col-span-1">
+                    <label className="block text-[11px] font-bold text-slate-600">
                       Total Koin / Lain
                     </label>
                     <div className="flex items-center gap-1.5">
@@ -1260,7 +1263,7 @@ export default function TransactionHistory() {
                         onChange={(e) =>
                           handleDenominationChange("coins", e.target.value)
                         }
-                        className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-neutral-900"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-blue-600"
                       />
                     </div>
                   </div>
@@ -1268,9 +1271,9 @@ export default function TransactionHistory() {
               </div>
 
               {/* Rekapitulasi Hasil Perbandingan Sistem vs Fisik */}
-              <div className="bg-neutral-900 text-white p-5 rounded-3xl space-y-4 shadow-xl">
+              <div className="bg-gradient-to-br from-blue-700 to-blue-900 text-white p-5 rounded-3xl space-y-4 shadow-lg border border-blue-600/40">
                 <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                  <span className="text-xs text-neutral-400 font-bold uppercase tracking-wider">
+                  <span className="text-xs text-sky-100 font-bold uppercase tracking-wider">
                     Target Kas Sistem (Tunai / Cash)
                   </span>
                   <span className="font-mono font-black text-sm text-white">
@@ -1279,20 +1282,20 @@ export default function TransactionHistory() {
                 </div>
 
                 <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                  <span className="text-xs text-neutral-400 font-bold uppercase tracking-wider">
+                  <span className="text-xs text-sky-100 font-bold uppercase tracking-wider">
                     Total Fisik Uang di Laci
                   </span>
-                  <span className="font-mono font-black text-sm text-amber-400">
+                  <span className="font-mono font-black text-sm text-sky-200">
                     Rp {totalPhysicalCash.toLocaleString("id-ID")}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center pt-1">
                   <div>
-                    <span className="text-xs text-neutral-300 font-bold block">
+                    <span className="text-xs text-white font-bold block">
                       Status Selisih (Surplus / Shortage)
                     </span>
-                    <span className="text-[10px] text-neutral-400">
+                    <span className="text-[10px] text-sky-100">
                       {cashDifference === 0
                         ? "Uang di laci pas dan seimbang dengan sistem"
                         : cashDifference > 0
@@ -1304,10 +1307,10 @@ export default function TransactionHistory() {
                     <span
                       className={`font-mono font-black text-base px-3 py-1 rounded-xl border ${
                         cashDifference === 0
-                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/30"
                           : cashDifference > 0
-                            ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
-                            : "bg-red-500/20 text-red-400 border-red-500/30"
+                            ? "bg-sky-500/20 text-sky-200 border-sky-400/30"
+                            : "bg-red-500/20 text-red-300 border-red-400/30"
                       }`}
                     >
                       {cashDifference >= 0 ? "+ Rp " : "- Rp "}
@@ -1316,7 +1319,7 @@ export default function TransactionHistory() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-white/10 flex justify-between items-center text-xs text-neutral-300">
+                <div className="pt-2 border-t border-white/10 flex justify-between items-center text-xs text-sky-100">
                   <span>
                     Omset Digital (QRIS):{" "}
                     <strong className="font-mono text-white">
@@ -1325,7 +1328,7 @@ export default function TransactionHistory() {
                   </span>
                   <span>
                     Total Seluruh Omset:{" "}
-                    <strong className="font-mono text-emerald-400">
+                    <strong className="font-mono text-emerald-300">
                       Rp{" "}
                       {(
                         expectedCashRevenue + expectedDigitalRevenue
@@ -1339,14 +1342,14 @@ export default function TransactionHistory() {
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handlePrintShiftReport}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 border border-neutral-200 shadow-2xs"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 border border-slate-200 shadow-2xs"
                 >
-                  <Printer className="w-4 h-4" />
+                  <Printer className="w-4 h-4 text-blue-600" />
                   Cetak Laporan Shift (Z-Report)
                 </button>
                 <button
                   onClick={() => setShowShiftModal(false)}
-                  className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-md"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-md shadow-blue-600/20"
                 >
                   Tutup & Selesai
                 </button>
@@ -1357,31 +1360,31 @@ export default function TransactionHistory() {
 
         {/* Modal Detail Item & Rincian Finansial Pesanan */}
         {showModal && selectedOrder && (
-          <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-md space-y-6 my-8 shadow-xl">
-              <div className="flex justify-between items-center pb-4 border-b border-neutral-100">
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-md space-y-6 my-8 shadow-xl">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                 <div>
-                  <h3 className="text-base font-bold text-neutral-900">
+                  <h3 className="text-base font-bold text-slate-900">
                     Detail Pesanan #{selectedOrder._id.slice(-6).toUpperCase()}
                   </h3>
-                  <p className="text-xs text-neutral-500 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Meja #{selectedOrder.tableNumber} •{" "}
                     {selectedOrder.customerName}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-neutral-400 hover:text-neutral-700 p-2 rounded-xl hover:bg-neutral-100 transition cursor-pointer"
+                  className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="space-y-3">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                   Daftar Item Menu Dibeli
                 </span>
-                <div className="space-y-2 bg-neutral-50/80 p-4 rounded-2xl border border-neutral-100 max-h-48 overflow-y-auto">
+                <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 max-h-48 overflow-y-auto">
                   {selectedOrder.items.map((item, idx) => {
                     const itemName =
                       item.menu?.name || item.name || "Menu Item";
@@ -1389,15 +1392,15 @@ export default function TransactionHistory() {
                     return (
                       <div
                         key={idx}
-                        className="flex justify-between items-center text-xs py-1.5 border-b border-neutral-200/50 last:border-0"
+                        className="flex justify-between items-center text-xs py-1.5 border-b border-slate-200/50 last:border-0"
                       >
-                        <span className="text-neutral-800 font-medium flex items-center gap-2">
-                          <span className="bg-neutral-200/80 text-neutral-900 font-mono font-bold px-2 py-0.5 rounded-md">
+                        <span className="text-slate-800 font-medium flex items-center gap-2">
+                          <span className="bg-slate-200/80 text-slate-900 font-mono font-bold px-2 py-0.5 rounded-md">
                             {item.quantity}x
                           </span>
                           {itemName}
                         </span>
-                        <span className="font-mono text-neutral-600 font-semibold">
+                        <span className="font-mono text-slate-600 font-semibold">
                           Rp{" "}
                           {(item.quantity * itemPrice).toLocaleString("id-ID")}
                         </span>
@@ -1408,10 +1411,10 @@ export default function TransactionHistory() {
               </div>
 
               {/* Rincian Subtotal, Kupon, & Service Fee dengan Fallback Otomatis */}
-              <div className="space-y-2 bg-neutral-50/80 p-4 rounded-2xl border border-neutral-100 text-xs text-neutral-600">
+              <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 text-xs text-slate-600">
                 <div className="flex justify-between">
                   <span>Subtotal Menu</span>
-                  <span className="font-mono font-semibold">
+                  <span className="font-mono font-semibold text-slate-900">
                     Rp{" "}
                     {selectedOrder.items
                       .reduce(
@@ -1437,12 +1440,12 @@ export default function TransactionHistory() {
                   </div>
                 )}
 
-                <div className="flex justify-between text-neutral-800 font-medium">
+                <div className="flex justify-between text-slate-800 font-medium">
                   <span className="flex items-center gap-1">
-                    <Percent className="w-3 h-3 text-emerald-600" /> Biaya
-                    Layanan (Service {serviceFeePercentage}%)
+                    <Percent className="w-3 h-3 text-blue-600" /> Biaya Layanan
+                    (Service {serviceFeePercentage}%)
                   </span>
-                  <span className="font-mono font-semibold">
+                  <span className="font-mono font-semibold text-slate-900">
                     Rp{" "}
                     {(selectedOrder.serviceFee && selectedOrder.serviceFee > 0
                       ? selectedOrder.serviceFee
@@ -1462,17 +1465,17 @@ export default function TransactionHistory() {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-neutral-100 space-y-4">
+              <div className="pt-3 border-t border-slate-100 space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-neutral-500 font-medium">
+                  <span className="text-xs text-slate-500 font-medium">
                     Waktu Transaksi
                   </span>
-                  <span className="text-xs font-mono text-neutral-700">
+                  <span className="text-xs font-mono text-slate-700">
                     {formatDateTime(selectedOrder.createdAt)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-neutral-500 font-medium">
+                  <span className="text-xs text-slate-500 font-medium">
                     Total Pembayaran
                   </span>
                   <span className="text-base font-black font-mono text-emerald-600">
@@ -1483,14 +1486,14 @@ export default function TransactionHistory() {
                 <div className="flex gap-3 pt-2">
                   <button
                     onClick={() => handlePrintReceipt(selectedOrder)}
-                    className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 border border-neutral-200 shadow-2xs"
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 border border-slate-200 shadow-2xs"
                   >
-                    <Printer className="w-4 h-4" />
+                    <Printer className="w-4 h-4 text-blue-600" />
                     Cetak Struk
                   </button>
                   <button
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-md"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-md shadow-blue-600/20"
                   >
                     Tutup
                   </button>

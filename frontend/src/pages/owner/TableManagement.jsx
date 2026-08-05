@@ -339,27 +339,27 @@ export default function TableManagement() {
   const totalCapacity = tables.reduce((acc, t) => acc + (t.capacity || 4), 0);
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 pb-20">
-      {/* HERO BANNER */}
-      <div className="relative bg-neutral-900 text-white py-10 px-6 md:px-12 overflow-hidden mb-8 shadow-md">
+    <div className="min-h-screen bg-sky-50/40 text-slate-900 pb-20">
+      {/* HERO BANNER - Nuansa Biru Terang */}
+      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 text-white py-10 px-6 md:px-12 overflow-hidden mb-8 shadow-xl rounded-[2.5rem]">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50 scale-105 pointer-events-none"
+          className="absolute inset-0 bg-cover bg-center opacity-20 filter brightness-50 scale-105 pointer-events-none"
           style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=80')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/80 via-blue-900/40 to-transparent pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-amber-300 border border-white/10">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-sky-100 border border-white/25 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-sky-200" />
               <span>Manajemen Meja & Denah Cafe</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
               Kanvas Tata Letak Meja Interaktif
             </h1>
-            <p className="text-xs md:text-sm text-neutral-300 max-w-lg leading-relaxed">
+            <p className="text-xs md:text-sm text-sky-100 max-w-lg leading-relaxed">
               Seret dan letakkan kartu meja di atas area kanvas grid luas untuk
               mengatur denah kafe secara bebas dan profesional.
             </p>
@@ -367,16 +367,16 @@ export default function TableManagement() {
 
           <div className="flex items-center gap-3">
             <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl flex items-center gap-4 shadow-xl">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center font-black">
+              <div className="w-12 h-12 rounded-2xl bg-white text-blue-900 flex items-center justify-center font-black shadow-sm">
                 <LayoutGrid className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">
+                <p className="text-[10px] uppercase tracking-wider text-sky-200 font-bold">
                   Total Kapasitas
                 </p>
                 <p className="text-sm font-extrabold text-white flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-amber-300" />{" "}
-                  {totalCapacity} Kursi ({tables.length} Meja)
+                  <Users className="w-3.5 h-3.5 text-sky-200" /> {totalCapacity}{" "}
+                  Kursi ({tables.length} Meja)
                 </p>
               </div>
             </div>
@@ -386,36 +386,36 @@ export default function TableManagement() {
 
       <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-8">
         {/* Tombol Pemicu Modal Tambah Meja */}
-        <div className="flex justify-between items-center bg-neutral-50 border border-neutral-200/80 p-6 rounded-3xl shadow-2xs">
+        <div className="flex justify-between items-center bg-white border border-slate-200/80 p-6 rounded-3xl shadow-xs">
           <div>
-            <h2 className="text-base font-extrabold text-neutral-900">
+            <h2 className="text-base font-extrabold text-slate-900">
               Pengaturan Denah Ruangan
             </h2>
-            <p className="text-xs text-neutral-500 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Kelola penambahan meja baru serta atur tata letak area restoran
               Anda.
             </p>
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-3 rounded-2xl text-xs font-bold transition shadow-md flex items-center gap-2 cursor-pointer shrink-0"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl text-xs font-bold transition shadow-md shadow-blue-600/20 flex items-center gap-2 cursor-pointer shrink-0"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-sky-200" />
             <span>Tambah Meja Baru</span>
           </button>
         </div>
 
         {/* TOOLBAR KANVAS & FILTER */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2 border-b border-neutral-200">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2 border-b border-slate-200">
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {["All", "Indoor", "Outdoor", "VIP", "Lantai 2"].map((area) => (
               <button
                 key={area}
                 onClick={() => setActiveAreaTab(area)}
-                className={`px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs ${
                   activeAreaTab === area
-                    ? "bg-neutral-900 text-white"
-                    : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                    : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200"
                 }`}
               >
                 {area === "All" ? "Semua Area" : area}
@@ -425,22 +425,22 @@ export default function TableManagement() {
 
           <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari No. Meja..."
-                className="bg-neutral-50 border border-neutral-200 rounded-2xl pl-9 pr-4 py-2 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition w-44 shadow-2xs font-medium"
+                className="bg-white border border-slate-200 rounded-2xl pl-9 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 transition w-44 shadow-2xs font-medium"
               />
             </div>
 
             <button
               onClick={handleAutoArrange}
-              className="bg-neutral-100 hover:bg-neutral-200 text-neutral-800 px-4 py-2 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-2xs shrink-0"
+              className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-2xs shrink-0"
               title="Susun ulang semua meja secara otomatis"
             >
-              <Grid className="w-4 h-4 text-neutral-600" />
+              <Grid className="w-4 h-4 text-blue-600" />
               <span>Atur Posisi Otomatis</span>
             </button>
           </div>
@@ -449,8 +449,8 @@ export default function TableManagement() {
         {/* KANVAS GRID INTERAKTIF DENGAN FITUR ZOOM IN / OUT */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-3">
-            <div className="w-8 h-8 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin"></div>
-            <p className="text-xs text-neutral-500 font-medium">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="text-xs text-slate-500 font-medium">
               Memuat kanvas tata letak...
             </p>
           </div>
@@ -460,7 +460,7 @@ export default function TableManagement() {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            className="relative w-full h-[750px] bg-neutral-900 rounded-3xl border border-neutral-800 overflow-auto shadow-2xl p-6 select-none"
+            className="relative w-full h-[750px] bg-slate-950 rounded-[2.5rem] border border-slate-800 overflow-auto shadow-2xl p-6 select-none"
             style={{
               backgroundImage:
                 "radial-gradient(circle, rgba(255,255,255,0.08) 1.5px, transparent 1.5px)",
@@ -469,15 +469,15 @@ export default function TableManagement() {
           >
             {/* Header Sticky: Petunjuk & Kontrol Zoom */}
             <div className="sticky top-0 left-0 right-0 z-30 flex justify-between items-center pointer-events-none">
-              <div className="inline-flex items-center gap-2 bg-neutral-950/80 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 text-xs font-semibold text-amber-300 shadow-lg pointer-events-auto">
-                <Move className="w-4 h-4 animate-pulse" />
+              <div className="inline-flex items-center gap-2 bg-slate-900/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 text-xs font-semibold text-sky-200 shadow-lg pointer-events-auto">
+                <Move className="w-4 h-4 animate-pulse text-sky-400" />
                 <span>
                   Area Kanvas Luas: Klik & seret kartu meja secara bebas
                 </span>
               </div>
 
               {/* Tombol Kontrol Zoom */}
-              <div className="inline-flex items-center gap-1.5 bg-neutral-950/80 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 shadow-lg pointer-events-auto">
+              <div className="inline-flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 shadow-lg pointer-events-auto">
                 <button
                   onClick={() =>
                     setZoomLevel((prev) => Math.max(0.5, prev - 0.1))
@@ -507,7 +507,7 @@ export default function TableManagement() {
             </div>
 
             {filteredTables.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center text-xs text-neutral-400">
+              <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400">
                 Tidak ada meja yang ditemukan pada area atau pencarian ini.
               </div>
             ) : (
@@ -535,22 +535,22 @@ export default function TableManagement() {
                         transform: `scale(${zoomLevel})`,
                         transformOrigin: "top left",
                       }}
-                      className={`w-72 bg-white border rounded-3xl p-5 shadow-2xl flex flex-col justify-between space-y-4 cursor-grab active:cursor-grabbing hover:shadow-neutral-950/60 ${
+                      className={`w-72 bg-white border rounded-3xl p-5 shadow-xl flex flex-col justify-between space-y-4 cursor-grab active:cursor-grabbing hover:shadow-2xl transition-all duration-200 ${
                         isOccupied
                           ? "border-amber-400 ring-2 ring-amber-400/20 bg-amber-50/10"
-                          : "border-neutral-200"
-                      } ${isDragging ? "opacity-95 shadow-2xl ring-4 ring-neutral-400/40 z-30" : ""}`}
+                          : "border-slate-200/80"
+                      } ${isDragging ? "opacity-95 shadow-2xl ring-4 ring-blue-500/30 z-30" : ""}`}
                     >
                       {/* Header Kartu Meja */}
                       <div className="flex justify-between items-center pointer-events-none">
-                        <div className="flex items-center gap-1.5 text-neutral-400">
+                        <div className="flex items-center gap-1.5 text-slate-400">
                           <Move className="w-4 h-4" />
-                          <span className="text-[10px] uppercase font-extrabold tracking-wider text-neutral-600">
+                          <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-600">
                             {table.area || "Indoor"}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] text-neutral-400 font-mono">
+                          <span className="text-[9px] text-slate-400 font-mono">
                             {Math.round(table.position?.x || 40)},{" "}
                             {Math.round(table.position?.y || 80)}
                           </span>
@@ -569,15 +569,15 @@ export default function TableManagement() {
                       {/* Detail Meja & QR */}
                       <div className="flex items-center justify-between gap-3 pointer-events-none">
                         <div>
-                          <h3 className="text-xl font-black text-neutral-900 tracking-tight">
+                          <h3 className="text-xl font-black text-slate-900 tracking-tight">
                             Meja #{table.tableNumber}
                           </h3>
-                          <p className="text-xs text-neutral-500 font-medium mt-0.5">
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">
                             Kapasitas: {table.capacity || 4} Kursi
                           </p>
                         </div>
 
-                        <div className="bg-neutral-50 p-2.5 rounded-2xl border border-neutral-100 shadow-2xs shrink-0">
+                        <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100 shadow-2xs shrink-0">
                           <QRCodeSVG
                             id={`qr-svg-${table._id}`}
                             value={`https://www.swiftorder.space/order/${table.tableNumber}`}
@@ -587,24 +587,24 @@ export default function TableManagement() {
                       </div>
 
                       {/* Tombol Aksi Cepat */}
-                      <div className="flex items-center gap-2 pt-3 border-t border-neutral-100 text-xs">
+                      <div className="flex items-center gap-2 pt-3 border-t border-slate-100 text-xs">
                         <button
                           onClick={() => handleDownloadQRPDF(table)}
-                          className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs shadow-blue-600/20"
                           title="Download PDF QR"
                         >
-                          <Download className="w-3.5 h-3.5" /> PDF
+                          <Download className="w-3.5 h-3.5 text-sky-200" /> PDF
                         </button>
                         <button
                           onClick={() => handleCopyTableUrl(table.tableNumber)}
-                          className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-2 rounded-xl font-semibold transition cursor-pointer shadow-2xs"
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl font-semibold transition cursor-pointer shadow-2xs border border-slate-200"
                           title="Salin URL Meja"
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handlePrintQR(table)}
-                          className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-2 rounded-xl font-semibold transition cursor-pointer shadow-2xs"
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl font-semibold transition cursor-pointer shadow-2xs border border-slate-200"
                           title="Cetak QR"
                         >
                           <Printer className="w-3.5 h-3.5" />
@@ -627,25 +627,25 @@ export default function TableManagement() {
 
         {/* MODAL TAMBAH MEJA BARU */}
         {isAddModalOpen && (
-          <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-md space-y-6 shadow-2xl">
-              <div className="flex justify-between items-center pb-3 border-b border-neutral-100">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 bg-neutral-900 text-white rounded-2xl flex items-center justify-center font-black">
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl">
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black shadow-md shadow-blue-600/20">
                     <Plus className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-neutral-900">
+                    <h3 className="text-base font-bold text-slate-900">
                       Tambah Meja Baru
                     </h3>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-slate-500">
                       Masukkan nomor meja, kapasitas, dan area ruangan.
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center transition cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -653,7 +653,7 @@ export default function TableManagement() {
 
               <form onSubmit={handleAddTable} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-700">
+                  <label className="text-xs font-bold text-slate-700">
                     Nomor Meja
                   </label>
                   <input
@@ -662,12 +662,12 @@ export default function TableManagement() {
                     onChange={(e) => setTableNumber(e.target.value)}
                     placeholder="Contoh: 5"
                     required
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 transition font-medium"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-700">
+                  <label className="text-xs font-bold text-slate-700">
                     Kapasitas Kursi
                   </label>
                   <input
@@ -677,18 +677,18 @@ export default function TableManagement() {
                     placeholder="Contoh: 4"
                     min={1}
                     required
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 transition font-medium"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-700">
+                  <label className="text-xs font-bold text-slate-700">
                     Zona Area Ruangan
                   </label>
                   <select
                     value={selectedArea}
                     onChange={(e) => setSelectedArea(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 transition font-medium cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 transition font-medium cursor-pointer"
                   >
                     <option value="Indoor">Indoor</option>
                     <option value="Outdoor">Outdoor</option>
@@ -697,17 +697,17 @@ export default function TableManagement() {
                   </select>
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-neutral-100">
+                <div className="flex gap-3 pt-4 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3 rounded-2xl text-xs font-bold transition cursor-pointer"
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 cursor-pointer"
                   >
                     Simpan Meja
                   </button>
@@ -719,18 +719,18 @@ export default function TableManagement() {
 
         {/* POPUP KONFIRMASI HAPUS */}
         {deleteTarget && (
-          <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div className="bg-white border border-neutral-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
               <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl mx-auto flex items-center justify-center">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-neutral-900">
+                <h3 className="text-base font-bold text-slate-900">
                   Hapus Meja Ini?
                 </h3>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-slate-500">
                   Tindakan ini akan menghapus{" "}
-                  <span className="font-bold text-neutral-800">
+                  <span className="font-bold text-slate-800">
                     Meja #{deleteTarget.tableNumber}
                   </span>{" "}
                   secara permanen.
@@ -740,7 +740,7 @@ export default function TableManagement() {
                 <button
                   type="button"
                   onClick={() => setDeleteTarget(null)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
                 >
                   Batal
                 </button>

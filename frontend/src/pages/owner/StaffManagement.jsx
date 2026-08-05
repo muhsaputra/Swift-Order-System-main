@@ -211,7 +211,6 @@ export default function StaffManagement() {
         hour: "2-digit",
         minute: "2-digit",
       });
-      // Simulasi jam check-out otomatis 9 jam kemudian untuk uji coba lembur
       const checkoutTime = "17:00";
 
       await API.post(`/auth/users/${id}/attendance`, {
@@ -328,22 +327,22 @@ export default function StaffManagement() {
   ).length;
 
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans antialiased text-neutral-900">
-      {/* HERO BANNER HIGH-LEVEL */}
-      <div className="relative bg-gradient-to-br from-slate-950 via-indigo-950 to-neutral-950 rounded-[2.5rem] p-8 lg:p-10 text-white shadow-2xl overflow-hidden border border-indigo-950">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans antialiased text-slate-900 bg-sky-50/40 min-h-screen">
+      {/* HERO BANNER HIGH-LEVEL - Nuansa Biru Terang */}
+      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 rounded-[2.5rem] p-8 lg:p-10 text-white shadow-xl overflow-hidden border border-blue-600/40">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500/20 to-amber-500/20 border border-indigo-500/30 px-3.5 py-1.5 rounded-full text-[11px] font-black text-amber-400 tracking-wider shadow-inner">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 px-3.5 py-1.5 rounded-full text-[11px] font-black text-sky-100 tracking-wider shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 animate-pulse text-sky-200" />
               <span>SWIFT ORDERING ENTERPRISE CORE</span>
             </div>
             <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white">
               Manajemen Tim & Penggajian
             </h1>
-            <p className="text-xs lg:text-sm text-indigo-200/80 font-medium max-w-2xl leading-relaxed">
+            <p className="text-xs lg:text-sm text-sky-100 font-medium max-w-2xl leading-relaxed">
               Pusat kendali operasional SDM restoran. Kelola hak akses akun,
               kustomisasi posisi kerja, penjadwalan shift, pencatatan absensi,
               hingga audit rekapitulasi gaji bulanan.
@@ -352,21 +351,21 @@ export default function StaffManagement() {
 
           <button
             onClick={handleOpenAddModal}
-            className="flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 rounded-2xl text-xs font-black shadow-xl shadow-amber-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer shrink-0"
+            className="flex items-center justify-center gap-2.5 px-6 py-4 bg-white hover:bg-sky-50 text-blue-900 rounded-2xl text-xs font-black shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer shrink-0"
           >
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className="w-4 h-4 text-blue-600" />
             <span>Tambah Staff Baru</span>
           </button>
         </div>
 
         {/* STATISTIK OVERVIEW CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/10">
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-            <div className="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/15">
+          <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-sky-200">
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-indigo-200/60">
+              <p className="text-[10px] font-black uppercase tracking-wider text-sky-200">
                 Total Pegawai Aktif
               </p>
               <p className="text-xl font-black text-white">
@@ -375,26 +374,26 @@ export default function StaffManagement() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-200">
               <DollarSign className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-indigo-200/60">
+              <p className="text-[10px] font-black uppercase tracking-wider text-sky-200">
                 Estimasi Gaji Pokok/Bulan
               </p>
-              <p className="text-lg font-black text-emerald-400">
+              <p className="text-lg font-black text-white">
                 {formatRupiah(totalMonthlyPayroll)}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+          <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-sky-200">
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-indigo-200/60">
+              <p className="text-[10px] font-black uppercase tracking-wider text-sky-200">
                 Hadir Hari Ini
               </p>
               <p className="text-xl font-black text-white">
@@ -406,15 +405,15 @@ export default function StaffManagement() {
       </div>
 
       {/* NAVIGASI TAB & PENCARIAN */}
-      <div className="bg-white border border-neutral-200/80 rounded-[2rem] shadow-sm p-6 lg:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-100">
-          <div className="flex items-center gap-2 bg-neutral-100 p-1.5 rounded-2xl overflow-x-auto">
+      <div className="bg-white border border-slate-200/80 rounded-[2rem] shadow-xs p-6 lg:p-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl overflow-x-auto">
             <button
               onClick={() => setSelectedTab("direktori")}
               className={`px-4 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 selectedTab === "direktori"
-                  ? "bg-slate-950 text-white shadow-lg shadow-slate-950/20"
-                  : "text-neutral-600 hover:text-neutral-900"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Direktori & Akun ({staffList.length})
@@ -423,8 +422,8 @@ export default function StaffManagement() {
               onClick={() => setSelectedTab("absensi")}
               className={`px-4 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 selectedTab === "absensi"
-                  ? "bg-slate-950 text-white shadow-lg shadow-slate-950/20"
-                  : "text-neutral-600 hover:text-neutral-900"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Absensi Kehadiran
@@ -433,8 +432,8 @@ export default function StaffManagement() {
               onClick={() => setSelectedTab("shift")}
               className={`px-4 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 selectedTab === "shift"
-                  ? "bg-slate-950 text-white shadow-lg shadow-slate-950/20"
-                  : "text-neutral-600 hover:text-neutral-900"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Jadwal Shift Kerja
@@ -443,8 +442,8 @@ export default function StaffManagement() {
               onClick={() => setSelectedTab("gaji")}
               className={`px-4 py-3 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 selectedTab === "gaji"
-                  ? "bg-slate-950 text-white shadow-lg shadow-slate-950/20"
-                  : "text-neutral-600 hover:text-neutral-900"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Penggajian (Payroll)
@@ -452,13 +451,13 @@ export default function StaffManagement() {
           </div>
 
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               placeholder="Cari nama, posisi, atau role..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-neutral-50/80 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 focus:bg-white transition-all shadow-inner"
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-all shadow-inner"
             />
           </div>
         </div>
@@ -468,7 +467,7 @@ export default function StaffManagement() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider">
                   <th className="py-4 px-4">Pegawai & Akun</th>
                   <th className="py-4 px-4">Posisi & Hak Akses</th>
                   <th className="py-4 px-4">Shift Aktif</th>
@@ -476,12 +475,12 @@ export default function StaffManagement() {
                   <th className="py-4 px-4 text-center">Aksi Kontrol</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+              <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-800">
                 {loading ? (
                   <tr>
                     <td
                       colSpan="5"
-                      className="text-center py-16 text-neutral-400 font-bold animate-pulse"
+                      className="text-center py-16 text-slate-400 font-bold animate-pulse"
                     >
                       Memuat direktori staff restoran...
                     </td>
@@ -493,7 +492,7 @@ export default function StaffManagement() {
                       className="hover:bg-slate-50/80 transition-colors group"
                     >
                       <td className="py-4 px-4 flex items-center gap-3.5">
-                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-slate-900 to-indigo-950 text-amber-400 font-black overflow-hidden flex items-center justify-center shrink-0 border border-neutral-200 shadow-md group-hover:scale-105 transition-transform">
+                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-700 to-blue-900 text-sky-100 font-black overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 shadow-sm group-hover:scale-105 transition-transform">
                           {staff.photo ? (
                             <img
                               src={staff.photo}
@@ -507,17 +506,17 @@ export default function StaffManagement() {
                           )}
                         </div>
                         <div>
-                          <p className="font-extrabold text-neutral-900 text-sm">
+                          <p className="font-extrabold text-slate-900 text-sm">
                             {staff.name}
                           </p>
-                          <p className="text-[11px] text-neutral-400 font-mono font-medium">
+                          <p className="text-[11px] text-slate-400 font-mono font-medium">
                             @{staff.username} • {staff.phone || "No telp -"}
                           </p>
                         </div>
                       </td>
                       <td className="py-4 px-4 space-y-1.5">
-                        <div className="font-bold text-neutral-700 text-xs inline-flex items-center gap-1.5 bg-neutral-100 px-2.5 py-1 rounded-lg">
-                          <Award className="w-3.5 h-3.5 text-indigo-600" />
+                        <div className="font-bold text-slate-700 text-xs inline-flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
+                          <Award className="w-3.5 h-3.5 text-blue-600" />
                           {staff.position || "Kasir"}
                         </div>
                         <div>
@@ -536,8 +535,8 @@ export default function StaffManagement() {
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl border border-indigo-100 font-bold text-[11px]">
-                          <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                        <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-xl border border-blue-100 font-bold text-[11px]">
+                          <Clock className="w-3.5 h-3.5 text-blue-500" />
                           {staff.shift || "Pagi (08:00 - 16:00)"}
                         </span>
                       </td>
@@ -551,21 +550,21 @@ export default function StaffManagement() {
                               setHistoryStaff(staff);
                               setShowHistoryModal(true);
                             }}
-                            className="p-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl transition-all shadow-sm cursor-pointer"
+                            className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all shadow-2xs cursor-pointer"
                             title="Lihat Riwayat & Slip Gaji"
                           >
                             <FileText className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleOpenEditModal(staff)}
-                            className="p-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl transition-all shadow-sm cursor-pointer"
+                            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all shadow-2xs cursor-pointer"
                             title="Edit / Reset Password"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => confirmDelete(staff)}
-                            className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all shadow-sm cursor-pointer"
+                            className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all shadow-2xs cursor-pointer"
                             title="Hapus Akun"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -578,7 +577,7 @@ export default function StaffManagement() {
                   <tr>
                     <td
                       colSpan="5"
-                      className="text-center py-16 text-neutral-400 font-bold"
+                      className="text-center py-16 text-slate-400 font-bold"
                     >
                       Tidak ada staff yang ditemukan dalam pencarian.
                     </td>
@@ -592,14 +591,14 @@ export default function StaffManagement() {
         {/* TAB 2: ABSENSI KEHADIRAN */}
         {selectedTab === "absensi" && (
           <div className="space-y-4">
-            <p className="text-xs text-neutral-500 font-medium">
+            <p className="text-xs text-slate-500 font-medium">
               Catat kehadiran harian staf atau lihat rekapitulasi absensi
               bulanan secara lengkap.
             </p>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider">
                     <th className="py-4 px-4">Pegawai</th>
                     <th className="py-4 px-4">Role / Posisi</th>
                     <th className="py-4 px-4">Status Kehadiran Hari Ini</th>
@@ -607,7 +606,7 @@ export default function StaffManagement() {
                     <th className="py-4 px-4 text-center">Rekap Bulanan</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+                <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-800">
                   {filteredStaff.map((staff) => {
                     const lastAtt =
                       staff.attendance?.[staff.attendance.length - 1];
@@ -617,7 +616,7 @@ export default function StaffManagement() {
                         className="hover:bg-slate-50/80 transition-colors"
                       >
                         <td className="py-4 px-4 flex items-center gap-3.5">
-                          <div className="w-10 h-10 rounded-xl bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
                             {staff.photo ? (
                               <img
                                 src={staff.photo}
@@ -625,19 +624,19 @@ export default function StaffManagement() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <User className="w-4 h-4 text-neutral-400" />
+                              <User className="w-4 h-4 text-slate-400" />
                             )}
                           </div>
                           <div>
-                            <span className="font-extrabold text-neutral-900 text-sm">
+                            <span className="font-extrabold text-slate-900 text-sm">
                               {staff.name}
                             </span>
-                            <p className="text-[10px] text-neutral-400 font-mono">
+                            <p className="text-[10px] text-slate-400 font-mono">
                               @{staff.username}
                             </p>
                           </div>
                         </td>
-                        <td className="py-4 px-4 text-neutral-600 uppercase text-[10px] font-black">
+                        <td className="py-4 px-4 text-slate-600 uppercase text-[10px] font-black">
                           {staff.role} ({staff.position || "Kasir"})
                         </td>
                         <td className="py-4 px-4">
@@ -649,7 +648,7 @@ export default function StaffManagement() {
                                   ? "bg-amber-100 text-amber-800 border border-amber-200"
                                   : lastAtt?.status === "Sakit"
                                     ? "bg-blue-100 text-blue-800 border border-blue-200"
-                                    : "bg-neutral-100 text-neutral-600 border border-neutral-200"
+                                    : "bg-slate-100 text-slate-600 border border-slate-200"
                             }`}
                           >
                             <Clock className="w-3 h-3" />
@@ -662,7 +661,7 @@ export default function StaffManagement() {
                               onClick={() =>
                                 handleAttendance(staff._id, "Hadir")
                               }
-                              className="px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer active:scale-95"
+                              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black transition-all shadow-xs cursor-pointer active:scale-95"
                             >
                               Hadir
                             </button>
@@ -670,7 +669,7 @@ export default function StaffManagement() {
                               onClick={() =>
                                 handleAttendance(staff._id, "Izin")
                               }
-                              className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer active:scale-95"
+                              className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black transition-all shadow-xs cursor-pointer active:scale-95"
                             >
                               Izin
                             </button>
@@ -678,7 +677,7 @@ export default function StaffManagement() {
                               onClick={() =>
                                 handleAttendance(staff._id, "Sakit")
                               }
-                              className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer active:scale-95"
+                              className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black transition-all shadow-xs cursor-pointer active:scale-95"
                             >
                               Sakit
                             </button>
@@ -690,7 +689,7 @@ export default function StaffManagement() {
                               setAttendanceStaff(staff);
                               setShowAttendanceModal(true);
                             }}
-                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-[11px] font-black transition shadow-sm cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-[11px] font-black transition shadow-xs cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5" /> Lihat Bulan Ini
                           </button>
@@ -707,52 +706,52 @@ export default function StaffManagement() {
         {/* TAB 3: JADWAL SHIFT KERJA */}
         {selectedTab === "shift" && (
           <div className="space-y-4">
-            <p className="text-xs text-neutral-500 font-medium">
+            <p className="text-xs text-slate-500 font-medium">
               Pengaturan shift kerja dan pembagian waktu operasional staf
               restoran.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl space-y-3">
+              <div className="bg-slate-50 border border-slate-200/80 p-5 rounded-3xl space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black bg-amber-100 text-amber-800 px-3 py-1 rounded-full">
                     Shift Pagi
                   </span>
                   <Clock className="w-4 h-4 text-amber-600" />
                 </div>
-                <h4 className="text-sm font-extrabold text-neutral-900">
+                <h4 className="text-sm font-extrabold text-slate-900">
                   08:00 - 16:00 WIB
                 </h4>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-slate-500">
                   Shift operasional pembukaan restoran dan pelayanan awal.
                 </p>
               </div>
 
-              <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl space-y-3">
+              <div className="bg-slate-50 border border-slate-200/80 p-5 rounded-3xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
+                  <span className="text-xs font-black bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
                     Shift Siang
                   </span>
-                  <Clock className="w-4 h-4 text-indigo-600" />
+                  <Clock className="w-4 h-4 text-blue-600" />
                 </div>
-                <h4 className="text-sm font-extrabold text-neutral-900">
+                <h4 className="text-sm font-extrabold text-slate-900">
                   14:00 - 22:00 WIB
                 </h4>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-slate-500">
                   Shift pelayanan jam puncak makan siang hingga malam.
                 </p>
               </div>
 
-              <div className="bg-neutral-50 border border-neutral-200/80 p-5 rounded-3xl space-y-3">
+              <div className="bg-slate-50 border border-slate-200/80 p-5 rounded-3xl space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
                     Shift Malam
                   </span>
                   <Clock className="w-4 h-4 text-purple-600" />
                 </div>
-                <h4 className="text-sm font-extrabold text-neutral-900">
+                <h4 className="text-sm font-extrabold text-slate-900">
                   16:00 - 00:00 WIB
                 </h4>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-slate-500">
                   Shift penutupan restoran, audit kasir, dan kebersihan akhir.
                 </p>
               </div>
@@ -761,7 +760,7 @@ export default function StaffManagement() {
             <div className="overflow-x-auto pt-4">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider">
                     <th className="py-4 px-4">Pegawai</th>
                     <th className="py-4 px-4">Posisi</th>
                     <th className="py-4 px-4">Shift Terkini</th>
@@ -770,14 +769,14 @@ export default function StaffManagement() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+                <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-800">
                   {filteredStaff.map((staff) => (
                     <tr
                       key={staff._id}
                       className="hover:bg-slate-50/80 transition-colors"
                     >
                       <td className="py-4 px-4 flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-neutral-100 border overflow-hidden flex items-center justify-center font-bold">
+                        <div className="w-9 h-9 rounded-xl bg-slate-100 border overflow-hidden flex items-center justify-center font-bold">
                           {staff.photo ? (
                             <img
                               src={staff.photo}
@@ -789,26 +788,26 @@ export default function StaffManagement() {
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-neutral-900">
+                          <p className="font-bold text-slate-900">
                             {staff.name}
                           </p>
-                          <p className="text-[10px] text-neutral-400">
+                          <p className="text-[10px] text-slate-400">
                             @{staff.username}
                           </p>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-neutral-600">
+                      <td className="py-4 px-4 text-slate-600">
                         {staff.position || "Kasir"}
                       </td>
                       <td className="py-4 px-4">
-                        <span className="font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
+                        <span className="font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">
                           {staff.shift || "Pagi (08:00 - 16:00)"}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-center">
                         <button
                           onClick={() => handleOpenEditModal(staff)}
-                          className="px-3.5 py-2 bg-slate-950 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black transition cursor-pointer"
+                          className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black transition cursor-pointer shadow-sm shadow-blue-600/20"
                         >
                           Ubah Shift
                         </button>
@@ -824,14 +823,14 @@ export default function StaffManagement() {
         {/* TAB 4: PENGGAJIAN (PAYROLL) */}
         {selectedTab === "gaji" && (
           <div className="space-y-4">
-            <p className="text-xs text-neutral-500 font-medium">
+            <p className="text-xs text-slate-500 font-medium">
               Proses slip gaji bulanan, perhitungan bonus lembur otomatis, dan
               potongan kasbon pegawai secara akurat.
             </p>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider">
                     <th className="py-4 px-4">Pegawai</th>
                     <th className="py-4 px-4">Gaji Pokok</th>
                     <th className="py-4 px-4">Riwayat Penggajian Terakhir</th>
@@ -840,7 +839,7 @@ export default function StaffManagement() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+                <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-800">
                   {filteredStaff.map((staff) => {
                     const lastPayroll =
                       staff.payrollHistory?.[staff.payrollHistory.length - 1];
@@ -850,7 +849,7 @@ export default function StaffManagement() {
                         className="hover:bg-slate-50/80 transition-colors"
                       >
                         <td className="py-4 px-4 flex items-center gap-3.5">
-                          <div className="w-10 h-10 rounded-xl bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
                             {staff.photo ? (
                               <img
                                 src={staff.photo}
@@ -858,14 +857,14 @@ export default function StaffManagement() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <User className="w-4 h-4 text-neutral-400" />
+                              <User className="w-4 h-4 text-slate-400" />
                             )}
                           </div>
                           <div>
-                            <span className="font-extrabold text-neutral-900 text-sm">
+                            <span className="font-extrabold text-slate-900 text-sm">
                               {staff.name}
                             </span>
-                            <p className="text-[10px] text-neutral-400 font-mono">
+                            <p className="text-[10px] text-slate-400 font-mono">
                               @{staff.username}
                             </p>
                           </div>
@@ -873,14 +872,14 @@ export default function StaffManagement() {
                         <td className="py-4 px-4 font-black text-emerald-600 text-sm">
                           {formatRupiah(staff.baseSalary)}
                         </td>
-                        <td className="py-4 px-4 text-neutral-500 font-medium">
+                        <td className="py-4 px-4 text-slate-500 font-medium">
                           {lastPayroll ? (
                             <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-xl border border-emerald-200/60 font-bold">
                               {lastPayroll.month}:{" "}
                               {formatRupiah(lastPayroll.totalPaid)}
                             </span>
                           ) : (
-                            <span className="text-neutral-400 italic">
+                            <span className="text-slate-400 italic">
                               Belum ada riwayat gaji
                             </span>
                           )}
@@ -891,7 +890,7 @@ export default function StaffManagement() {
                               setActiveStaff(staff);
                               setShowPayrollModal(true);
                             }}
-                            className="px-5 py-2.5 bg-slate-950 hover:bg-slate-800 text-white rounded-xl text-[11px] font-black transition-all shadow-md cursor-pointer active:scale-95"
+                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-black transition-all shadow-md shadow-blue-600/20 cursor-pointer active:scale-95"
                           >
                             Bayar Gaji
                           </button>
@@ -909,13 +908,13 @@ export default function StaffManagement() {
       {/* MODAL TAMBAH / EDIT STAFF DENGAN UPLOAD FOTO */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-lg space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-lg space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-lg font-black text-neutral-900">
+                <h3 className="text-lg font-black text-slate-900">
                   {isEditing ? "Edit Data & Akun Staff" : "Tambah Staff Baru"}
                 </h3>
-                <p className="text-xs text-neutral-500 font-medium">
+                <p className="text-xs text-slate-500 font-medium">
                   {isEditing
                     ? "Perbarui informasi profil atau reset sandi akun."
                     : "Daftarkan akun login serta profil lengkap pegawai."}
@@ -923,7 +922,7 @@ export default function StaffManagement() {
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="w-9 h-9 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-600 transition cursor-pointer"
+                className="w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-600 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -932,7 +931,7 @@ export default function StaffManagement() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* UPLOAD & PREVIEW FOTO */}
               <div className="flex flex-col items-center gap-3 py-2">
-                <div className="w-24 h-24 rounded-full bg-neutral-100 border-2 border-dashed border-neutral-300 overflow-hidden flex items-center justify-center relative shadow-inner">
+                <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 overflow-hidden flex items-center justify-center relative shadow-inner">
                   {formData.photoPreview ? (
                     <img
                       src={formData.photoPreview}
@@ -940,11 +939,12 @@ export default function StaffManagement() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User className="w-10 h-10 text-neutral-400" />
+                    <User className="w-10 h-10 text-slate-400" />
                   )}
                 </div>
-                <label className="px-4 py-2 bg-slate-950 hover:bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm inline-flex items-center gap-2">
-                  <Camera className="w-3.5 h-3.5" /> Pilih Foto Perangkat
+                <label className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm inline-flex items-center gap-2">
+                  <Camera className="w-3.5 h-3.5 text-sky-200" /> Pilih Foto
+                  Perangkat
                   <input
                     type="file"
                     accept="image/*"
@@ -956,7 +956,7 @@ export default function StaffManagement() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Nama Lengkap
                   </label>
                   <input
@@ -967,11 +967,11 @@ export default function StaffManagement() {
                       setFormData({ ...formData, name: e.target.value })
                     }
                     placeholder="Contoh: Budi Santoso"
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Username Masuk
                   </label>
                   <input
@@ -982,14 +982,14 @@ export default function StaffManagement() {
                       setFormData({ ...formData, username: e.target.value })
                     }
                     placeholder="Contoh: kasir_budi"
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     {isEditing ? "Kata Sandi Baru (Opsional)" : "Kata Sandi"}
                   </label>
                   <input
@@ -1002,11 +1002,11 @@ export default function StaffManagement() {
                     placeholder={
                       isEditing ? "Kosongkan jika tetap" : "••••••••"
                     }
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Peran Akses (Role)
                   </label>
                   <select
@@ -1014,7 +1014,7 @@ export default function StaffManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, role: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 cursor-pointer"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 cursor-pointer"
                   >
                     <option value="cashier">Cashier (Kasir)</option>
                     <option value="kitchen">Kitchen (Dapur / KDS)</option>
@@ -1025,7 +1025,7 @@ export default function StaffManagement() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Posisi Kerja
                   </label>
                   <input
@@ -1035,11 +1035,11 @@ export default function StaffManagement() {
                       setFormData({ ...formData, position: e.target.value })
                     }
                     placeholder="Contoh: Kepala Kasir / Chef"
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     No. Telepon / WhatsApp
                   </label>
                   <input
@@ -1049,14 +1049,14 @@ export default function StaffManagement() {
                       setFormData({ ...formData, phone: e.target.value })
                     }
                     placeholder="08123456789"
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Gaji Pokok (Rupiah)
                   </label>
                   <input
@@ -1064,11 +1064,11 @@ export default function StaffManagement() {
                     value={formData.baseSalary}
                     onChange={handleSalaryInput}
                     placeholder="Rp 3.000.000"
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Jadwal Shift Kerja
                   </label>
                   <select
@@ -1076,7 +1076,7 @@ export default function StaffManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, shift: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 cursor-pointer"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 cursor-pointer"
                   >
                     <option value="Pagi (08:00 - 16:00)">
                       Pagi (08:00 - 16:00)
@@ -1091,17 +1091,17 @@ export default function StaffManagement() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-neutral-100">
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-slate-950 hover:bg-slate-800 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg cursor-pointer"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 cursor-pointer"
                 >
                   {isEditing ? "Simpan Perubahan" : "Tambah Staff"}
                 </button>
@@ -1114,10 +1114,10 @@ export default function StaffManagement() {
       {/* MODAL REKAP ABSENSI BULANAN DENGAN EKSPOR */}
       {showAttendanceModal && attendanceStaff && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-lg space-y-6 shadow-2xl max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-lg space-y-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 overflow-hidden flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 overflow-hidden flex items-center justify-center">
                   {attendanceStaff.photo ? (
                     <img
                       src={attendanceStaff.photo}
@@ -1125,21 +1125,21 @@ export default function StaffManagement() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User className="w-6 h-6 text-indigo-600" />
+                    <User className="w-6 h-6 text-blue-600" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-neutral-900">
+                  <h3 className="text-base font-black text-slate-900">
                     {attendanceStaff.name}
                   </h3>
-                  <p className="text-xs text-neutral-500 font-medium">
+                  <p className="text-xs text-slate-500 font-medium">
                     Rekapitulasi Absensi Bulanan
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowAttendanceModal(false)}
-                className="w-9 h-9 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-600 transition cursor-pointer"
+                className="w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-600 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1148,14 +1148,14 @@ export default function StaffManagement() {
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Pilih Bulan Rekap
                   </label>
                   <input
                     type="month"
                     value={selectedAttendanceMonth}
                     onChange={(e) => setSelectedAttendanceMonth(e.target.value)}
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 transition"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 transition"
                   />
                 </div>
                 <div className="pt-5">
@@ -1222,9 +1222,9 @@ export default function StaffManagement() {
                         filteredAttendance.map((att, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between bg-neutral-50 px-4 py-3 rounded-2xl border border-neutral-200/60 text-xs font-semibold"
+                            className="flex items-center justify-between bg-slate-50 px-4 py-3 rounded-2xl border border-slate-200/60 text-xs font-semibold"
                           >
-                            <span className="text-neutral-700">
+                            <span className="text-slate-700">
                               {new Date(att.date).toLocaleDateString("id-ID", {
                                 weekday: "long",
                                 day: "numeric",
@@ -1233,7 +1233,7 @@ export default function StaffManagement() {
                               })}
                             </span>
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-neutral-400 font-mono">
+                              <span className="text-[10px] text-slate-400 font-mono">
                                 In: {att.checkIn || "-"} | Out:{" "}
                                 {att.checkOut || "-"}
                               </span>
@@ -1252,7 +1252,7 @@ export default function StaffManagement() {
                           </div>
                         ))
                       ) : (
-                        <div className="text-center py-10 text-neutral-400 font-medium text-xs">
+                        <div className="text-center py-10 text-slate-400 font-medium text-xs">
                           Tidak ada catatan absensi pada bulan{" "}
                           {selectedAttendanceMonth}.
                         </div>
@@ -1265,7 +1265,7 @@ export default function StaffManagement() {
 
             <button
               onClick={() => setShowAttendanceModal(false)}
-              className="w-full bg-slate-950 hover:bg-slate-800 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 cursor-pointer"
             >
               Tutup
             </button>
@@ -1276,10 +1276,10 @@ export default function StaffManagement() {
       {/* MODAL RIWAYAT SLIP GAJI */}
       {showHistoryModal && historyStaff && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-lg space-y-6 shadow-2xl max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-lg space-y-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 overflow-hidden flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 overflow-hidden flex items-center justify-center">
                   {historyStaff.photo ? (
                     <img
                       src={historyStaff.photo}
@@ -1287,21 +1287,21 @@ export default function StaffManagement() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User className="w-6 h-6 text-indigo-600" />
+                    <User className="w-6 h-6 text-blue-600" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-neutral-900">
+                  <h3 className="text-base font-black text-slate-900">
                     {historyStaff.name}
                   </h3>
-                  <p className="text-xs text-neutral-500 font-medium">
+                  <p className="text-xs text-slate-500 font-medium">
                     Riwayat Slip Gaji Bulanan
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowHistoryModal(false)}
-                className="w-9 h-9 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-600 transition cursor-pointer"
+                className="w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-600 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1313,10 +1313,10 @@ export default function StaffManagement() {
                 historyStaff.payrollHistory.map((item, idx) => (
                   <div
                     key={idx}
-                    className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-2"
+                    className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
+                      <span className="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">
                         Periode: {item.month}
                       </span>
                       <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full uppercase">
@@ -1325,38 +1325,36 @@ export default function StaffManagement() {
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs font-semibold pt-1">
                       <div>
-                        <p className="text-[10px] text-neutral-400">
-                          Gaji Pokok
-                        </p>
-                        <p className="text-neutral-700">
+                        <p className="text-[10px] text-slate-400">Gaji Pokok</p>
+                        <p className="text-slate-700">
                           {formatRupiah(item.baseSalary)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-neutral-400">Bonus</p>
+                        <p className="text-[10px] text-slate-400">Bonus</p>
                         <p className="text-emerald-600">
                           +{formatRupiah(item.bonus)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-neutral-400">Potongan</p>
+                        <p className="text-[10px] text-slate-400">Potongan</p>
                         <p className="text-red-500">
                           -{formatRupiah(item.deduction)}
                         </p>
                       </div>
                     </div>
-                    <div className="pt-2 border-t border-neutral-200/60 flex items-center justify-between">
-                      <span className="text-xs font-bold text-neutral-500">
+                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-500">
                         Total Diterima:
                       </span>
-                      <span className="text-sm font-black text-emerald-600">
+                      <span className="text-sm font-black text-emerald-600 font-mono">
                         {formatRupiah(item.totalPaid)}
                       </span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-12 text-neutral-400 font-medium text-xs">
+                <div className="text-center py-12 text-slate-400 font-medium text-xs">
                   Belum ada riwayat penggajian untuk pegawai ini.
                 </div>
               )}
@@ -1364,7 +1362,7 @@ export default function StaffManagement() {
 
             <button
               onClick={() => setShowHistoryModal(false)}
-              className="w-full bg-slate-950 hover:bg-slate-800 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-md cursor-pointer"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 cursor-pointer"
             >
               Tutup
             </button>
@@ -1375,17 +1373,17 @@ export default function StaffManagement() {
       {/* MODAL KONFIRMASI HAPUS */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 w-full max-w-sm space-y-5 shadow-2xl text-center animate-fadeIn">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 w-full max-w-sm space-y-5 shadow-2xl text-center animate-fadeIn">
             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl mx-auto flex items-center justify-center">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-neutral-900">
+              <h3 className="text-base font-bold text-slate-900">
                 Hapus Akun Staff Ini?
               </h3>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-slate-500">
                 Pengguna{" "}
-                <span className="font-bold text-neutral-800">
+                <span className="font-bold text-slate-800">
                   @{deleteTarget?.username}
                 </span>{" "}
                 tidak akan dapat lagi masuk ke dalam sistem.
@@ -1395,7 +1393,7 @@ export default function StaffManagement() {
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 Batal
               </button>
@@ -1414,19 +1412,19 @@ export default function StaffManagement() {
       {/* MODAL PROSES GAJI (PAYROLL) DENGAN LEMBUR OTOMATIS */}
       {showPayrollModal && activeStaff && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-lg font-black text-neutral-900">
+                <h3 className="text-lg font-black text-slate-900">
                   Bayar Gaji: {activeStaff.name}
                 </h3>
-                <p className="text-xs text-neutral-500 font-medium">
+                <p className="text-xs text-slate-500 font-medium">
                   Kalkulasi gaji pokok, lembur otomatis, dan potongan kasbon.
                 </p>
               </div>
               <button
                 onClick={() => setShowPayrollModal(false)}
-                className="w-9 h-9 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-600 transition cursor-pointer"
+                className="w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-600 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1434,7 +1432,7 @@ export default function StaffManagement() {
 
             <form onSubmit={handleProcessPayroll} className="space-y-4">
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Periode Bulan
                 </label>
                 <input
@@ -1444,25 +1442,25 @@ export default function StaffManagement() {
                   onChange={(e) =>
                     setPayrollData({ ...payrollData, month: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 transition"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Gaji Pokok
                 </label>
                 <input
                   type="text"
                   disabled
                   value={formatRupiah(activeStaff.baseSalary)}
-                  className="w-full px-4 py-3 bg-neutral-100 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-500 cursor-not-allowed"
+                  className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-xs font-black text-slate-500 cursor-not-allowed"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Jam Lembur
                   </label>
                   <input
@@ -1475,11 +1473,11 @@ export default function StaffManagement() {
                       })
                     }
                     placeholder="0"
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Tarif / Jam (Rp)
                   </label>
                   <input
@@ -1491,13 +1489,13 @@ export default function StaffManagement() {
                         overtimePayRate: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Bonus Tambahan Lainnya (Opsional)
                 </label>
                 <input
@@ -1507,12 +1505,12 @@ export default function StaffManagement() {
                     setPayrollData({ ...payrollData, bonus: e.target.value })
                   }
                   placeholder="0"
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950 transition"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 focus:outline-none focus:border-blue-600 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Potongan / Kasbon (Opsional)
                 </label>
                 <input
@@ -1525,15 +1523,15 @@ export default function StaffManagement() {
                     })
                   }
                   placeholder="0"
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950 transition"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 focus:outline-none focus:border-blue-600 transition"
                 />
               </div>
 
-              <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                   Total Bersih yang Dibayarkan (Termasuk Lembur)
                 </span>
-                <h4 className="text-lg font-black text-emerald-600">
+                <h4 className="text-lg font-black text-emerald-600 font-mono">
                   {formatRupiah(
                     (activeStaff.baseSalary || 0) +
                       Number(payrollData.overtimeHours || 0) *
@@ -1544,17 +1542,17 @@ export default function StaffManagement() {
                 </h4>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-neutral-100">
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowPayrollModal(false)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-slate-950 hover:bg-slate-800 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg cursor-pointer"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 cursor-pointer"
                 >
                   Selesaikan Pembayaran
                 </button>

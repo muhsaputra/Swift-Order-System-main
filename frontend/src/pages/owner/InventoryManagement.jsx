@@ -152,22 +152,22 @@ export default function InventoryManagement() {
   );
 
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans antialiased text-neutral-900">
-      {/* HERO BANNER HIGH-LEVEL */}
-      <div className="relative bg-gradient-to-br from-slate-950 via-neutral-900 to-indigo-950 rounded-[2.5rem] p-8 lg:p-10 text-white shadow-2xl overflow-hidden border border-neutral-800">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans antialiased text-slate-900 bg-sky-50/40 min-h-screen">
+      {/* HERO BANNER HIGH-LEVEL - Nuansa Biru Terang */}
+      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 rounded-[2.5rem] p-8 lg:p-10 text-white shadow-xl overflow-hidden border border-blue-600/40">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500/20 to-indigo-500/20 border border-emerald-500/30 px-3.5 py-1.5 rounded-full text-[11px] font-black text-emerald-400 tracking-wider shadow-inner">
-              <Boxes className="w-3.5 h-3.5 animate-pulse" />
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 px-3.5 py-1.5 rounded-full text-[11px] font-black text-sky-100 tracking-wider shadow-2xs">
+              <Boxes className="w-3.5 h-3.5 animate-pulse text-sky-200" />
               <span>WAREHOUSE & INVENTORY CONTROL</span>
             </div>
             <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white">
               Manajemen Stok & Bahan Baku
             </h1>
-            <p className="text-xs lg:text-sm text-neutral-300 font-medium max-w-2xl leading-relaxed">
+            <p className="text-xs lg:text-sm text-sky-100 font-medium max-w-2xl leading-relaxed">
               Pusat kendali inventaris restoran. Pantau ketersediaan stok secara
               real-time, kelola batas minimum peringatan, dan sinkronkan
               pembelian restock otomatis ke Laporan Keuangan.
@@ -176,21 +176,21 @@ export default function InventoryManagement() {
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-300 hover:to-emerald-400 text-slate-950 rounded-2xl text-xs font-black shadow-xl shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer shrink-0"
+            className="flex items-center justify-center gap-2.5 px-6 py-4 bg-white hover:bg-sky-50 text-blue-900 rounded-2xl text-xs font-black shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer shrink-0"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-blue-600" />
             <span>Tambah Bahan Baku</span>
           </button>
         </div>
 
         {/* STATISTIK OVERVIEW CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/10">
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-            <div className="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/15">
+          <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-sky-200">
               <Layers className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+              <p className="text-[10px] font-black uppercase tracking-wider text-sky-200">
                 Total Jenis Barang
               </p>
               <p className="text-xl font-black text-white">
@@ -199,29 +199,29 @@ export default function InventoryManagement() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-            <div className="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
+          <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-200">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+              <p className="text-[10px] font-black uppercase tracking-wider text-sky-200">
                 Stok Menipis / Habis
               </p>
-              <p className="text-xl font-black text-red-400">
+              <p className="text-xl font-black text-white">
                 {lowStockCount} Item
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-200">
               <DollarSign className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+              <p className="text-[10px] font-black uppercase tracking-wider text-sky-200">
                 Estimasi Valuasi Aset Stok
               </p>
-              <p className="text-lg font-black text-emerald-400">
+              <p className="text-lg font-black text-white">
                 {formatRupiah(totalAssetValue)}
               </p>
             </div>
@@ -230,9 +230,9 @@ export default function InventoryManagement() {
       </div>
 
       {/* KONTROL TAB & PENCARIAN */}
-      <div className="bg-white border border-neutral-200/80 rounded-[2rem] shadow-sm p-6 lg:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-100">
-          <div className="flex items-center gap-2 bg-neutral-100 p-1.5 rounded-2xl overflow-x-auto">
+      <div className="bg-white border border-slate-200/80 rounded-[2rem] shadow-xs p-6 lg:p-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl overflow-x-auto">
             {["Semua", "Bahan Baku", "Minuman", "Kemasan", "Lainnya"].map(
               (cat) => (
                 <button
@@ -240,8 +240,8 @@ export default function InventoryManagement() {
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer whitespace-nowrap ${
                     selectedCategory === cat
-                      ? "bg-slate-950 text-white shadow-md"
-                      : "text-neutral-600 hover:text-neutral-900"
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                      : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   {cat}
@@ -251,13 +251,13 @@ export default function InventoryManagement() {
           </div>
 
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               placeholder="Cari nama bahan atau kategori..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-neutral-50/80 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 transition-all shadow-inner"
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 transition-all shadow-inner"
             />
           </div>
         </div>
@@ -266,7 +266,7 @@ export default function InventoryManagement() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[11px] font-black text-neutral-500 uppercase tracking-wider">
+              <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider">
                 <th className="py-4 px-4">Nama Barang / Bahan</th>
                 <th className="py-4 px-4">Kategori</th>
                 <th className="py-4 px-4">Stok Saat Ini</th>
@@ -275,12 +275,12 @@ export default function InventoryManagement() {
                 <th className="py-4 px-4 text-center">Aksi Restock</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100 text-xs font-semibold text-neutral-800">
+            <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-800">
               {loading ? (
                 <tr>
                   <td
                     colSpan="6"
-                    className="text-center py-16 text-neutral-400 font-bold animate-pulse"
+                    className="text-center py-16 text-slate-400 font-bold animate-pulse"
                   >
                     Memuat data inventaris gudang...
                   </td>
@@ -294,37 +294,37 @@ export default function InventoryManagement() {
                       className="hover:bg-slate-50/80 transition-colors group"
                     >
                       <td className="py-4 px-4 flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-700 font-black flex items-center justify-center shrink-0 shadow-inner">
-                          <Package className="w-5 h-5 text-indigo-600" />
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0 shadow-inner">
+                          <Package className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                          <p className="font-extrabold text-neutral-900 text-sm">
+                          <p className="font-extrabold text-slate-900 text-sm">
                             {item.itemName}
                           </p>
-                          <p className="text-[10px] text-neutral-400 font-mono">
+                          <p className="text-[10px] text-slate-400 font-mono">
                             Min. Alert: {item.minAlert} {item.unit}
                           </p>
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="inline-flex items-center gap-1.5 bg-neutral-100 text-neutral-700 px-2.5 py-1 rounded-lg text-[11px] font-bold">
-                          <Tag className="w-3 h-3 text-indigo-500" />
+                        <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-[11px] font-bold">
+                          <Tag className="w-3 h-3 text-blue-600" />
                           {item.category}
                         </span>
                       </td>
                       <td className="py-4 px-4">
                         <span
-                          className={`text-sm font-black ${isLow ? "text-red-600" : "text-neutral-900"}`}
+                          className={`text-sm font-black ${isLow ? "text-red-600" : "text-slate-900"}`}
                         >
                           {item.stock}{" "}
-                          <span className="text-xs font-normal text-neutral-500">
+                          <span className="text-xs font-normal text-slate-500">
                             {item.unit}
                           </span>
                         </span>
                       </td>
                       <td className="py-4 px-4 font-black text-emerald-600 text-sm">
                         {formatRupiah(item.costPerUnit)}{" "}
-                        <span className="text-[10px] font-normal text-neutral-400">
+                        <span className="text-[10px] font-normal text-slate-400">
                           / {item.unit}
                         </span>
                       </td>
@@ -345,9 +345,9 @@ export default function InventoryManagement() {
                             setActiveItem(item);
                             setShowRestockModal(true);
                           }}
-                          className="px-4 py-2 bg-slate-950 hover:bg-slate-800 text-white rounded-xl text-[11px] font-black transition-all shadow-md cursor-pointer active:scale-95 inline-flex items-center gap-1.5"
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-black transition-all shadow-md shadow-blue-600/20 cursor-pointer active:scale-95 inline-flex items-center gap-1.5"
                         >
-                          <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" />{" "}
+                          <ArrowUpRight className="w-3.5 h-3.5 text-sky-200" />{" "}
                           Restock
                         </button>
                       </td>
@@ -358,7 +358,7 @@ export default function InventoryManagement() {
                 <tr>
                   <td
                     colSpan="6"
-                    className="text-center py-16 text-neutral-400 font-bold"
+                    className="text-center py-16 text-slate-400 font-bold"
                   >
                     Tidak ada bahan baku yang ditemukan dalam inventaris.
                   </td>
@@ -370,18 +370,18 @@ export default function InventoryManagement() {
 
         {/* PAGINATION CONTROLS */}
         {!loading && filteredItems.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-neutral-100">
-            <p className="text-xs font-semibold text-neutral-500">
-              Menampilkan{"	"}
-              <span className="font-bold text-neutral-900">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500">
+              Menampilkan{" "}
+              <span className="font-bold text-slate-900">
                 {Math.min(startIndex + 1, filteredItems.length)}
               </span>{" "}
               sampai{" "}
-              <span className="font-bold text-neutral-900">
+              <span className="font-bold text-slate-900">
                 {Math.min(startIndex + itemsPerPage, filteredItems.length)}
               </span>{" "}
               dari{" "}
-              <span className="font-bold text-neutral-900">
+              <span className="font-bold text-slate-900">
                 {filteredItems.length}
               </span>{" "}
               total item
@@ -391,20 +391,18 @@ export default function InventoryManagement() {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:hover:bg-neutral-100 text-neutral-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                className="flex items-center gap-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Sebelumnya</span>
               </button>
 
               <div className="flex items-center gap-1 px-2">
-                <span className="text-xs font-black text-neutral-900">
+                <span className="text-xs font-black text-slate-900">
                   {currentPage}
                 </span>
-                <span className="text-xs font-semibold text-neutral-400">
-                  /
-                </span>
-                <span className="text-xs font-semibold text-neutral-500">
+                <span className="text-xs font-semibold text-slate-400">/</span>
+                <span className="text-xs font-semibold text-slate-500">
                   {totalPages}
                 </span>
               </div>
@@ -414,7 +412,7 @@ export default function InventoryManagement() {
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:hover:bg-neutral-100 text-neutral-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                className="flex items-center gap-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 <span>Berikutnya</span>
                 <ChevronRight className="w-4 h-4" />
@@ -427,19 +425,19 @@ export default function InventoryManagement() {
       {/* MODAL TAMBAH BARANG INVENTARIS */}
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-lg font-black text-neutral-900">
+                <h3 className="text-lg font-black text-slate-900">
                   Tambah Bahan Baku Baru
                 </h3>
-                <p className="text-xs text-neutral-500 font-medium">
+                <p className="text-xs text-slate-500 font-medium">
                   Daftarkan item stok baru ke dalam gudang.
                 </p>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="w-9 h-9 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-600 transition cursor-pointer"
+                className="w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-600 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -447,7 +445,7 @@ export default function InventoryManagement() {
 
             <form onSubmit={handleAddSubmit} className="space-y-4">
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Nama Barang / Bahan
                 </label>
                 <input
@@ -458,13 +456,13 @@ export default function InventoryManagement() {
                     setFormData({ ...formData, itemName: e.target.value })
                   }
                   placeholder="Contoh: Beras Premium"
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Kategori
                   </label>
                   <select
@@ -472,7 +470,7 @@ export default function InventoryManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 cursor-pointer"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 cursor-pointer"
                   >
                     <option value="Bahan Baku">Bahan Baku</option>
                     <option value="Minuman">Minuman</option>
@@ -481,7 +479,7 @@ export default function InventoryManagement() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Satuan Unit
                   </label>
                   <select
@@ -489,7 +487,7 @@ export default function InventoryManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, unit: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950 cursor-pointer"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600 cursor-pointer"
                   >
                     <option value="kg">Kilogram (kg)</option>
                     <option value="gram">Gram (g)</option>
@@ -503,7 +501,7 @@ export default function InventoryManagement() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Stok Awal
                   </label>
                   <input
@@ -514,11 +512,11 @@ export default function InventoryManagement() {
                       setFormData({ ...formData, stock: e.target.value })
                     }
                     placeholder="0"
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                  <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                     Batas Minimum Alert
                   </label>
                   <input
@@ -529,13 +527,13 @@ export default function InventoryManagement() {
                       setFormData({ ...formData, minAlert: e.target.value })
                     }
                     placeholder="5"
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Harga Beli per Satuan (Rp)
                 </label>
                 <input
@@ -546,21 +544,21 @@ export default function InventoryManagement() {
                     setFormData({ ...formData, costPerUnit: e.target.value })
                   }
                   placeholder="15000"
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-neutral-100">
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-slate-950 hover:bg-slate-800 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg cursor-pointer"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg cursor-pointer shadow-blue-600/20"
                 >
                   Simpan Barang
                 </button>
@@ -573,19 +571,19 @@ export default function InventoryManagement() {
       {/* MODAL RESTOCK STOK & OTOMATIS MASUK LAPORAN KEUANGAN */}
       {showRestockModal && activeItem && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-neutral-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-6 lg:p-8 w-full max-w-md space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-lg font-black text-neutral-900">
+                <h3 className="text-lg font-black text-slate-900">
                   Restock: {activeItem.itemName}
                 </h3>
-                <p className="text-xs text-neutral-500 font-medium">
+                <p className="text-xs text-slate-500 font-medium">
                   Pembelian stok akan otomatis tercatat di Laporan Keuangan.
                 </p>
               </div>
               <button
                 onClick={() => setShowRestockModal(false)}
-                className="w-9 h-9 bg-neutral-100 hover:bg-neutral-200 rounded-full flex items-center justify-center text-neutral-600 transition cursor-pointer"
+                className="w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-600 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -593,7 +591,7 @@ export default function InventoryManagement() {
 
             <form onSubmit={handleRestockSubmit} className="space-y-4">
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Jumlah Stok Masuk ({activeItem.unit})
                 </label>
                 <input
@@ -607,12 +605,12 @@ export default function InventoryManagement() {
                     })
                   }
                   placeholder="Contoh: 50"
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-semibold text-neutral-900 focus:outline-none focus:border-slate-950"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-neutral-700 mb-1.5">
+                <label className="block text-[11px] uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">
                   Total Biaya Pengeluaran Pembelian (Rp)
                 </label>
                 <input
@@ -626,12 +624,12 @@ export default function InventoryManagement() {
                     })
                   }
                   placeholder="Contoh: 750000"
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black text-neutral-900 focus:outline-none focus:border-slate-950"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
-              <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                   Stok Akhir Setelah Restock
                 </span>
                 <h4 className="text-lg font-black text-emerald-600">
@@ -641,17 +639,17 @@ export default function InventoryManagement() {
                 </h4>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-neutral-100">
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowRestockModal(false)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg cursor-pointer"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-blue-600/20 cursor-pointer"
                 >
                   Konfirmasi & Catat Pengeluaran
                 </button>

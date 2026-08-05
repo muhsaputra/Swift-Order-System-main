@@ -499,36 +499,31 @@ export default function MenuManagement() {
   );
 
   return (
-    <div className="min-h-screen bg-sky-50/40 text-slate-900 pb-28 selection:bg-blue-600 selection:text-white">
-      {/* HIGH-LEVEL HERO BANNER - Nuansa Biru Terang */}
-      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 text-white py-12 px-6 md:px-12 overflow-hidden mb-8 shadow-xl rounded-[2.5rem]">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-20 filter brightness-50 scale-105 pointer-events-none"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=80')`,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/80 via-blue-900/40 to-transparent pointer-events-none" />
+    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans antialiased text-slate-900 bg-sky-50/40 min-h-screen">
+      {/* HIGH-LEVEL HERO BANNER - Menyesuaikan persis dengan gambar referensi */}
+      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 rounded-[2.5rem] p-8 lg:p-10 text-white shadow-xl overflow-hidden border border-blue-600/40">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3.5 py-1.5 text-xs font-bold text-sky-100 border border-white/25 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-sky-200 animate-pulse" />
-              <span>Sistem Manajemen Katalog, Resep & Promo Terpadu</span>
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 px-3.5 py-1.5 rounded-full text-[11px] font-black text-sky-100 tracking-wider shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 animate-pulse text-sky-200" />
+              <span>SWIFT ORDERING ENTERPRISE CATALOG</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white">
               Manajemen Menu & Promo
             </h1>
-            <p className="text-xs md:text-sm text-sky-100 max-w-xl leading-relaxed">
+            <p className="text-xs lg:text-sm text-sky-100 font-medium max-w-2xl leading-relaxed">
               Pusat kendali produk kuliner, pengaturan SKU, harga promosi
               massal, varian add-on modular, serta sinkronisasi otomatis stok
               bahan baku gudang (BOM).
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl shadow-xl">
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl shadow-xl shrink-0">
             <div className="w-12 h-12 rounded-2xl bg-white text-blue-900 border border-white/30 flex items-center justify-center font-black shadow-sm">
-              <Layers className="w-5 h-5" />
+              <Layers className="w-5 h-5 text-blue-600" />
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-wider text-sky-200 font-bold">
@@ -545,7 +540,7 @@ export default function MenuManagement() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* HEADER KONTROL & PENCARIAN */}
         <header className="flex flex-col lg:flex-row lg:items-center justify-between pb-6 border-b border-slate-200/80 gap-4">
           <div className="space-y-1">

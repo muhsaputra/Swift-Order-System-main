@@ -590,45 +590,40 @@ export default function TransactionHistory() {
   ];
 
   return (
-    <div className="min-h-screen bg-sky-50/40 text-slate-900 pb-20">
-      {/* HERO BANNER ATTRACTION - Nuansa Biru Terang */}
-      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 text-white py-10 px-6 md:px-12 overflow-hidden mb-8 shadow-xl rounded-[2.5rem]">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-20 filter brightness-50 scale-105 pointer-events-none"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1920&q=80')`,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/80 via-blue-900/40 to-transparent pointer-events-none" />
+    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans antialiased text-slate-900 bg-sky-50/40 min-h-screen">
+      {/* HERO BANNER ATTRACTION - Menyesuaikan persis dengan gaya visual Finansial */}
+      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 rounded-[2.5rem] p-8 lg:p-10 text-white shadow-xl overflow-hidden border border-blue-600/40">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[11px] font-bold text-sky-100 border border-white/25 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-sky-200" />
-              <span>Arsip & Riwayat Keuangan</span>
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 px-3.5 py-1.5 rounded-full text-[11px] font-black text-sky-100 tracking-wider shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 animate-pulse text-sky-200" />
+              <span>SWIFT ORDERING ENTERPRISE ARCHIVE</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white">
               Riwayat Transaksi & Analitik
             </h1>
-            <p className="text-xs md:text-sm text-sky-100 max-w-lg leading-relaxed">
+            <p className="text-xs lg:text-sm text-sky-100 font-medium max-w-2xl leading-relaxed">
               Pantau seluruh daftar pesanan selesai, rekapitulasi biaya layanan,
               diskon, dan analitik omset restoran secara real-time.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
             {/* Tombol Akses Fitur Rekap Shift Kasir */}
             <button
               onClick={() => setShowShiftModal(true)}
-              className="bg-white hover:bg-sky-50 text-blue-900 px-5 py-3 rounded-2xl text-xs font-black transition shadow-lg flex items-center gap-2 cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-2xl text-xs font-black shadow-md border border-white/25 transition cursor-pointer"
             >
-              <Calculator className="w-4 h-4 text-blue-600" />
+              <Calculator className="w-4 h-4 text-sky-200" />
               <span>Rekap Shift & Kas Fisik (Z-Report)</span>
             </button>
 
             <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl flex items-center gap-4 shadow-xl">
-              <div className="w-12 h-12 rounded-2xl bg-white text-blue-900 flex items-center justify-center font-black shadow-sm">
-                <Receipt className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-2xl bg-white text-blue-900 border border-white/30 flex items-center justify-center font-black shadow-sm">
+                <Receipt className="w-5 h-5 text-blue-600" />
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-sky-200 font-bold">
@@ -643,7 +638,7 @@ export default function TransactionHistory() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Metrik Finansial Tambahan (Service Fee & Diskon Kupon) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white border border-slate-200/80 p-5 rounded-3xl shadow-xs flex items-center gap-4">

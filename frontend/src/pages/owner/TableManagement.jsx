@@ -339,52 +339,45 @@ export default function TableManagement() {
   const totalCapacity = tables.reduce((acc, t) => acc + (t.capacity || 4), 0);
 
   return (
-    <div className="min-h-screen bg-sky-50/40 text-slate-900 pb-20">
-      {/* HERO BANNER - Nuansa Biru Terang */}
-      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 text-white py-10 px-6 md:px-12 overflow-hidden mb-8 shadow-xl rounded-[2.5rem]">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-20 filter brightness-50 scale-105 pointer-events-none"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=80')`,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/80 via-blue-900/40 to-transparent pointer-events-none" />
+    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto font-sans antialiased text-slate-900 bg-sky-50/40 min-h-screen">
+      {/* HIGH-LEVEL HERO BANNER - Menyesuaikan persis dengan gaya visual Finansial */}
+      <div className="relative bg-gradient-to-r from-blue-700 to-blue-900 rounded-[2.5rem] p-8 lg:p-10 text-white shadow-xl overflow-hidden border border-blue-600/40">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-sky-100 border border-white/25 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-sky-200" />
-              <span>Manajemen Meja & Denah Cafe</span>
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 px-3.5 py-1.5 rounded-full text-[11px] font-black text-sky-100 tracking-wider shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 animate-pulse text-sky-200" />
+              <span>SWIFT ORDERING ENTERPRISE FLOOR PLAN</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white">
               Kanvas Tata Letak Meja Interaktif
             </h1>
-            <p className="text-xs md:text-sm text-sky-100 max-w-lg leading-relaxed">
+            <p className="text-xs lg:text-sm text-sky-100 font-medium max-w-2xl leading-relaxed">
               Seret dan letakkan kartu meja di atas area kanvas grid luas untuk
               mengatur denah kafe secara bebas dan profesional.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl flex items-center gap-4 shadow-xl">
-              <div className="w-12 h-12 rounded-2xl bg-white text-blue-900 flex items-center justify-center font-black shadow-sm">
-                <LayoutGrid className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-sky-200 font-bold">
-                  Total Kapasitas
-                </p>
-                <p className="text-sm font-extrabold text-white flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-sky-200" /> {totalCapacity}{" "}
-                  Kursi ({tables.length} Meja)
-                </p>
-              </div>
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl shadow-xl shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-white text-blue-900 border border-white/30 flex items-center justify-center font-black shadow-sm">
+              <LayoutGrid className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-sky-200 font-bold">
+                Total Kapasitas
+              </p>
+              <p className="text-sm font-extrabold text-white flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-sky-200" /> {totalCapacity}{" "}
+                Kursi ({tables.length} Meja)
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Tombol Pemicu Modal Tambah Meja */}
         <div className="flex justify-between items-center bg-white border border-slate-200/80 p-6 rounded-3xl shadow-xs">
           <div>
